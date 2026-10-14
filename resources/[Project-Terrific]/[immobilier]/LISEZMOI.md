@@ -70,7 +70,14 @@ Avec un MLO, placez une sortie différente pour chaque appartement (Placer les p
   - clés numériques (ajouter ou retirer des détenteurs) ;
   - **clés et serrures** : faire un **double de clé** (objet « Double de clé » à donner ou à prêter : il ouvre la porte et le
     coffre) et **changer les serrures** (tous les doubles distribués deviennent inutilisables) ;
-  - sonnette, décoration (meubles), **Placer les points** (coffre, vestiaire, déconnexion, sortie), fin de location.
+  - sonnette, décoration (meubles), fin de location ;
+  - **Placer les points** : vestiaire, déconnexion, sortie, et :
+    - **Ajouter un coffre ici** (jusqu'à 5 par bien) : petit (30 places), moyen (50) ou grand / armurerie (80),
+      avec un nom au choix (« Armurerie », « Cave »…). Armes, munitions, objets, billets marqués ;
+    - **Retirer le coffre le plus proche** (à vider avant) ;
+    - **Coffre-fort ici** : argent **propre** (déposer / retirer du liquide) et argent **sale** (dépose tous les
+      billets marqués de l'inventaire, retrait en billets marqués). Accès : propriétaire, détenteurs de clés et
+      doubles de clés.
 - `/mesbiens` : vos biens et ceux dont vous avez la clé, avec le prochain loyer (GPS au clic).
 - Le garage du bien apparaît quand on s'en approche (propriétaire et détenteurs de clés numériques).
 

@@ -40,7 +40,8 @@ local function wheels()
         local modCount = GetNumVehicleMods(vehicle, 23)
         local labels = {}
         for j = 1, modCount do
-            labels[j] = GetLabelText(GetModTextLabel(vehicle, 23, j - 1))
+            local nomRoue = GetLabelText(GetModTextLabel(vehicle, 23, j - 1))
+            labels[j] = (nomRoue == 'NULL' or nomRoue == '') and ('Jante %d'):format(j) or nomRoue
         end
 
         options[#options + 1] = {

@@ -182,12 +182,37 @@ local function prepareManageMenu()
             arrow = true,
             onSelect = function()
                 local points = {
-                    { kind = 'stash', label = locale('menu.place_stash'), icon = 'box' },
                     { kind = 'clothing', label = locale('menu.place_clothing'), icon = 'shirt' },
                     { kind = 'logout', label = locale('menu.place_logout'), icon = 'bed' },
                     { kind = 'exit', label = locale('menu.place_exit'), icon = 'door-open' },
+                    { kind = 'safe', label = 'Coffre-fort (argent propre et sale) ici', icon = 'vault' },
                 }
-                local opts = {}
+                local opts = {
+                    {
+                        title = 'Ajouter un coffre ici',
+                        description = 'Armes, objets, billets marques... (jusqu\'a 5 coffres)',
+                        icon = 'box',
+                        onSelect = function()
+                            local input = lib.inputDialog('Nouveau coffre', {
+                                { type = 'select', label = 'Taille', required = true, default = 'moyen', options = {
+                                    { value = 'petit', label = 'Petit (30 places, 100 kg)' },
+                                    { value = 'moyen', label = 'Moyen (50 places, 250 kg)' },
+                                    { value = 'grand', label = 'Grand / armurerie (80 places, 600 kg)' } } },
+                                { type = 'input', label = 'Nom (facultatif)', placeholder = 'Armurerie, Cave...', max = 30 },
+                            })
+                            if input then TriggerServerEvent('qbx_properties:server:setInteraction', 'stash', input[1], input[2]) end
+                        end
+                    },
+                    {
+                        title = 'Retirer le coffre le plus proche',
+                        description = 'Videz-le avant : son contenu ne sera plus accessible',
+                        icon = 'trash',
+                        onSelect = function()
+                            local ok = lib.alertDialog({ header = 'Retirer le coffre', content = 'Le contenu du coffre le plus proche ne sera plus accessible. Continuer ?', centered = true, cancel = true })
+                            if ok == 'confirm' then TriggerServerEvent('qbx_properties:server:removeStash') end
+                        end
+                    },
+                }
                 for _, pt in ipairs(points) do
                     opts[#opts + 1] = {
                         title = pt.label,
@@ -228,12 +253,52 @@ local function prepareManageMenu()
     lib.showContext('qbx_properties_manageMenu')
 end
 
+-- coffre-fort : argent propre (liquide) et argent sale (billets marques)
+function OpenPropertySafe()
+    local d = lib.callback.await('qbx_properties:callback:getSafe', false)
+    if not d then return Bridge.Notify(locale('notify.no_access'), 'error') end
+    local function montant(titre, max)
+        local input = lib.inputDialog(titre, { { type = 'number', label = ('Montant (max $%d)'):format(max), required = true, min = 1, max = max } })
+        return input and input[1]
+    end
+    lib.registerContext({
+        id = 'qbx_properties_safe',
+        title = 'Coffre-fort',
+        options = {
+            { title = ('Argent propre : $%d'):format(d.propre), description = ('Liquide sur vous : $%d'):format(d.liquide), icon = 'money-bill', readOnly = true },
+            { title = 'Deposer de l\'argent propre', icon = 'arrow-down', disabled = d.liquide <= 0, onSelect = function()
+                local m = montant('Deposer de l\'argent propre', d.liquide)
+                if m then TriggerServerEvent('qbx_properties:server:safe', 'deposer', 'propre', m) end
+            end },
+            { title = 'Retirer de l\'argent propre', icon = 'arrow-up', disabled = d.propre <= 0, onSelect = function()
+                local m = montant('Retirer de l\'argent propre', d.propre)
+                if m then TriggerServerEvent('qbx_properties:server:safe', 'retirer', 'propre', m) end
+            end },
+            { title = ('Argent sale : $%d'):format(d.sale), description = ('Billets marques sur vous : $%d'):format(d.billets), icon = 'sack-dollar', readOnly = true },
+            { title = 'Deposer tous mes billets marques', icon = 'arrow-down', disabled = d.billets <= 0, onSelect = function()
+                TriggerServerEvent('qbx_properties:server:safe', 'deposer', 'sale', d.billets)
+            end },
+            { title = 'Retirer de l\'argent sale (billets marques)', icon = 'arrow-up', disabled = d.sale <= 0, onSelect = function()
+                local m = montant('Retirer de l\'argent sale', d.sale)
+                if m then TriggerServerEvent('qbx_properties:server:safe', 'retirer', 'sale', m) end
+            end },
+        },
+    })
+    lib.showContext('qbx_properties_safe')
+end
+
 local function checkInteractions()
     local interactOptions = {
-        ['stash'] = function(coords)
-            qbx.drawText3d({ coords = coords, text = locale('drawtext.stash') })
+        ['stash'] = function(coords, data)
+            qbx.drawText3d({ coords = coords, text = data and data.label and ('[E] ' .. data.label) or locale('drawtext.stash') })
             if IsControlJustPressed(0, 38) then
-                TriggerServerEvent('qbx_properties:server:openStash')
+                TriggerServerEvent('qbx_properties:server:openStash', data and data.index)
+            end
+        end,
+        ['safe'] = function(coords)
+            qbx.drawText3d({ coords = coords, text = '[E] Coffre-fort' })
+            if IsControlJustPressed(0, 38) then
+                OpenPropertySafe()
             end
         end,
         ['exit'] = function(coords)
@@ -280,7 +345,8 @@ local function checkInteractions()
             for i = 1, #interactions do
                 if #(playerCoords - interactions[i].coords) < 1.5 and not IsDecorating then
                     sleep = 0
-                    interactOptions[interactions[i].type](interactions[i].coords)
+                    local action = interactOptions[interactions[i].type]
+                    if action then action(interactions[i].coords, interactions[i]) end
                 end
             end
             Wait(sleep)

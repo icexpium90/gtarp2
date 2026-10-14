@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS `properties` (
     `serrure` INT NOT NULL DEFAULT 1,
     `next_rent` BIGINT DEFAULT NULL,
     `impayes` INT NOT NULL DEFAULT 0,
+    `coffre_propre` BIGINT NOT NULL DEFAULT 0,
+    `coffre_sale` BIGINT NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     KEY `owner` (`owner`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -14,7 +14,10 @@ function GetModLabel (vehicle, modType, modValue)
     if modValue == -1 then return locale('menus.general.stock') end
 
     local label = GetModTextLabel(vehicle, modType, modValue)
-    return (not label or label == '') and tostring(modValue) or GetLabelText(label)
+    -- pieces des voitures addon : beaucoup n'ont pas de nom traduit (GetLabelText renvoie NULL)
+    local texte = (label and label ~= '') and GetLabelText(label) or nil
+    if not texte or texte == 'NULL' or texte == '' then return ('Option %d'):format(modValue + 1) end
+    return texte
 end
 
 ---@param duplicate boolean

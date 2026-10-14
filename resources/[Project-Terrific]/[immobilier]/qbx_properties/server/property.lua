@@ -19,7 +19,7 @@ local function buildInteractions(property)
     for i = 1, #stashes do
         if stashes[i].coords then
             local c = isInteriorShell and CalculateOffsetCoords(propertyCoords, stashes[i].coords) or stashes[i].coords
-            interactions[#interactions + 1] = { type = 'stash', coords = vec3(c.x, c.y, c.z) }
+            interactions[#interactions + 1] = { type = 'stash', coords = vec3(c.x, c.y, c.z), index = i, label = stashes[i].label }
         end
     end
     local interactData = json.decode(property.interact_options) or {}
@@ -93,11 +93,11 @@ local function refreshInteractions(propertyId)
 end
 
 -- Le proprietaire (ou un agent immobilier / admin) place un point a sa position actuelle
-RegisterNetEvent('qbx_properties:server:setInteraction', function(kind)
+RegisterNetEvent('qbx_properties:server:setInteraction', function(kind, taille, nom)
     local src = source
     local propertyId = enteredProperty[src]
     if not propertyId then return end
-    if kind ~= 'stash' and kind ~= 'clothing' and kind ~= 'logout' and kind ~= 'exit' then return end
+    if kind ~= 'stash' and kind ~= 'clothing' and kind ~= 'logout' and kind ~= 'exit' and kind ~= 'safe' then return end
     local player = Bridge.GetPlayer(src)
     local property = MySQL.single.await('SELECT owner, coords, interior, interact_options, stash_options FROM properties WHERE id = ?', {propertyId})
     if not property or not player then return end
@@ -114,9 +114,31 @@ RegisterNetEvent('qbx_properties:server:setInteraction', function(kind)
         point = { x = pos.x, y = pos.y, z = pos.z, w = heading }
     end
     if kind == 'stash' then
+        -- un coffre de plus (armes, objets, argent sale en billets marques...), dans la limite de config.coffres.max
         local stashes = json.decode(property.stash_options) or {}
-        local actuel = stashes[1] or {}
-        stashes = { { coords = point, slots = actuel.slots or config.apartmentStash.slots, maxWeight = actuel.maxWeight or config.apartmentStash.maxWeight } }
+        local cfg = config.coffres
+        local placesSansPosition = 0
+        for i = 1, #stashes do if not stashes[i].coords then placesSansPosition += 1 end end
+        if #stashes - placesSansPosition >= cfg.max then
+            return Bridge.Notify(src, ('Maximum %d coffres par bien.'):format(cfg.max), 'error')
+        end
+        local t = cfg.tailles[taille] or cfg.tailles[cfg.defaut]
+        local prochainId = 1
+        for i = 1, #stashes do prochainId = math.max(prochainId, (stashes[i].id or 0) + 1) end
+        local label = (type(nom) == 'string' and #nom > 0) and nom:sub(1, 30) or t.label
+        -- le premier coffre sans position (shell sans coffre place) est reutilise, sinon on en ajoute un
+        local reutilise = false
+        for i = 1, #stashes do
+            if not stashes[i].coords then
+                stashes[i] = { coords = point, slots = t.slots, maxWeight = t.maxWeight, label = label, id = stashes[i].id }
+                reutilise = true
+                break
+            end
+        end
+        if not reutilise then
+            -- le tout premier coffre garde l'identifiant historique (sans numero) pour conserver son contenu
+            stashes[#stashes + 1] = { coords = point, slots = t.slots, maxWeight = t.maxWeight, label = label, id = #stashes > 0 and prochainId or nil }
+        end
         MySQL.update.await('UPDATE properties SET stash_options = ? WHERE id = ?', { json.encode(stashes), propertyId })
     else
         local inter = json.decode(property.interact_options) or {}
@@ -442,15 +464,105 @@ RegisterNetEvent('qbx_properties:server:logoutProperty', function()
     MySQL.update('UPDATE players SET position = ? WHERE citizenid = ?', { json.encode(vec4(coords.x, coords.y, coords.z, 0.0)), player.PlayerData.citizenid })
 end)
 
-RegisterNetEvent('qbx_properties:server:openStash', function()
+local function stashIdentifier(propertyName, stash)
+    if stash.id then return ('qbx_properties_%s_%s'):format(propertyName, stash.id) end
+    return ('qbx_properties_%s'):format(propertyName)
+end
+
+RegisterNetEvent('qbx_properties:server:openStash', function(index)
     local playerSource = source --[[@as number]]
     local propertyId = enteredProperty[playerSource]
     if not propertyId or not HasPropertyAccess(playerSource, propertyId) then return end
 
     local property = MySQL.single.await('SELECT property_name, stash_options FROM properties WHERE id = ?', {propertyId})
-    local stash = (json.decode(property.stash_options) or {})[1] or {}
-    TriggerClientEvent('qbx_properties:client:openStash', playerSource, string.format('qbx_properties_%s', property.property_name),
+    local stash = (json.decode(property.stash_options) or {})[tonumber(index) or 1] or {}
+    TriggerClientEvent('qbx_properties:client:openStash', playerSource, stashIdentifier(property.property_name, stash),
         stash.slots or config.apartmentStash.slots, stash.maxWeight or config.apartmentStash.maxWeight)
+end)
+
+-- retire le coffre le plus proche (proprietaire ou agent). Son contenu reste en base : remettre un coffre ne le recupere pas.
+RegisterNetEvent('qbx_properties:server:removeStash', function()
+    local src = source
+    local propertyId = enteredProperty[src]
+    local player = Bridge.GetPlayer(src)
+    if not propertyId or not player then return end
+    local property = MySQL.single.await('SELECT * FROM properties WHERE id = ?', {propertyId})
+    if not property or (player.PlayerData.citizenid ~= property.owner and not Bridge.IsRealtor(src)) then
+        return Bridge.Notify(src, locale('notify.no_access'), 'error')
+    end
+    local interactions = buildInteractions(property)
+    local pos = GetEntityCoords(GetPlayerPed(src))
+    local meilleur, dist = nil, 3.0
+    for _, it in ipairs(interactions) do
+        if it.type == 'stash' then
+            local d = #(pos - it.coords)
+            if d < dist then meilleur, dist = it.index, d end
+        end
+    end
+    if not meilleur then return Bridge.Notify(src, 'Aucun coffre a moins de 3 m.', 'error') end
+    local stashes = json.decode(property.stash_options) or {}
+    table.remove(stashes, meilleur)
+    MySQL.update.await('UPDATE properties SET stash_options = ? WHERE id = ?', { json.encode(stashes), propertyId })
+    Bridge.Notify(src, 'Coffre retire.', 'success')
+    refreshInteractions(propertyId)
+end)
+
+---------------------------------------------------------------- coffre-fort : argent propre (liquide) et argent sale (billets marques)
+local function sumMarkedBills(player)
+    local total, items = 0, player.Functions.GetItemsByName(Bridge.DirtyItem) or {}
+    for _, it in pairs(items) do
+        local valeur = tonumber(it.info and it.info.worth) or 0
+        total += valeur * (it.amount or 1)
+    end
+    return total, items
+end
+
+lib.callback.register('qbx_properties:callback:getSafe', function(source)
+    local propertyId = enteredProperty[source]
+    if not propertyId or not HasPropertyAccess(source, propertyId) then return nil end
+    local row = MySQL.single.await('SELECT coffre_propre, coffre_sale FROM properties WHERE id = ?', { propertyId })
+    local player = Bridge.GetPlayer(source)
+    return { propre = row.coffre_propre or 0, sale = row.coffre_sale or 0,
+        liquide = player.PlayerData.money.cash or 0, billets = (sumMarkedBills(player)) }
+end)
+
+RegisterNetEvent('qbx_properties:server:safe', function(action, typ, montant)
+    local src = source
+    local propertyId = enteredProperty[src]
+    local player = Bridge.GetPlayer(src)
+    if not propertyId or not player or not HasPropertyAccess(src, propertyId) then return end
+    if typ ~= 'propre' and typ ~= 'sale' then return end
+    local colonne = typ == 'propre' and 'coffre_propre' or 'coffre_sale'
+    local solde = MySQL.scalar.await(('SELECT %s FROM properties WHERE id = ?'):format(colonne), { propertyId }) or 0
+    montant = math.floor(tonumber(montant) or 0)
+
+    if action == 'deposer' then
+        if typ == 'propre' then
+            if montant <= 0 or not player.Functions.RemoveMoney('cash', montant, 'Coffre-fort') then
+                return Bridge.Notify(src, 'Pas assez de liquide.', 'error')
+            end
+        else
+            -- tous les billets marques de l'inventaire sont deposes
+            local total, items = sumMarkedBills(player)
+            if total <= 0 then return Bridge.Notify(src, 'Aucun billet marque sur vous.', 'error') end
+            for _, it in pairs(items) do player.Functions.RemoveItem(Bridge.DirtyItem, it.amount, it.slot) end
+            montant = total
+        end
+        MySQL.update.await(('UPDATE properties SET %s = %s + ? WHERE id = ?'):format(colonne, colonne), { montant, propertyId })
+        Bridge.Notify(src, ('$%d deposes (%s)'):format(montant, typ == 'propre' and 'argent propre' or 'argent sale'), 'success')
+    elseif action == 'retirer' then
+        if montant <= 0 or montant > solde then return Bridge.Notify(src, 'Montant invalide.', 'error') end
+        local n = MySQL.update.await(('UPDATE properties SET %s = %s - ? WHERE id = ? AND %s >= ?'):format(colonne, colonne, colonne), { montant, propertyId, montant })
+        if not n or n == 0 then return end
+        if typ == 'propre' then
+            player.Functions.AddMoney('cash', montant, 'Coffre-fort')
+        elseif not player.Functions.AddItem(Bridge.DirtyItem, 1, false, { worth = montant }) then
+            MySQL.update.await(('UPDATE properties SET %s = %s + ? WHERE id = ?'):format(colonne, colonne), { montant, propertyId })
+            return Bridge.Notify(src, 'Inventaire plein.', 'error')
+        end
+        Bridge.Notify(src, ('$%d retires (%s)'):format(montant, typ == 'propre' and 'argent propre' or 'argent sale'), 'success')
+    end
+    logger.log({ source = src, event = 'qbx_properties:safe', message = ('%s %s %s $%d bien #%d'):format(player.PlayerData.citizenid, action, typ, montant, propertyId) })
 end)
 
 AddEventHandler('playerDropped', function ()
@@ -707,6 +819,8 @@ Citizen.CreateThreadNow(function()
         serrure = 'INT NOT NULL DEFAULT 1',
         next_rent = 'BIGINT DEFAULT NULL',
         impayes = 'INT NOT NULL DEFAULT 0',
+        coffre_propre = 'BIGINT NOT NULL DEFAULT 0',
+        coffre_sale = 'BIGINT NOT NULL DEFAULT 0',
     }) do
         local existe = MySQL.scalar.await("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'properties' AND COLUMN_NAME = ?", { colonne })
         if existe == 0 then

@@ -247,7 +247,8 @@ local function livery()
         if liveryCount > -1 then
             liveryLabels[1] = locale('menus.general.stock')
             for i = 0, liveryCount do
-                liveryLabels[i + 2] = ('%s'):format(GetLabelText(GetModTextLabel(vehicle, 48, i)))
+                local nomLivree = GetLabelText(GetModTextLabel(vehicle, 48, i))
+                liveryLabels[i + 2] = (nomLivree == 'NULL' or nomLivree == '') and ('Livree %d'):format(i + 1) or nomLivree
             end
         end
     end

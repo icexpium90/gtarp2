@@ -33,6 +33,7 @@ end
 
 Bridge.Agence = require('config.server').agence
 Bridge.KeyItem = 'property_key'
+Bridge.DirtyItem = 'markedbills' -- argent sale (billets marques, valeur dans info.worth)
 
 function Bridge.IsAdmin(src)
     return QBCore.Functions.HasPermission(src, 'admin') or QBCore.Functions.HasPermission(src, 'god')

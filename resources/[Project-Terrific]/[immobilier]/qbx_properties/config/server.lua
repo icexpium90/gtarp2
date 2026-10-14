@@ -5,6 +5,17 @@ return {
     },
     discordWebhook = nil, -- Replace nil with your webhook if you chose to use discord logging over ox_lib logging
 
+    -- Coffres d'un bien : plusieurs coffres places par le proprietaire (Gerer > Placer les points)
+    coffres = {
+        max = 5,
+        defaut = 'moyen',
+        tailles = {
+            petit = { label = 'Petit coffre', slots = 30, maxWeight = 100000 },
+            moyen = { label = 'Coffre', slots = 50, maxWeight = 250000 },
+            grand = { label = 'Grand coffre / armurerie', slots = 80, maxWeight = 600000 },
+        },
+    },
+
     -- Agence immobiliere (metier realestate) : voir LISEZMOI.md
     agence = {
         job = 'realestate',
