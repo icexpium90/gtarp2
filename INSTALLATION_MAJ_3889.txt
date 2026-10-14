@@ -6,7 +6,8 @@ Installation (ce zip est le serveur COMPLET) :
 3. Mettre a jour les artifacts FXServer (les anciens refusent la build 3889).
 4. Redemarrer.
 
-Base de donnees : RIEN a faire.
+Base de donnees : RIEN a importer a la main.
+- Les nouvelles tables (properties, properties_decorations, pt_gangs...) sont creees automatiquement au premier demarrage.
 - Les voitures (jeu de base, drift, Megane) sont declarees dans qb-core/shared/vehicles.lua, pas en base.
 - Quand un joueur achete une voiture, qb-vehicleshop l'ecrit tout seul dans la table player_vehicles.
 - Project-Terrific-SQL/ProjectTerrific.sql n'a pas change : a importer uniquement pour une installation neuve.
@@ -22,3 +23,8 @@ Contenu :
 - [vehicules]/mers18 : Renault Megane 4 RS (2018) convertie pour FiveM, vendue 75 000 a l'Import Vehicle Shop
   (kit de tuning relie et passe en id 1501, entete du .ytd reconstruit). Categorie [vehicules] activee.
 - tools/vehicules : extraire_rpf.py (convertit un dlc.rpf solo) + verificateur des voitures addon (bodykits, pieces moteur, conflits) - voir LISEZMOI.md
+
+- [immobilier]/qbx_properties : maisons, entrepots, villas (shells, IPL, MLO). /createproperty (agent immobilier ou admin).
+  qb-houses et qb-realestatejob desactives (dossier [desactive]).
+- [gangs]/pt-gangs : gangs et QG, /gangadmin pour tout configurer en jeu, /gangcles [id] pour partager les cles.
+- [standalone]/driftmode : mode drift (F7), objet driftkey en magasin de bricolage.
