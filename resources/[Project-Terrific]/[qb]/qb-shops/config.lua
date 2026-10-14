@@ -272,6 +272,14 @@ Config.Products = {
             type = "item",
             slot = 16,
         }, -- CDN-Fuel / CDN-Syphoning
+        [17] = {
+            name = "driftkey",
+            price = 5000,
+            amount = 50,
+            info = {},
+            type = "item",
+            slot = 17,
+        },
     },
     ["weedshop"] = {
         [1] = {
