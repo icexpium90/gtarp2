@@ -267,7 +267,7 @@ end, 'admin')
 CreateThread(function()
     local previous = 0
     while true do
-        Wait(0)
+        Wait(1000) -- Project Terrific : os.time() change une fois par seconde, inutile de tourner a chaque tick
         local newBaseTime = os.time(os.date("!*t")) / 2 + 360 --Set the server time depending of OS time
         if (newBaseTime % 60) ~= previous then --Check if a new minute is passed
             previous = newBaseTime % 60 --Only update time with plain minutes, seconds are handled in the client
