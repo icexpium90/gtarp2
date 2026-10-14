@@ -18,6 +18,7 @@ client_scripts {
     'client/realtor.lua',
     'client/dataview.lua',
     'client/decorating.lua',
+    'client/agence.lua',
 }
 
 server_scripts {
@@ -25,6 +26,7 @@ server_scripts {
     'bridge/server.lua',
     'server/property.lua',
     'server/realtor.lua',
+    'server/agence.lua',
 }
 
 files {

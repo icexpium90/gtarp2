@@ -169,6 +169,10 @@ local function exitProperty(playerSource, isLogout)
     })
 end
 
+ExitProperty = exitProperty
+function GetEnteredProperty(src) return enteredProperty[src] end
+function GetPlayersInside(propertyId) return insideProperty[propertyId] or {} end
+
 RegisterNetEvent('qbx_properties:server:exitProperty', function()
     exitProperty(source --[[@as number]])
 end)
@@ -188,15 +192,24 @@ lib.callback.register('qbx_properties:callback:loadProperties', function()
     return properties
 end)
 
-lib.callback.register('qbx_properties:callback:requestProperties', function(_, propertyCoords)
-    return MySQL.query.await('SELECT property_name, owner, id, price, rent_interval, keyholders FROM properties WHERE coords = ?', {json.encode(propertyCoords)})
+lib.callback.register('qbx_properties:callback:requestProperties', function(source, propertyCoords)
+    local liste = MySQL.query.await('SELECT property_name, owner, id, price, rent_interval, keyholders, serrure FROM properties WHERE coords = ?', {json.encode(propertyCoords)}) or {}
+    local player = Bridge.GetPlayer(source)
+    local cid = player and player.PlayerData.citizenid
+    for i = 1, #liste do
+        local p = liste[i]
+        p.acces = cid ~= nil and (cid == p.owner or lib.table.contains(json.decode(p.keyholders) or {}, cid) or HasPhysicalKey(source, p.id, p.serrure))
+        p.serrure = nil
+    end
+    return liste
 end)
 
 local function hasAccess(citizenId, propertyId)
     local property = MySQL.single.await('SELECT owner, keyholders FROM properties WHERE id = ?', {propertyId})
+    if not property then return false end
     if citizenId == property.owner then return true end
 
-    local keyholders = json.decode(property.keyholders)
+    local keyholders = json.decode(property.keyholders) or {}
     for i = 1, #keyholders do
         if citizenId == keyholders[i] then return true end
     end
@@ -204,11 +217,35 @@ local function hasAccess(citizenId, propertyId)
     return false
 end
 
+-- double de cle physique : objet property_key dont les infos designent le bien et la serrure actuelle
+function HasPhysicalKey(src, propertyId, serrure)
+    local player = Bridge.GetPlayer(src)
+    if not player then return false end
+    if not serrure then
+        serrure = MySQL.scalar.await('SELECT serrure FROM properties WHERE id = ?', { propertyId })
+    end
+    local items = player.Functions.GetItemsByName(Bridge.KeyItem) or {}
+    for _, item in pairs(items) do
+        local info = item.info or {}
+        if tonumber(info.property) == tonumber(propertyId) and tonumber(info.serrure or 1) == tonumber(serrure or 1) then
+            return true
+        end
+    end
+    return false
+end
+
+-- acces d'un joueur connecte (cle numerique ou double de cle)
+function HasPropertyAccess(src, propertyId)
+    local player = Bridge.GetPlayer(src)
+    if not player then return false end
+    return hasAccess(player.PlayerData.citizenid, propertyId) or HasPhysicalKey(src, propertyId)
+end
+
 RegisterNetEvent('qbx_properties:server:enterProperty', function(data)
     local playerSource = source --[[@as number]]
     local player = Bridge.GetPlayer(playerSource)
     local propertyId = data.id
-    if not hasAccess(player.PlayerData.citizenid, propertyId) then return end
+    if not HasPropertyAccess(playerSource, propertyId) then return end
 
     EnterProperty(playerSource, propertyId, data.isSpawn)
 end)
@@ -333,7 +370,7 @@ RegisterNetEvent('qbx_properties:server:addKeyholder', function(keyholderCid)
     if lib.table.contains(keyholders, keyholderCid) then return end
     keyholders[#keyholders + 1] = keyholderCid
     MySQL.Sync.execute('UPDATE properties SET keyholders = ? WHERE id = ?', {json.encode(keyholders), propertyId})
-    sendGaragesToAll()
+    SendGaragesToAll()
     local keyholder = Bridge.GetPlayerByCitizenId(keyholderCid)
     if not keyholder then return end
     Bridge.Notify(playerSource, keyholder.PlayerData.charinfo.firstname.. locale('notify.keyholder'))
@@ -366,7 +403,7 @@ RegisterNetEvent('qbx_properties:server:removeKeyholder', function(keyholderCid)
     end
 
     MySQL.Sync.execute('UPDATE properties SET keyholders = ? WHERE id = ?', {json.encode(keyholders), propertyId})
-    sendGaragesToAll()
+    SendGaragesToAll()
     local keyholder = Bridge.GetOfflinePlayer(keyholderCid)
     if not keyholder then return end
     Bridge.Notify(playerSource, keyholder.PlayerData.charinfo.firstname.. locale('notify.removed_as_keyholder'))
@@ -408,8 +445,7 @@ end)
 RegisterNetEvent('qbx_properties:server:openStash', function()
     local playerSource = source --[[@as number]]
     local propertyId = enteredProperty[playerSource]
-    local player = Bridge.GetPlayer(playerSource)
-    if not hasAccess(player.PlayerData.citizenid, propertyId) then return end
+    if not propertyId or not HasPropertyAccess(playerSource, propertyId) then return end
 
     local property = MySQL.single.await('SELECT property_name, stash_options FROM properties WHERE id = ?', {propertyId})
     local stash = (json.decode(property.stash_options) or {})[1] or {}
@@ -474,13 +510,18 @@ local function sendGarages(src)
     TriggerClientEvent('qbx_properties:client:setGarages', src, accessibleGarages(player.PlayerData.citizenid))
 end
 
-local function sendGaragesToAll()
+function SendGaragesToAll()
     for _, src in ipairs(GetPlayers()) do sendGarages(tonumber(src)) end
 end
 
 local function registerGarage(name, owner, keyholders, garage)
     local id = garageId(name)
     propertyGarages[id] = { label = name, takeVehicle = vec4(garage.x, garage.y, garage.z, garage.w or 0.0), propertyName = name }
+end
+RegisterPropertyGarage = registerGarage
+
+function UnregisterPropertyGarage(name)
+    propertyGarages[garageId(name)] = nil
 end
 
 -- utilise par qb-garages pour verifier l'acces a un garage de propriete
@@ -505,35 +546,82 @@ local function registerGarages()
         local property = properties[i]
         registerGarage(property.property_name, property.owner, json.decode(property.keyholders), json.decode(property.garage))
     end
-    sendGaragesToAll()
+    SendGaragesToAll()
 end
 
-local function startRentThread(propertyId)
-    CreateThread(function()
-        while true do
-            local property = MySQL.single.await('SELECT owner, price, rent_interval, property_name FROM properties WHERE id = ?', {propertyId})
-            if not property or not property.owner then break end
+-- Libere un bien : plus de proprietaire ni de detenteurs, serrure changee, occupants sortis, garage retire
+function ReleaseProperty(propertyId, raison)
+    local property = MySQL.single.await('SELECT owner, property_name FROM properties WHERE id = ?', { propertyId })
+    if not property then return end
+    MySQL.update.await("UPDATE properties SET owner = NULL, keyholders = '[]', next_rent = NULL, impayes = 0, serrure = serrure + 1 WHERE id = ?", { propertyId })
+    UnregisterPropertyGarage(property.property_name)
+    if insideProperty[propertyId] then
+        for _ = 1, #insideProperty[propertyId] do
+            exitProperty(insideProperty[propertyId][1])
+        end
+    end
+    SendGaragesToAll()
+    if property.owner then
+        local ancien = Bridge.GetPlayerByCitizenId(property.owner)
+        if ancien and raison then Bridge.Notify(ancien.PlayerData.source, raison, 'error') end
+    end
+end
 
-            local player = Bridge.GetPlayerByCitizenId(property.owner) or Bridge.GetOfflinePlayer(property.owner)
-            if not player then print(string.format('%s does not exist anymore, consider checking property id %s', property.owner, propertyId)) break end
+-- Preleve un loyer. Retourne true si paye.
+local function payerLoyer(property)
+    local player = Bridge.GetPlayerByCitizenId(property.owner) or Bridge.GetOfflinePlayer(property.owner)
+    if not player then return false end
+    local libelle = string.format('Loyer %s', property.property_name)
+    if player.Offline then
+        if (player.PlayerData.money.bank or 0) < property.price then return false end
+        player.PlayerData.money.bank = player.PlayerData.money.bank - property.price
+        Bridge.SaveOffline(player.PlayerData)
+    else
+        if not player.Functions.RemoveMoney('bank', property.price, libelle) then
+            Bridge.Notify(player.PlayerData.source, string.format('Pas assez d\'argent en banque pour payer le loyer de %s', property.property_name), 'error')
+            return false
+        end
+        Bridge.Notify(player.PlayerData.source, string.format('%s : $%s preleves', libelle, property.price))
+    end
+    Bridge.SocietyDeposit(property.price, libelle)
+    return true
+end
 
-            if player.Offline then
-                player.PlayerData.money.bank = player.PlayerData.money.bank - property.price
-                if player.PlayerData.money.bank < 0 then break end
-                Bridge.SaveOffline(player.PlayerData)
+local function verifierLoyers()
+    local maintenant = os.time()
+    local dus = MySQL.query.await('SELECT id, owner, price, rent_interval, property_name, next_rent, impayes FROM properties WHERE owner IS NOT NULL AND rent_interval IS NOT NULL AND (next_rent IS NULL OR next_rent <= ?)', { maintenant }) or {}
+    for _, property in ipairs(dus) do
+        if not property.next_rent then
+            -- bien loue avant la mise a jour : premiere echeance dans un intervalle
+            MySQL.update.await('UPDATE properties SET next_rent = ? WHERE id = ?', { maintenant + property.rent_interval * 3600, property.id })
+        elseif payerLoyer(property) then
+            MySQL.update.await('UPDATE properties SET next_rent = ?, impayes = 0 WHERE id = ?', { maintenant + property.rent_interval * 3600, property.id })
+        else
+            local impayes = (property.impayes or 0) + 1
+            if impayes >= Bridge.Agence.impayesAvantExpulsion then
+                ReleaseProperty(property.id, string.format('Loyers impayes : vous avez ete expulse de %s', property.property_name))
+                logger.log({ event = 'qbx_properties:expulsion', message = ('Expulsion pour impayes : %s (%s)'):format(property.property_name, property.owner) })
             else
-                if not player.Functions.RemoveMoney('bank', property.price, string.format('Loyer %s', property.property_name)) then
-                    Bridge.Notify(player.PlayerData.source, string.format('Pas assez d\'argent en banque pour payer le loyer de %s', property.property_name), 'error')
-                    break
+                -- nouvelle tentative a l'echeance suivante
+                MySQL.update.await('UPDATE properties SET next_rent = ?, impayes = ? WHERE id = ?', { maintenant + property.rent_interval * 3600, impayes, property.id })
+                local p = Bridge.GetPlayerByCitizenId(property.owner)
+                if p then
+                    Bridge.Notify(p.PlayerData.source, string.format('Loyer impaye pour %s (%d/%d avant expulsion)', property.property_name, impayes, Bridge.Agence.impayesAvantExpulsion), 'error')
                 end
             end
-
-            Wait(property.rent_interval * 3600000)
         end
-
-        MySQL.update('UPDATE properties SET owner = ? WHERE id = ?', {nil, propertyId})
-    end)
+    end
 end
+
+CreateThread(function()
+    while not PropertiesReady do Wait(1000) end
+    Wait(10000)
+    while true do
+        local ok, err = pcall(verifierLoyers)
+        if not ok then print('[qbx_properties] loyers : ' .. tostring(err)) end
+        Wait(60000)
+    end
+end)
 
 RegisterNetEvent('qbx_properties:server:rentProperty', function(propertyId)
     local playerSource = source --[[@as number]]
@@ -545,19 +633,22 @@ RegisterNetEvent('qbx_properties:server:rentProperty', function(propertyId)
     if property.owner then return end
     if not property.rent_interval then return end
 
-    if player.PlayerData.money.bank < property.price then
+    if not Bridge.Agence.achatDirect then
+        return Bridge.Notify(playerSource, 'Contactez un agent immobilier pour louer ce bien.', 'error')
+    end
+    if not player.Functions.RemoveMoney('bank', property.price, string.format('Loyer %s', property.property_name)) then
         Bridge.Notify(playerSource, 'Pas assez d\'argent en banque pour louer ce bien.', 'error')
         return
     end
+    Bridge.SocietyDeposit(property.price, string.format('Loyer %s', property.property_name))
 
     if property.garage then
         registerGarage(property.property_name, player.PlayerData.citizenid, json.decode(property.keyholders), json.decode(property.garage))
     end
 
     Bridge.Notify(playerSource, string.format('Location de %s commencee', property.property_name), 'success')
-    MySQL.update.await('UPDATE properties SET owner = ? WHERE id = ?', {player.PlayerData.citizenid, propertyId})
-    sendGaragesToAll()
-    startRentThread(propertyId)
+    MySQL.update.await('UPDATE properties SET owner = ?, next_rent = ?, impayes = 0 WHERE id = ?', {player.PlayerData.citizenid, os.time() + property.rent_interval * 3600, propertyId})
+    SendGaragesToAll()
 
     logger.log({
         source = playerSource,
@@ -575,6 +666,9 @@ RegisterNetEvent('qbx_properties:server:buyProperty', function(propertyId)
     local propertyCoords = json.decode(property.coords)
 
     if #(playerCoords - vec3(propertyCoords.x, propertyCoords.y, propertyCoords.z)) > 8.0 or property.owner then return end
+    if not Bridge.Agence.achatDirect then
+        return Bridge.Notify(playerSource, 'Contactez un agent immobilier pour acheter ce bien.', 'error')
+    end
 
     if not player.Functions.RemoveMoney('cash', property.price, string.format('Achat %s', property.property_name)) and not player.Functions.RemoveMoney('bank', property.price, string.format('Achat %s', property.property_name)) then
         Bridge.Notify(playerSource, 'Pas assez d\'argent pour acheter ce bien.', 'error')
@@ -585,8 +679,9 @@ RegisterNetEvent('qbx_properties:server:buyProperty', function(propertyId)
         registerGarage(property.property_name, player.PlayerData.citizenid, json.decode(property.keyholders), json.decode(property.garage))
     end
 
-    MySQL.update.await('UPDATE properties SET owner = ? WHERE id = ?', {player.PlayerData.citizenid, propertyId})
-    sendGaragesToAll()
+    Bridge.SocietyDeposit(property.price, string.format('Vente %s', property.property_name))
+    MySQL.update.await('UPDATE properties SET owner = ?, next_rent = NULL WHERE id = ?', {player.PlayerData.citizenid, propertyId})
+    SendGaragesToAll()
     Bridge.Notify(playerSource, string.format('Vous avez achete %s pour $%s', property.property_name, property.price), 'success')
 
     logger.log({
@@ -607,10 +702,18 @@ Citizen.CreateThreadNow(function()
     MySQL.query.await(sql2)
     if sql3 then MySQL.query.await(sql3) end
 
-    local properties = MySQL.query.await('SELECT id FROM properties WHERE owner IS NOT NULL AND rent_interval IS NOT NULL')
-    for i = 1, #properties do
-        startRentThread(properties[i].id)
+    -- colonnes ajoutees par Project Terrific (bases creees avant la mise a jour)
+    for colonne, definition in pairs({
+        serrure = 'INT NOT NULL DEFAULT 1',
+        next_rent = 'BIGINT DEFAULT NULL',
+        impayes = 'INT NOT NULL DEFAULT 0',
+    }) do
+        local existe = MySQL.scalar.await("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'properties' AND COLUMN_NAME = ?", { colonne })
+        if existe == 0 then
+            MySQL.query.await(('ALTER TABLE properties ADD COLUMN `%s` %s'):format(colonne, definition))
+        end
     end
+    PropertiesReady = true
 
     registerGarages()
 end)
@@ -618,14 +721,12 @@ end)
 RegisterNetEvent('qbx_properties:server:stopRenting', function()
     local player = Bridge.GetPlayer(source)
     local propertyId = enteredProperty[source]
+    if not propertyId then return end
     local property = MySQL.single.await('SELECT owner, property_name FROM properties WHERE id = ?', {propertyId})
-    if player.PlayerData.citizenid ~= property.owner then return end
+    if not property or player.PlayerData.citizenid ~= property.owner then return end
 
     Bridge.Notify(player.PlayerData.source, string.format('Vous avez mis fin a la location de %s', property.property_name), 'success')
-    MySQL.update.await('UPDATE properties SET owner = ?, keyholders = JSON_OBJECT() WHERE id = ?', {nil, propertyId})
-    for _ = 1, #insideProperty[propertyId] do
-        exitProperty(insideProperty[propertyId][1])
-    end
+    ReleaseProperty(propertyId)
 
     logger.log({
         source = player.PlayerData.source,

@@ -17,8 +17,10 @@ Voitures addon (69, dans resources/[Project-Terrific]/[vehicules], vendues à l'
 - Police : Mercedes-AMG GT R Interceptor (garage police, grades 3 et plus).
 Poids total des voitures addon : environ 2 Go, téléchargés par chaque joueur à sa première connexion.
 bob74_ipl 2.7.1 : intérieurs des DLC jusqu'en 2026.
-Immobilier : qbx_properties adapté à QBCore (maisons, appartements, entrepôts, villas, avec ou sans MLO), création par l'agent immobilier ou un admin avec /createproperty. Mode d'emploi : resources/[Project-Terrific]/[immobilier]/LISEZMOI.md.
-Gangs : pt-gangs (14 gangs dont la Cosa Nostra, le Schattenkartell allemand, Sangue Nwè luso-martiniquais, Yakuza, Bratva et Cartel), QG avec entrée, dépôt, vestiaire, menu du chef et garage, flotte de véhicules avec clés, tout se règle en jeu avec /gangadmin. Mode d'emploi : resources/[Project-Terrific]/[gangs]/pt-gangs/LISEZMOI.md.
+Immobilier : qbx_properties adapté à QBCore (maisons, appartements, immeubles, entrepôts, villas, avec ou sans MLO) et agence Dynasty 8 complète pour le métier realestate : menu /immo, contrats de vente et de location avec commission, révision des prix et des loyers, expulsions, lieux MLO prêts à vendre, doubles de clés, compte de l'entreprise. Mode d'emploi : resources/[Project-Terrific]/[immobilier]/LISEZMOI.md.
+Gangs : pt-gangs (14 gangs dont la Cosa Nostra, le Schattenkartell allemand avec sa flotte BMW et SUV, Sangue Nwè luso-martiniquais, Yakuza, Bratva et Cartel), QG avec entrée, dépôt, vestiaire, menu du chef et garage, flotte de véhicules avec clés, tout se règle en jeu avec /gangadmin. Mode d'emploi : resources/[Project-Terrific]/[gangs]/pt-gangs/LISEZMOI.md.
+Cartes : quartiers des Ballas, Vagos, Families et Marabunta, Gang District, villa moderne MLO, domaine de la Cosa Nostra et QG sous-marin (optionnel), plus un chargeur de cartes Map Editor / Menyoo. Mode d'emploi : resources/[Project-Terrific]/[cartes]/LISEZMOI.md.
+Multi-métiers : jusqu'à 3 métiers par personnage (par exemple agent immobilier et mécano, en plus d'un gang), changement avec /metiers. Mode d'emploi : resources/[Project-Terrific]/[standalone]/pt-multijob/LISEZMOI.md.
 Mode drift : touche F7 (ou /driftmode) avec la clé de drift vendue dans les magasins de bricolage.
 Correctifs : boutique du port, doublons de véhicules, scanner de plaques.
 Outils pour ajouter des voitures : tools/vehicules (conversion des mods solo dlc.rpf et vérification des bodykits / pièces moteur). Mode d'emploi dans tools/vehicules/LISEZMOI.md.
@@ -30,7 +32,7 @@ Pour entrer dans l'univers de « Project Terrific », suivez ces étapes :
 Clonez le dépôt Project Terrific sur votre VPS ou votre machine locale (ou téléchargez-le avec « Code → Download ZIP »).
 Créez une base de données et importez le fichier .sql fourni dans le dossier Project-Terrific-SQL. Veillez à exécuter les fichiers dans le bon ordre.
 Ajustez les fichiers .cfg selon vos préférences (clé de licence, nom du serveur, administrateurs...).
-Mettez à jour vos artifacts FXServer : la build 3889 nécessite des artifacts récents.
+Mettez à jour vos artifacts FXServer : la build 3889 nécessite des artifacts récents (scripts de mise à jour automatique dans tools/serveur, mode d'emploi dans tools/serveur/LISEZMOI.md).
 Lancez-vous et amusez-vous !
 💡 Pensez à activer OneSync (legacy ou infinity, de préférence via txAdmin) pour que le serveur fonctionne de façon optimale.
 

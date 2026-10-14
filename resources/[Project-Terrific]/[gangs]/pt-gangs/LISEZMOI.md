@@ -11,7 +11,7 @@ Gangs de rue, mafias et organisations avec un QG complet, une flotte de véhicul
 | cartel | Cartel Madrazo | Halcón, Sicario, Lugarteniente, Patrón |
 | triads | Triades | Recrue, Combattant, Bâton rouge, Tête de dragon |
 | mafia | Cosa Nostra | Associé, Soldat, Capo, Consigliere, Parrain |
-| schatten | Schattenkartell (mafia allemande) | Kurier, Soldat, Vollstrecker, Unterboss, Der Pate |
+| schatten | Schattenkartell (mafia allemande, flotte 100 % BMW et SUV) | Kurier, Soldat, Vollstrecker, Unterboss, Der Pate |
 | sanguenwe | Sangue Nwè (mafia luso-martiniquaise) | Menino, Soldado, Tenente, Majò, Patrão |
 | yakuza | Yakuza | Kobun, Shatei, Wakagashira, Saiko-komon, Oyabun |
 | bratva | Bratva | Shestyorka, Boyevik, Brigadier, Sovietnik, Pakhan |
@@ -38,10 +38,21 @@ Choisir un intérieur MLO/IPL retire le shell, et inversement.
 
 ## Flotte de véhicules
 
+Flotte du Schattenkartell : M5 E60 et X5 M (Kurier), M5 F90 Competition et X6 M (Soldat), 760Li et Baller LE LWB
+blindé (Vollstrecker), M5 Competition 2019 et XLS blindé (Unterboss), 750Li Lumma (Der Pate).
+Quand la flotte par défaut d'un gang change dans `config.lua` (champ `flotte` augmenté), elle remplace l'ancienne en
+base au prochain démarrage (les véhicules ajoutés en jeu à ce gang sont alors remplacés aussi).
+
 - `/gangadmin` > gang > « Flotte de véhicules » : ajouter un modèle (spawn code, y compris les voitures addon), son nom et le grade minimum.
 - Les membres sortent les véhicules au garage : couleur du gang, plaque `PRÉFIXE + 4 chiffres`, plein fait, clés données automatiquement.
 - `/gangcles [id]` : donner les clés d'un véhicule de la flotte à un autre membre du gang (à moins de 5 m).
 - Ranger : revenir au point garage en voiture et appuyer sur E.
+
+## QG prêts sur la carte
+
+Les cartes de `resources/[Project-Terrific]/[cartes]` donnent un décor à plusieurs QG :
+Ballas (Davis), Vagos (Rancho), Families (Grove Street), Marabunta (El Burro Heights), Gang District (Vespucci Canals),
+domaine de la Cosa Nostra (Tongva Hills, voitures et gardes de décor). Allez sur place et placez les points avec `/gangadmin`.
 
 ## Membres
 

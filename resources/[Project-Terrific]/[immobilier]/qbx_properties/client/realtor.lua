@@ -192,3 +192,35 @@ RegisterNetEvent('qbx_properties:client:createProperty', function()
         Wait(3000)
     end
 end)
+
+-- Creation depuis un lieu MLO du catalogue (config.shared lieux) : l'agent est devant la porte,
+-- nom et prix pre-remplis, puis il entre et valide le point d'arrivee.
+function CreerDepuisLieu(lieu)
+    local pos = GetEntityCoords(cache.ped)
+    if #(pos - lieu.zone) > 80.0 then
+        SetNewWaypoint(lieu.zone.x, lieu.zone.y)
+        return Bridge.Notify('Rendez-vous d\'abord sur place (GPS place).', 'error')
+    end
+    if lieu.ressource and GetResourceState(lieu.ressource) ~= 'started' then
+        return Bridge.Notify(('La carte %s n\'est pas demarree sur le serveur.'):format(lieu.ressource), 'error')
+    end
+    local input = lib.inputDialog(('Nouveau bien : %s'):format(lieu.label), {
+        {type = 'input', label = locale('alert.property_name'), required = true, min = 4, max = 32, icon = 'home', default = lieu.label:gsub(' %(.*%)', '')},
+        {type = 'number', label = locale('alert.price'), icon = 'dollar-sign', required = true, min = 1, default = lieu.prix},
+        {type = 'number', label = locale('alert.rent_interval'), description = locale('alert.rent_interval_description'), icon = 'clock', min = 1, max = 24, step = 1, default = lieu.loyer},
+        {type = 'checkbox', label = locale('alert.add_garage')},
+    })
+    if not input then return end
+    playerCoords = GetEntityCoords(cache.ped)
+    local garageData = nil
+    if input[4] then
+        addGaragePoint()
+        if garageCoords then
+            garageData = vec4(garageCoords.x, garageCoords.y, garageCoords.z + 1.0, garageHeading)
+        end
+    end
+    Bridge.Notify('Porte enregistree. Entrez maintenant dans le batiment.', 'primary')
+    local mloPoint = pickMloPoint()
+    if not mloPoint then return end
+    TriggerServerEvent('qbx_properties:server:createProperty', Bridge.MLO, input, playerCoords, garageData, mloPoint)
+end

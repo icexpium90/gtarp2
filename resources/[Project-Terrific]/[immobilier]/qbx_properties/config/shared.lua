@@ -125,5 +125,24 @@ return {
         ['Manoir1'] = { label = '[Villa] Manoir de Vinewood Hills (Safehouse 1)', exit = vec4(543.85, 712.75, 201.0, 0.0) },
         ['Manoir2'] = { label = '[Villa] Manoir de Richman (Safehouse 2)', exit = vec4(-1630.43, 470.85, 128.0, 0.0) },
         ['Manoir3'] = { label = '[Villa] Manoir de Tongva Hills (Safehouse 3)', exit = vec4(-2601.71, 1874.83, 166.0, 0.0) },
-    }
+    },
+
+    -- Agence immobiliere (Dynasty 8, Rockford Hills) : point du menu agence + menu du patron (qb-management)
+    agence = {
+        bureau = vec3(-716.11, 261.21, 84.14),
+        blip = { sprite = 375, couleur = 2, label = 'Dynasty 8 - Agence immobiliere' },
+    },
+
+    -- Lieux MLO deja presents sur la carte (jeu de base ou ressources de [cartes]).
+    -- /immo > Lieux MLO : GPS vers le lieu, puis "Creer ici" devant la porte (nom et prix pre-remplis).
+    -- Les positions sont celles de la zone : c'est l'agent qui choisit la porte et le point d'arrivee interieur.
+    lieux = {
+        { label = 'Villa moderne (Tongva Hills)', zone = vec3(-2653.6, 1320.5, 144.3), prix = 2500000, type = 'Villa', ressource = 'pt-carte-villa-moderne' },
+        { label = 'Maison de Michael (Rockford Hills)', zone = vec3(-816.5, 178.5, 72.2), prix = 3500000, type = 'Villa' },
+        { label = 'Maison de Franklin (Vinewood Hills)', zone = vec3(7.9, 538.4, 176.0), prix = 1800000, type = 'Villa' },
+        { label = 'Maison de tante Denise (Strawberry)', zone = vec3(-14.3, -1441.2, 31.1), prix = 180000, type = 'Maison' },
+        { label = 'Maison de Lester (El Burro Heights)', zone = vec3(1273.9, -1719.7, 54.8), prix = 150000, type = 'Maison' },
+        { label = 'Caravane de Trevor (Sandy Shores)', zone = vec3(1973.2, 3815.4, 33.4), prix = 60000, loyer = 24, type = 'Maison' },
+        { label = 'Appartement de Floyd (Vespucci Beach)', zone = vec3(-1150.7, -1520.7, 10.6), prix = 2500, loyer = 24, type = 'Appartement' },
+    },
 }

@@ -78,18 +78,31 @@ local function loadAll()
         if requete:find('%S') then MySQL.query.await(requete) end
     end
 
-    -- gangs de la config (+ flotte par defaut a la premiere installation)
+    -- colonne "flotte" (version de la flotte par defaut) pour les bases creees avant son ajout
+    local col = MySQL.scalar.await("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'pt_gangs_settings' AND COLUMN_NAME = 'flotte'")
+    if col == 0 then
+        MySQL.query.await('ALTER TABLE pt_gangs_settings ADD COLUMN `flotte` INT NOT NULL DEFAULT 1')
+    end
+
+    -- gangs de la config : flotte par defaut a la premiere installation, ou remplacee quand
+    -- la version "flotte" de la config augmente (les vehicules ajoutes en jeu a ce gang sont alors remplaces)
     for name, g in pairs(Config.Gangs) do
         Gangs[name] = { label = g.label, color = g.color, plate = g.plate }
         registerGang(name, g.label, g.grades)
+        local version = g.flotte or 1
+        local stockee = MySQL.scalar.await('SELECT flotte FROM pt_gangs_settings WHERE gang = ?', { name })
         local deja = MySQL.scalar.await('SELECT COUNT(*) FROM pt_gangs_vehicles WHERE gang = ?', { name })
-        local initialise = MySQL.scalar.await('SELECT COUNT(*) FROM pt_gangs_settings WHERE gang = ?', { name })
-        if deja == 0 and initialise == 0 then
+        local remplacer = stockee and stockee < version
+        if (not stockee and deja == 0) or remplacer then
+            if remplacer then
+                MySQL.query.await('DELETE FROM pt_gangs_vehicles WHERE gang = ?', { name })
+                print(('[pt-gangs] %s : nouvelle flotte par defaut (version %d)'):format(name, version))
+            end
             for _, v in ipairs(g.vehicles or {}) do
                 MySQL.insert.await('INSERT INTO pt_gangs_vehicles (gang, model, label, mingrade) VALUES (?, ?, ?, ?)', { name, v[1], v[2], v[3] or 0 })
             end
-            MySQL.insert.await('INSERT IGNORE INTO pt_gangs_settings (gang) VALUES (?)', { name })
         end
+        MySQL.insert.await('INSERT INTO pt_gangs_settings (gang, flotte) VALUES (?, ?) ON DUPLICATE KEY UPDATE flotte = GREATEST(flotte, VALUES(flotte))', { name, version })
     end
 
     -- gangs crees en jeu par les admins

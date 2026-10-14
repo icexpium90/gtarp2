@@ -145,6 +145,37 @@ local function prepareManageMenu()
             end
         },
         {
+            title = 'Cles et serrures',
+            description = 'Doubles de cle a donner, changement des serrures',
+            icon = 'key',
+            arrow = true,
+            onSelect = function()
+                lib.registerContext({
+                    id = 'qbx_properties_doublesMenu',
+                    title = 'Cles et serrures',
+                    menu = 'qbx_properties_manageMenu',
+                    options = {
+                        {
+                            title = 'Faire un double de cle',
+                            description = ('Objet a donner a un proche : ouvre la porte et le coffre ($%d)'):format(ClientAgence.prixDouble),
+                            icon = 'key',
+                            serverEvent = 'qbx_properties:server:faireDouble',
+                        },
+                        {
+                            title = 'Changer les serrures',
+                            description = ('Tous les doubles existants deviennent inutilisables ($%d)'):format(ClientAgence.prixSerrure),
+                            icon = 'lock',
+                            onSelect = function()
+                                local ok = lib.alertDialog({ header = 'Changer les serrures', content = 'Les doubles de cle deja distribues ne fonctionneront plus. Continuer ?', centered = true, cancel = true })
+                                if ok == 'confirm' then TriggerServerEvent('qbx_properties:server:changerSerrures') end
+                            end,
+                        },
+                    },
+                })
+                lib.showContext('qbx_properties_doublesMenu')
+            end
+        },
+        {
             title = locale('menu.place_points'),
             description = locale('menu.place_points_description'),
             icon = 'location-crosshairs',
@@ -360,7 +391,7 @@ end)
 
 local function singlePropertyMenu(property, noBackMenu)
     local options = {}
-    if QBX.PlayerData.citizenid == property.owner or lib.table.contains(json.decode(property.keyholders), QBX.PlayerData.citizenid) then
+    if property.acces then
         options[#options + 1] = {
             title = locale('menu.enter'),
             icon = 'cog',
@@ -441,7 +472,7 @@ local function propertyMenu(propertyList, owned)
         }
     }
     for i = 1, #propertyList do
-        if owned and propertyList[i].owner == QBX.PlayerData.citizenid or lib.table.contains(json.decode(propertyList[i].keyholders), QBX.PlayerData.citizenid) then
+        if owned and propertyList[i].acces then
             options[#options + 1] = {
                 title = propertyList[i].property_name,
                 icon = 'home',
@@ -531,4 +562,8 @@ end)
 RegisterNetEvent('qbx_properties:client:addProperty', function(propertyCoords)
     if lib.table.contains(properties, propertyCoords) then return end
     properties[#properties + 1] = propertyCoords
+end)
+-- liste des portes rechargee apres une suppression ou la creation d'appartements
+RegisterNetEvent('qbx_properties:client:reloadProperties', function()
+    properties = lib.callback.await('qbx_properties:callback:loadProperties') or properties
 end)

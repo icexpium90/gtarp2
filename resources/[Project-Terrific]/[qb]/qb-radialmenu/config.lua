@@ -12,6 +12,13 @@ Config.MenuItems = {
         icon = 'user',
         items = {
             {
+                id = 'mesmetiers',
+                title = 'Mes metiers',
+                icon = 'briefcase',
+                type = 'client',
+                event = 'pt-multijob:client:menu',
+                shouldClose = true
+            }, {
                 id = 'givenum',
                 title = 'Give Contact Details',
                 icon = 'address-book',
@@ -1240,10 +1247,10 @@ Config.JobInteractions = {
     ["realestate"] = {
         {
             id = 'housemenu',
-            title = 'List of houses',
+            title = 'Agence immobiliere',
             icon = 'house-laptop',
             type = 'client',
-            event = 'qb-realestate:client:OpenHouseListMenu',
+            event = 'qbx_properties:client:agence',
             shouldClose = true
         } 
     }

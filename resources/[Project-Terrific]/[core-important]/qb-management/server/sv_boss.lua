@@ -129,10 +129,37 @@ QBCore.Functions.CreateCallback('qb-bossmenu:server:GetEmployees', function(sour
 				}
 			end
 		end
-		table.sort(employees, function(a, b)
-            return a.grade.level > b.grade.level
-        end)
 	end
+	if GetResourceState('pt-multijob') == 'started' then
+		-- employes dont ce metier est secondaire (pt-multijob)
+		local deja = {}
+		for _, e in ipairs(employees) do deja[e.empSource] = true end
+		local jobData = QBCore.Shared.Jobs[jobname]
+		for _, row in ipairs(exports['pt-multijob']:GetEmployees(jobname)) do
+			if not deja[row.citizenid] and jobData then
+				local g = jobData.grades[tostring(row.grade)] or {}
+				local online = QBCore.Functions.GetPlayerByCitizenId(row.citizenid)
+				local charinfo
+				if online then
+					charinfo = online.PlayerData.charinfo
+				else
+					local r = MySQL.single.await('SELECT charinfo FROM players WHERE citizenid = ?', { row.citizenid })
+					charinfo = r and json.decode(r.charinfo)
+				end
+				if charinfo then
+					employees[#employees+1] = {
+						empSource = row.citizenid,
+						grade = { name = g.name, level = row.grade },
+						isboss = g.isboss or false,
+						name = (online and '🟡 ' or '❌ ') .. charinfo.firstname .. ' ' .. charinfo.lastname .. ' (2e metier)'
+					}
+				end
+			end
+		end
+	end
+	table.sort(employees, function(a, b)
+		return a.grade.level > b.grade.level
+	end)
 	cb(employees)
 end)
 
@@ -145,7 +172,14 @@ RegisterNetEvent('qb-bossmenu:server:GradeUpdate', function(data)
 	if not Player.PlayerData.job.isboss then ExploitBan(src, 'GradeUpdate Exploiting') return end
 	if data.grade > Player.PlayerData.job.grade.level then TriggerClientEvent('QBCore:Notify', src, "You cannot promote to this rank!", "error") return end
 	
-	if Employee then
+	if GetResourceState('pt-multijob') == 'started' and not (Employee and Employee.PlayerData.job.name == Player.PlayerData.job.name) then
+		-- ce metier n'est pas le metier actif de l'employe : seul son grade enregistre change
+		if exports['pt-multijob']:SetGrade(data.cid, Player.PlayerData.job.name, data.grade) then
+			TriggerClientEvent('QBCore:Notify', src, "Grade mis a jour (metier secondaire)", "success")
+		else
+			TriggerClientEvent('QBCore:Notify', src, "Promotion grade does not exist.", "error")
+		end
+	elseif Employee then
 		if Employee.Functions.SetJob(Player.PlayerData.job.name, data.grade) then
 			TriggerClientEvent('QBCore:Notify', src, "Sucessfulluy promoted!", "success")
 			TriggerClientEvent('QBCore:Notify', Employee.PlayerData.source, "You have been promoted to" ..data.gradename..".", "success")
@@ -165,6 +199,18 @@ RegisterNetEvent('qb-bossmenu:server:FireEmployee', function(target)
 	local Employee = QBCore.Functions.GetPlayerByCitizenId(target)
 
 	if not Player.PlayerData.job.isboss then ExploitBan(src, 'FireEmployee Exploiting') return end
+
+	-- pt-multijob : on retire seulement ce metier, l'employe garde ses autres metiers
+	if GetResourceState('pt-multijob') == 'started' and target ~= Player.PlayerData.citizenid
+		and exports['pt-multijob']:HasJob(target, Player.PlayerData.job.name) then
+		local ligne = MySQL.single.await('SELECT grade FROM pt_multijob WHERE citizenid = ? AND job = ?', { target, Player.PlayerData.job.name })
+		if ligne and ligne.grade > Player.PlayerData.job.grade.level then TriggerClientEvent('QBCore:Notify', src, "You cannot fire this citizen!", "error") return end
+		exports['pt-multijob']:RemoveJob(target, Player.PlayerData.job.name)
+		TriggerClientEvent('QBCore:Notify', src, "Employee fired!", "success")
+		if Employee then TriggerClientEvent('QBCore:Notify', Employee.PlayerData.source, "Vous avez ete licencie : " .. Player.PlayerData.job.label, "error") end
+		TriggerClientEvent('qb-bossmenu:client:OpenMenu', src)
+		return
+	end
 
 	if Employee then
 		if target ~= Player.PlayerData.citizenid then

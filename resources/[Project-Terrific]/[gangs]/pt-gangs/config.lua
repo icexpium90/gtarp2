@@ -76,10 +76,16 @@ Config.Gangs = {
         vehicles = { { 'sultanrs', 'Sultan RS', 0 }, { 'elegy', 'Elegy Retro', 0 }, { 'schafter3', 'Schafter V12', 2 } } },
     bratva = { label = 'Bratva (Mafia russe)', color = 10, plate = 'BRAT', grades = grades({ 'Shestyorka', 'Boyevik', 'Brigadier', 'Sovietnik', 'Pakhan' }),
         vehicles = { { 'baller2', 'Baller', 0 }, { 'dubsta', 'Dubsta', 0 }, { 'xls2', 'XLS blindee', 3 } } },
-    -- Mafia allemande : le cartel de l'ombre
-    schatten = { label = 'Schattenkartell', color = 12, plate = 'SCHK', grades = grades({ 'Kurier', 'Soldat', 'Vollstrecker', 'Unterboss', 'Der Pate' }),
-        vehicles = { { 'schafter2', 'Schafter', 0 }, { 'oracle2', 'Oracle XS', 0 }, { 'dubsta2', 'Dubsta Luxury', 1 }, { 'm5f90', 'BMW M5 F90', 1 },
-            { 'bmwe65', 'BMW 760Li', 2 }, { 'gle63s', 'Mercedes GLE 63 S', 2 }, { 'brabus850', 'Brabus 850', 3 }, { 'g65amg', 'Mercedes G65 AMG', 4 } } },
+    -- Mafia allemande : le cartel de l'ombre. Flotte 100 % BMW et SUV (flotte = 2 : remplace l'ancienne flotte en base)
+    schatten = { label = 'Schattenkartell', color = 12, plate = 'SCHK', flotte = 2,
+        grades = grades({ 'Kurier', 'Soldat', 'Vollstrecker', 'Unterboss', 'Der Pate' }),
+        vehicles = {
+            { 'm5e60', 'BMW M5 E60', 0 }, { 'x5m2016', 'BMW X5 M', 0 },
+            { 'm5f90', 'BMW M5 F90 Competition', 1 }, { 'x6m', 'BMW X6 M', 1 },
+            { 'bmwe65', 'BMW 760Li', 2 }, { 'baller6', 'Baller LE LWB blinde', 2 },
+            { '2019m5', 'BMW M5 Competition 2019', 3 }, { 'xls2', 'XLS blinde', 3 },
+            { 'lumma750', 'BMW 750Li Lumma', 4 },
+        } },
     -- Mafia luso-martiniquaise : sang noir (portugais "sangue" + creole martiniquais "nwe")
     sanguenwe = { label = 'Sangue Nwe', color = 11, plate = 'SNWE', grades = grades({ 'Menino', 'Soldado', 'Tenente', 'Majo', 'Patrao' }),
         vehicles = { { 'gburrito', 'Gang Burrito', 0 }, { 'manchez', 'Manchez', 0 }, { 'rumpo3', 'Rumpo Custom', 0 }, { 'kamacho', 'Kamacho', 1 },

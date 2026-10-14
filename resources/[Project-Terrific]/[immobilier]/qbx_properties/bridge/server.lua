@@ -31,11 +31,36 @@ function Bridge.Logout(src)
     TriggerClientEvent('qb-multicharacter:client:chooseChar', src)
 end
 
--- agent immobilier ou admin
+Bridge.Agence = require('config.server').agence
+Bridge.KeyItem = 'property_key'
+
+function Bridge.IsAdmin(src)
+    return QBCore.Functions.HasPermission(src, 'admin') or QBCore.Functions.HasPermission(src, 'god')
+end
+
+-- agent immobilier (metier realestate, en service) ou admin
 function Bridge.IsRealtor(src)
     local player = QBCore.Functions.GetPlayer(src)
-    if player and player.PlayerData.job.name == 'realestate' then return true end
-    return QBCore.Functions.HasPermission(src, 'admin') or QBCore.Functions.HasPermission(src, 'god')
+    if player and player.PlayerData.job.name == Bridge.Agence.job and player.PlayerData.job.onduty ~= false then return true end
+    return Bridge.IsAdmin(src)
+end
+
+-- grade de l'agent dans l'agence (les admins ont tous les droits)
+function Bridge.RealtorGrade(src)
+    if Bridge.IsAdmin(src) then return 99 end
+    local player = QBCore.Functions.GetPlayer(src)
+    if not player or player.PlayerData.job.name ~= Bridge.Agence.job then return -1 end
+    return tonumber(player.PlayerData.job.grade and player.PlayerData.job.grade.level) or 0
+end
+
+-- argent encaisse par l'agence (compte de societe qb-management)
+function Bridge.SocietyDeposit(montant, raison)
+    montant = math.floor(tonumber(montant) or 0)
+    if montant <= 0 or not Bridge.Agence.societe then return end
+    if GetResourceState('qb-management') == 'started' then
+        exports['qb-management']:AddMoney(Bridge.Agence.societe, montant)
+    end
+    Bridge.logger.log({ message = ('Agence : +$%d (%s)'):format(montant, raison or '') })
 end
 
 -- ox_lib 3.6 n'a pas lib.triggerClientEvent

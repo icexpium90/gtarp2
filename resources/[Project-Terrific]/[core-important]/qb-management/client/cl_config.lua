@@ -11,7 +11,7 @@ Config.BossMenus = {
         vector3(335.46, -594.52, 43.28),
     },
     ['realestate'] = {
-        vector3(-450.79, 168.38, 78.82),
+        vector3(-716.11, 261.21, 84.14), -- Dynasty 8 (meme point que le menu agence de qbx_properties)
     },
     ['taxi'] = {
         vector3(907.24, -150.19, 74.17),

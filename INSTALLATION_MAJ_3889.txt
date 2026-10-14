@@ -3,11 +3,15 @@ MISE A JOUR PROJECT TERRIFIC - BUILD 3889 (The Kortz Center Heist)
 Installation (ce zip est le serveur COMPLET) :
 1. Arreter le serveur et sauvegarder l'ancien dossier.
 2. Remplacer l'ancien dossier du serveur par le dossier ProjectTerrific-main de ce zip.
-3. Mettre a jour les artifacts FXServer (les anciens refusent la build 3889).
+3. Mettre a jour les artifacts FXServer (les anciens refusent la build 3889) :
+   tools/serveur/maj_fxserver.sh (Linux) ou maj_fxserver.ps1 (Windows), ou le reglage de version du panel
+   de l'hebergeur. Mode d'emploi : tools/serveur/LISEZMOI.md.
 4. Redemarrer.
 
 Base de donnees : RIEN a importer a la main.
-- Les nouvelles tables (properties, properties_decorations, pt_gangs...) sont creees automatiquement au premier demarrage.
+- Les nouvelles tables (properties, properties_decorations, pt_gangs..., pt_multijob) sont creees automatiquement au premier demarrage.
+- Les colonnes ajoutees aux tables existantes (properties : serrure, next_rent, impayes ; pt_gangs_settings : flotte)
+  sont aussi ajoutees automatiquement.
 - Les voitures (jeu de base, drift, Megane) sont declarees dans qb-core/shared/vehicles.lua, pas en base.
 - Quand un joueur achete une voiture, qb-vehicleshop l'ecrit tout seul dans la table player_vehicles.
 - Project-Terrific-SQL/ProjectTerrific.sql n'a pas change : a importer uniquement pour une installation neuve.
@@ -28,3 +32,9 @@ Contenu :
   qb-houses et qb-realestatejob desactives (dossier [desactive]).
 - [gangs]/pt-gangs : gangs et QG, /gangadmin pour tout configurer en jeu, /gangcles [id] pour partager les cles.
 - [standalone]/driftmode : mode drift (F7), objet driftkey en magasin de bricolage.
+- [cartes] : quartiers Ballas, Vagos, Families, Marabunta, Gang District, villa moderne MLO, domaine de la Cosa Nostra
+  (pt-maploader) et QG sous-marin (desactive par defaut). Voir [cartes]/LISEZMOI.md.
+- qbx_properties : agence Dynasty 8 (metier realestate) avec /immo, contrats avec commission, revision des prix,
+  immeubles d'appartements, expulsions, doubles de cles (objet property_key), loyers fiables, /mesbiens.
+- [standalone]/pt-multijob : jusqu'a 3 metiers par personnage, /metiers ; qb-management adapte.
+- pt-gangs : flotte du Schattenkartell remplacee par des BMW et des SUV.
