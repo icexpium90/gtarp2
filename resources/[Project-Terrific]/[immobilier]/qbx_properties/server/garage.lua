@@ -54,12 +54,19 @@ end
 lib.callback.register('qbx_properties:callback:proximite', function(source)
     local pos = GetEntityCoords(GetPlayerPed(source))
     local meilleur, dmin = nil, RAYON_PROCHE
+    local public, dpub = nil, RAYON_PROCHE
     for _, bien in ipairs(biensMLO()) do
         local d = distanceBien(bien, pos)
         if d < dmin and accesJoueur(source, bien) then meilleur, dmin = bien, d end
+        if d < dpub and #bien.ascenseurs > 0 then public, dpub = bien, d end
     end
     if not meilleur then
         ProcheMLO[source] = nil
+        -- visiteurs (invites, sonnette, amis) : les ascenseurs du bien sont utilisables par tout le monde
+        if public then
+            return { id = public.id, nom = public.property_name, proprietaire = false, visiteur = true,
+                interactions = {}, places = {}, ascenseurs = public.ascenseurs }
+        end
         return nil
     end
     ProcheMLO[source] = meilleur.id

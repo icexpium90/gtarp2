@@ -882,16 +882,19 @@ end)
 -- donnees du bien MLO a proximite (toutes les 3 s)
 CreateThread(function()
     while true do
-        if not insideProperty and LocalPlayer.state.isLoggedIn ~= false then
+        if LocalPlayer.state.isLoggedIn ~= false then
             local data = lib.callback.await('qbx_properties:callback:proximite', false)
             local avant = ProcheBien and ProcheBien.id
             ProcheBien = data
-            if data then
-                interactions = data.interactions
-                poserMeubles(data.interactions)
-            elseif avant then
-                interactions = {}
-                retirerMeubles()
+            -- entre par la porte : coffres et meubles sont geres par l'entree ; ici seulement ascenseurs et garage
+            if not insideProperty then
+                if data then
+                    interactions = data.interactions
+                    poserMeubles(data.interactions)
+                elseif avant then
+                    interactions = {}
+                    retirerMeubles()
+                end
             end
         end
         Wait(3000)
@@ -902,10 +905,10 @@ end)
 CreateThread(function()
     while true do
         local attente = 750
-        if ProcheBien and not insideProperty and not IsDecorating then
+        if ProcheBien and not IsDecorating then
             local actions = construireActions()
             local pos = GetEntityCoords(cache.ped)
-            for _, it in ipairs(ProcheBien.interactions or {}) do
+            for _, it in ipairs(not insideProperty and ProcheBien.interactions or {}) do
                 if #(pos - it.coords) < 1.5 then
                     attente = 0
                     local action = actions[it.type]
