@@ -304,3 +304,41 @@ CreateThread(function()
         Wait(attente)
     end
 end)
+
+
+---------------------------------------------------------------- icones des biens possedes (maison rose) et des biens dont on a la cle
+local blipsBiens = {}
+local function rafraichirBlips()
+    for _, b in ipairs(blipsBiens) do if DoesBlipExist(b) then RemoveBlip(b) end end
+    blipsBiens = {}
+    if not LocalPlayer.state.isLoggedIn then return end
+    local liste = lib.callback.await('qbx_properties:callback:mesBiens', false) or {}
+    local vus = {}
+    for _, b in ipairs(liste) do
+        local cle = ('%.1f:%.1f'):format(b.coords.x, b.coords.y)
+        if not vus[cle] or (b.proprietaire and not vus[cle].proprietaire) then
+            if vus[cle] then RemoveBlip(vus[cle].blip) end
+            local blip = AddBlipForCoord(b.coords.x, b.coords.y, b.coords.z)
+            SetBlipSprite(blip, 40)                         -- maison
+            SetBlipColour(blip, b.proprietaire and 8 or 48) -- rose : possede ; rose clair : cle
+            SetBlipScale(blip, b.proprietaire and 0.85 or 0.7)
+            SetBlipAsShortRange(blip, false)
+            SetBlipCategory(blip, 11)                       -- categorie "proprietes" de la legende
+            BeginTextCommandSetBlipName('STRING')
+            AddTextComponentString(b.proprietaire and b.nom or (b.nom .. ' (cle)'))
+            EndTextCommandSetBlipName(blip)
+            vus[cle] = { blip = blip, proprietaire = b.proprietaire }
+            blipsBiens[#blipsBiens + 1] = blip
+        end
+    end
+end
+
+RegisterNetEvent('qbx_properties:client:rafraichirBlips', function()
+    SetTimeout(math.random(200, 1500), rafraichirBlips) -- etale les requetes quand tout le monde est prevenu
+end)
+RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function() SetTimeout(2000, rafraichirBlips) end)
+RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()
+    for _, b in ipairs(blipsBiens) do if DoesBlipExist(b) then RemoveBlip(b) end end
+    blipsBiens = {}
+end)
+CreateThread(function() Wait(3000) rafraichirBlips() end)

@@ -674,6 +674,8 @@ local function sendGarages(src)
 end
 
 function SendGaragesToAll()
+    -- les icones "biens possedes" de chaque joueur sont a jour apres tout changement de proprietaire ou de cles
+    TriggerClientEvent('qbx_properties:client:rafraichirBlips', -1)
     for _, src in ipairs(GetPlayers()) do sendGarages(tonumber(src)) end
 end
 
