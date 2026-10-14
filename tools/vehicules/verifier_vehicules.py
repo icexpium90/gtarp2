@@ -86,7 +86,7 @@ def fichiers_stream(res):
     return out
 
 
-def analyser_ressource(res, jeu_de_base):
+def analyser_ressource(res, jeu_de_base, global_yft=frozenset()):
     nom = os.path.basename(res)
     err, warn, infos = [], [], []
     vehicules, kits_declares, kits_utilises = [], {}, []
@@ -183,15 +183,19 @@ def analyser_ressource(res, jeu_de_base):
                 mn = txt(piece, 'modelName').lower()
                 types.add(txt(piece, 'type'))
                 os_ = piece.find('turnOffBones')
-                retire_piece = os_ is not None and len(list(os_)) > 0
+                libelle = txt(piece, 'modShopLabel').replace('_', ' ')
+                retire_piece = (os_ is not None and len(list(os_)) > 0
+                                and re.search(r'\b(no|none|remove|removed|delete|stock|without|sans|off)\b', libelle, re.I))
                 if mn in ('', 'null'):
                     continue  # emplacement vide volontaire (astuce de moddeur)
                 if mn + '.yft' not in stream:
+                    if mn in global_yft:
+                        continue  # piece fournie par une autre ressource du serveur (stream global FiveM)
                     (vides if retire_piece else manquants).add(mn)
                 lies = piece.find('linkedModels')
                 for l in (lies if lies is not None else []):
                     ln = (l.text or '').strip().lower()
-                    if ln and ln + '.yft' not in stream:
+                    if ln and ln + '.yft' not in stream and ln not in global_yft:
                         manquants.add(ln)
             stat = kit.find('statMods')
             stats = set(txt(s, 'type') for s in (stat if stat is not None else []))
@@ -256,7 +260,14 @@ def main():
         return 1
     ressources = sorted(os.path.join(dossier, d) for d in os.listdir(dossier)
                         if os.path.isdir(os.path.join(dossier, d)) and not d.startswith(('.', '_')))
-    resultats = [analyser_ressource(r, jeu) for r in ressources]
+    global_yft = set()
+    for r in ressources:
+        for base, _, fs in os.walk(r):
+            global_yft |= set(f.lower()[:-4] for f in fs if f.lower().endswith('.yft'))
+    # packs accessoires (jantes, sons) : pas de vehicles.meta ni de handling, on ne les traite pas comme des voitures
+    accessoires = [r for r in ressources if not any(f.endswith('vehicles.meta') for _, _, fs in os.walk(r) for f in fs)]
+    ressources = [r for r in ressources if r not in accessoires]
+    resultats = [analyser_ressource(r, jeu, global_yft) for r in ressources]
 
     # conflits inter-ressources
     modeles, ids = {}, {}
@@ -276,6 +287,8 @@ def main():
 
     lignes = ['# Rapport vehicules addon', '', 'Dossier analyse : `%s`' % dossier, '',
               '%d ressource(s), %d vehicule(s).' % (len(resultats), sum(len(r['vehicules']) for r in resultats)), '']
+    if accessoires:
+        lignes += ['Packs accessoires (jantes, sons) non verifies comme des voitures : ' + ', '.join(os.path.basename(a) for a in accessoires), '']
     if conflits:
         lignes += ['## Conflits entre ressources', ''] + ['- ' + c for c in conflits] + ['']
     a_ajouter = []
