@@ -11,6 +11,8 @@ Gangs de rue, mafias et organisations avec un QG complet, une flotte de véhicul
 | cartel | Cartel Madrazo | Halcón, Sicario, Lugarteniente, Patrón |
 | triads | Triades | Recrue, Combattant, Bâton rouge, Tête de dragon |
 | mafia | Cosa Nostra | Associé, Soldat, Capo, Consigliere, Parrain |
+| schatten | Schattenkartell (mafia allemande) | Kurier, Soldat, Vollstrecker, Unterboss, Der Pate |
+| sanguenwe | Sangue Nwè (mafia luso-martiniquaise) | Menino, Soldado, Tenente, Majò, Patrão |
 | yakuza | Yakuza | Kobun, Shatei, Wakagashira, Saiko-komon, Oyabun |
 | bratva | Bratva | Shestyorka, Boyevik, Brigadier, Sovietnik, Pakhan |
 

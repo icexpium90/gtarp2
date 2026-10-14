@@ -18,7 +18,7 @@ Voitures addon (69, dans resources/[Project-Terrific]/[vehicules], vendues à l'
 Poids total des voitures addon : environ 2 Go, téléchargés par chaque joueur à sa première connexion.
 bob74_ipl 2.7.1 : intérieurs des DLC jusqu'en 2026.
 Immobilier : qbx_properties adapté à QBCore (maisons, appartements, entrepôts, villas, avec ou sans MLO), création par l'agent immobilier ou un admin avec /createproperty. Mode d'emploi : resources/[Project-Terrific]/[immobilier]/LISEZMOI.md.
-Gangs : pt-gangs (12 gangs dont mafia, yakuza, bratva, cartel), QG avec entrée, dépôt, vestiaire, menu du chef et garage, flotte de véhicules avec clés, tout se règle en jeu avec /gangadmin. Mode d'emploi : resources/[Project-Terrific]/[gangs]/pt-gangs/LISEZMOI.md.
+Gangs : pt-gangs (14 gangs dont la Cosa Nostra, le Schattenkartell allemand, Sangue Nwè luso-martiniquais, Yakuza, Bratva et Cartel), QG avec entrée, dépôt, vestiaire, menu du chef et garage, flotte de véhicules avec clés, tout se règle en jeu avec /gangadmin. Mode d'emploi : resources/[Project-Terrific]/[gangs]/pt-gangs/LISEZMOI.md.
 Mode drift : touche F7 (ou /driftmode) avec la clé de drift vendue dans les magasins de bricolage.
 Correctifs : boutique du port, doublons de véhicules, scanner de plaques.
 Outils pour ajouter des voitures : tools/vehicules (conversion des mods solo dlc.rpf et vérification des bodykits / pièces moteur). Mode d'emploi dans tools/vehicules/LISEZMOI.md.

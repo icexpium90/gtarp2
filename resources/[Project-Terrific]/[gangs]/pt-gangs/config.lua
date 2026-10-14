@@ -39,6 +39,8 @@ Config.Colors = {
     { label = 'Cyan', blip = 18, rgb = { 30, 170, 190 } },
     { label = 'Orange', blip = 17, rgb = { 220, 110, 20 } },
     { label = 'Gris', blip = 39, rgb = { 70, 70, 75 } },
+    { label = 'Bordeaux', blip = 1, rgb = { 60, 0, 8 } },
+    { label = 'Anthracite', blip = 40, rgb = { 28, 28, 32 } },
 }
 
 local function grades(noms)
@@ -68,12 +70,21 @@ Config.Gangs = {
     triads = { label = 'Triades', color = 6, plate = 'TRIA', grades = grades({ 'Recrue', 'Combattant', 'Baton rouge', 'Tete de dragon' }),
         vehicles = { { 'fugitive', 'Fugitive', 0 }, { 'schafter2', 'Schafter', 1 } } },
 
-    mafia = { label = 'Cosa Nostra (Mafia)', color = 4, plate = 'MAFI', grades = grades({ 'Associe', 'Soldat', 'Capo', 'Consigliere', 'Parrain' }),
+    mafia = { label = 'Cosa Nostra', color = 4, plate = 'COSA', grades = grades({ 'Associe', 'Soldat', 'Capo', 'Consigliere', 'Parrain' }),
         vehicles = { { 'cognoscenti', 'Cognoscenti', 0 }, { 'schafter2', 'Schafter', 0 }, { 'cog55', 'Cognoscenti 55', 2 }, { 'stretch', 'Limousine', 3 } } },
     yakuza = { label = 'Yakuza', color = 5, plate = 'YAKU', grades = grades({ 'Kobun', 'Shatei', 'Wakagashira', 'Saiko-komon', 'Oyabun' }),
         vehicles = { { 'sultanrs', 'Sultan RS', 0 }, { 'elegy', 'Elegy Retro', 0 }, { 'schafter3', 'Schafter V12', 2 } } },
     bratva = { label = 'Bratva (Mafia russe)', color = 10, plate = 'BRAT', grades = grades({ 'Shestyorka', 'Boyevik', 'Brigadier', 'Sovietnik', 'Pakhan' }),
         vehicles = { { 'baller2', 'Baller', 0 }, { 'dubsta', 'Dubsta', 0 }, { 'xls2', 'XLS blindee', 3 } } },
+    -- Mafia allemande : le cartel de l'ombre
+    schatten = { label = 'Schattenkartell', color = 12, plate = 'SCHK', grades = grades({ 'Kurier', 'Soldat', 'Vollstrecker', 'Unterboss', 'Der Pate' }),
+        vehicles = { { 'schafter2', 'Schafter', 0 }, { 'oracle2', 'Oracle XS', 0 }, { 'dubsta2', 'Dubsta Luxury', 1 }, { 'm5f90', 'BMW M5 F90', 1 },
+            { 'bmwe65', 'BMW 760Li', 2 }, { 'gle63s', 'Mercedes GLE 63 S', 2 }, { 'brabus850', 'Brabus 850', 3 }, { 'g65amg', 'Mercedes G65 AMG', 4 } } },
+    -- Mafia luso-martiniquaise : sang noir (portugais "sangue" + creole martiniquais "nwe")
+    sanguenwe = { label = 'Sangue Nwe', color = 11, plate = 'SNWE', grades = grades({ 'Menino', 'Soldado', 'Tenente', 'Majo', 'Patrao' }),
+        vehicles = { { 'gburrito', 'Gang Burrito', 0 }, { 'manchez', 'Manchez', 0 }, { 'rumpo3', 'Rumpo Custom', 0 }, { 'kamacho', 'Kamacho', 1 },
+            { 'baller', 'Baller', 1 }, { 'sabregt2', 'Sabre GT Custom', 2 }, { 'cavalcade', 'Cavalcade', 3 } } },
+
     marabunta = { label = 'Marabunta Grande', color = 7, plate = 'MARA', grades = grades(RUE),
         vehicles = { { 'tornado', 'Tornado', 0 }, { 'manana', 'Manana', 0 } } },
     aztecas = { label = 'Varrios Los Aztecas', color = 8, plate = 'AZTE', grades = grades(RUE),

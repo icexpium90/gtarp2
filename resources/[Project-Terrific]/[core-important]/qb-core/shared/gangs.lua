@@ -117,7 +117,7 @@ QBShared.Gangs = {
         },
 	},
 	['mafia'] = {
-		label = 'Cosa Nostra (Mafia)',
+		label = 'Cosa Nostra',
 		grades = {
             ['0'] = {
                 name = 'Associe'
@@ -211,6 +211,48 @@ QBShared.Gangs = {
             },
             ['3'] = {
                 name = 'Chef',
+                isboss = true
+            },
+        },
+	},
+	['schatten'] = {
+		label = 'Schattenkartell',
+		grades = {
+            ['0'] = {
+                name = 'Kurier'
+            },
+            ['1'] = {
+                name = 'Soldat'
+            },
+            ['2'] = {
+                name = 'Vollstrecker'
+            },
+            ['3'] = {
+                name = 'Unterboss'
+            },
+            ['4'] = {
+                name = 'Der Pate',
+                isboss = true
+            },
+        },
+	},
+	['sanguenwe'] = {
+		label = 'Sangue Nwe',
+		grades = {
+            ['0'] = {
+                name = 'Menino'
+            },
+            ['1'] = {
+                name = 'Soldado'
+            },
+            ['2'] = {
+                name = 'Tenente'
+            },
+            ['3'] = {
+                name = 'Majo'
+            },
+            ['4'] = {
+                name = 'Patrao',
                 isboss = true
             },
         },
