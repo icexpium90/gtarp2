@@ -1,4 +1,4 @@
-Citizen.CreateThread(function()
+CreateThread(function()
     -- ====================================================================
     -- =--------------------- [GTA V: Single player] ---------------------=
     -- ====================================================================
@@ -25,7 +25,7 @@ Citizen.CreateThread(function()
     BahamaMamas.Enable(true)
 
     -- Pillbox hospital: 307.1680, -590.807, 43.280
-    --PillboxHospital.Enable(false)
+    PillboxHospital.Enable(true)
 
     -- Zancudo Gates (GTAO like): -1600.30100000, 2806.73100000, 18.79683000
     ZancudoGates.LoadDefault()
@@ -34,6 +34,7 @@ Citizen.CreateThread(function()
     Ammunations.LoadDefault()
     LesterFactory.LoadDefault()
     StripClub.LoadDefault()
+    CargoShip.LoadDefault()
 
     Graffitis.Enable(true)
 
@@ -142,6 +143,16 @@ Citizen.CreateThread(function()
     if GetGameBuildNumber() >= 2060 then
         DiamondCasino.LoadDefault() -- 1100.000, 220.000, -50.000
         DiamondPenthouse.LoadDefault() -- 976.636, 70.295, 115.164
+        DiamondArcade.LoadDefault() -- 2732.000, -380.000, -50.000
+        DiamondArcadeBasement.LoadDefault() -- 2710.0, -360.780, -56.0
+    end
+
+    -- ====================================================================
+    -- =-------------------- [DLC: Cayo Perico Heist] --------------------=
+    -- ====================================================================
+    if GetGameBuildNumber() >= 2189 then
+        CayoPericoNightclub.LoadDefault() -- 1550.0, 250.0, -50.0
+        CayoPericoSubmarine.LoadDefault() -- 1560.0, 400.0, -50.0
     end
 
     -- ====================================================================
@@ -174,5 +185,82 @@ Citizen.CreateThread(function()
         CriminalEnterpriseSmeonFix.LoadDefault() -- -50.2248, -1098.8325, 26.049742
         CriminalEnterpriseVehicleWarehouse.LoadDefault() -- 800.13696, -3001.4297, -65.14074
         CriminalEnterpriseWarehouse.LoadDefault() -- 849.1047, -3000.209, -45.974354
+    end
+
+    -- ====================================================================
+    -- =------------------- [DLC: Los Santos Drug Wars] ------------------=
+    -- ====================================================================
+    if GetGameBuildNumber() >= 2802 then
+        DrugWarsFreakshop.LoadDefault() -- 570.9713, -420.0727, -70.000
+        DrugWarsGarage.LoadDefault() -- 519.2477, -2618.788, -50.000
+        DrugWarsLab.LoadDefault() -- 483.4252, -2625.071, -50.000
+    end
+
+    -- ====================================================================
+    -- =------------------- [DLC: San Andreas Mercenaries] ---------------=
+    -- ====================================================================
+    if GetGameBuildNumber() >= 2944 then
+        MercenariesClub.LoadDefault() -- 1202.407, -3251.251, -50.000
+        MercenariesLab.LoadDefault() -- -1916.119, 3749.719, -100.000
+        MercenariesFixes.LoadDefault()
+    end
+
+    -- ====================================================================
+    -- =------------------- [DLC: The Chop Shop] -------------------------=
+    -- ====================================================================
+    if GetGameBuildNumber() >= 3095 then
+        ChopShopCargoShip.LoadDefault() -- -344.4349, -4062.832, 17.000
+        ChopShopCartelGarage.LoadDefault() -- 1220.133, -2277.844, -50.000
+        ChopShopLifeguard.LoadDefault() -- -1488.153, -1021.166, 5.000
+        ChopShopSalvage.LoadDefault() -- 1077.276, -2274.876, -50.000
+    end
+
+    -- ====================================================================
+    -- =------------------ [DLC: Bottom Dollar Bounties] -----------------=
+    -- ====================================================================
+    if GetGameBuildNumber() >= 3258 then
+        SummerCarrier.LoadDefault() -- -3208.03, 3954.54, 14.0
+        SummerOffice.LoadDefault() -- 565.886, -2688.761, -50.0
+    end
+
+    -- ====================================================================
+    -- =-------------------- [DLC: Agents of Sabotage] -------------------=
+    -- ====================================================================
+    if GetGameBuildNumber() >= 3407 then
+        AgentsFactory.LoadDefault() -- 752.31, -997.24, -47.0
+        AgentsOffice.LoadDefault() -- 2149.71, 4787.76, -47.0
+        AgentsAirstrip.LoadDefault() -- -2106.98, 1468.31, 282.0
+        AgentsHangarDoor.LoadDefault() -- -2632.43, 2963.23, 8.5
+    end
+
+    -- ====================================================================
+    -- =----------------------- [DLC: Money Fronts] ----------------------=
+    -- ====================================================================
+    if IsDlcPresent(`mp2025_01`) then
+        MoneyCarwash.LoadDefault() -- 26.074, -1398.979, -75.0
+        MoneyOffice.LoadDefault() -- -1160.493, -1538.932, -50.0
+    end
+
+    -- ====================================================================
+    -- =---------------- [DLC: A Safehouse in the Hills] -----------------=
+    -- ====================================================================
+    if IsDlcPresent(`mp2025_02`) then
+        Mansion1.LoadDefault() -- 543.852, 712.754, 201.0
+        Mansion2.LoadDefault() -- -1630.434, 470.852, 128.0
+        Mansion3.LoadDefault() -- -2601.712, 1874.826, 166.0
+        MansionBasement1.LoadDefault()
+        MansionBasement2.LoadDefault()
+        MansionBasement3.LoadDefault()
+    end
+
+    -- ====================================================================
+    -- =----------------- [DLC: The Kortz Center Heist] ------------------=
+    -- ====================================================================
+    if IsDlcPresent(`mp2026_01`) then
+        KortzMuseum.LoadDefault() -- -2242.157, 270.780, 173.5
+        KortzExhibition.LoadDefault() -- 2603.167, 5903.761, -50.0
+        KortzBasement.LoadDefault() -- 2631.411, 5893.864, -62.0
+        KortzLoadingBay.LoadDefault() -- 2693.671, 5877.493, -62.0
+        KortzWorkshop.LoadDefault() -- 2583.915, 5961.410, -50.0
     end
 end)

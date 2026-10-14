@@ -98,16 +98,27 @@ local function comma_value(amount)
     return formatted
 end
 
+-- Garde-fou : un modele de showroom absent de qb-core/shared/vehicles.lua ne doit pas faire planter le client
+local function getShowroomVeh()
+    local model = Config.Shops[insideShop]["ShowroomVehicles"][ClosestVehicle].chosenVehicle
+    local veh = QBCore.Shared.Vehicles[model]
+    if not veh then
+        print(('[qb-vehicleshop] modele "%s" absent de QBShared.Vehicles (shop %s)'):format(tostring(model), tostring(insideShop)))
+        return { name = tostring(model), price = 0, brand = '?' }
+    end
+    return veh
+end
+
 local function getVehName()
-    return QBCore.Shared.Vehicles[Config.Shops[insideShop]["ShowroomVehicles"][ClosestVehicle].chosenVehicle]["name"]
+    return getShowroomVeh()["name"]
 end
 
 local function getVehPrice()
-    return comma_value(QBCore.Shared.Vehicles[Config.Shops[insideShop]["ShowroomVehicles"][ClosestVehicle].chosenVehicle]["price"])
+    return comma_value(getShowroomVeh()["price"])
 end
 
 local function getVehBrand()
-    return QBCore.Shared.Vehicles[Config.Shops[insideShop]["ShowroomVehicles"][ClosestVehicle].chosenVehicle]['brand']
+    return getShowroomVeh()['brand']
 end
 
 local function setClosestShowroomVehicle()

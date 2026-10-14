@@ -8,12 +8,31 @@ Config.LockOnFlag = false    -- Set to true to lock front plate reader on flagge
 Config.NotifDuration = 6000  -- Time until scan notification disappears (default = 6sec)
 Config.OxTarget = true      -- Set True if using ox-target, false will use qb-target
 
-Config.AllowedVehicles = {
-    [1] = {model = "nkbuffalos", label = 'Bravado Buffalo S'},
-    [2] = {model = 'nkscout', label = 'Vapid Scout'},
-    [3] = {model = 'nkcoquette', label = 'Invetero Coquette'},
-    [4] = {model = 'nkcruiser', label = 'Vapid Stainer'},
-    [5] = {model = 'nktorrence', label = 'Vapid Torrence'}
+Config.AllowedVehicles = { -- vehicules de police du jeu de base (build 3889), les anciens modeles addon nk* n'etaient pas installes
+    [1] = {model = 'police', label = 'Police Cruiser'},
+    [2] = {model = 'police2', label = 'Police Buffalo'},
+    [3] = {model = 'police3', label = 'Police Interceptor'},
+    [4] = {model = 'police4', label = 'Unmarked Cruiser'},
+    [5] = {model = 'policet', label = 'Police Transporter'},
+    [6] = {model = 'sheriff', label = 'Sheriff Cruiser'},
+    [7] = {model = 'sheriff2', label = 'Sheriff SUV'},
+    [8] = {model = 'fbi', label = 'FIB Buffalo'},
+    [9] = {model = 'fbi2', label = 'FIB Granger'},
+    [10] = {model = 'pranger', label = 'Park Ranger'},
+    [11] = {model = 'police5', label = 'Stanier LE Cruiser'},
+    [12] = {model = 'polgauntlet', label = 'Gauntlet Interceptor'},
+    [13] = {model = 'poldominator10', label = 'Dominator FX Interceptor'},
+    [14] = {model = 'poldorado', label = 'Dorado Cruiser'},
+    [15] = {model = 'polgreenwood', label = 'Greenwood Cruiser'},
+    [16] = {model = 'polimpaler5', label = 'Impaler SZ Cruiser'},
+    [17] = {model = 'polimpaler6', label = 'Impaler LX Cruiser'},
+    [18] = {model = 'polcaracara', label = 'Caracara Pursuit'},
+    [19] = {model = 'polcoquette4', label = 'Coquette D10 Pursuit'},
+    [20] = {model = 'polfaction2', label = 'Outreach Faction'},
+    [21] = {model = 'polterminus', label = 'Terminus Patrol'},
+    [22] = {model = 'polbuffalo', label = 'Buffalo Cruiser'},
+    [23] = {model = 'polbuffalo6', label = 'Buffalo STX Pursuit'},
+    [24] = {model = 'polignus', label = 'Ignus Pursuit'},
 }
 
 Config.GTAVSounds = {        -- Frontend sounds from GTAV (https://wiki.gtanet.work/index.php?title=FrontEndSoundlist)
