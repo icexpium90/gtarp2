@@ -438,11 +438,11 @@ QBCore.Commands.Add('fine', Lang:t("commands.fine"), {{name = 'id', help = Lang:
                     if billed.Functions.RemoveMoney('bank', amount, "paid-fine") then
                         TriggerClientEvent('QBCore:Notify', source, Lang:t("info.fine_issued"), 'success')
                         TriggerClientEvent('QBCore:Notify', billed.PlayerData.source, Lang:t("info.received_fine"))
-                        exports['Renewed-Banking']:addAccountMoney(biller.PlayerData.job.name, amount)
+                        exports['qb-management']:AddMoney(biller.PlayerData.job.name, amount)
                     elseif billed.Functions.RemoveMoney('cash', amount, "paid-fine") then
                         TriggerClientEvent('QBCore:Notify', source, Lang:t("info.fine_issued"), 'success')
                         TriggerClientEvent('QBCore:Notify', billed.PlayerData.source, Lang:t("info.received_fine"))
-                        exports['Renewed-Banking']:addAccountMoney(biller.PlayerData.job.name, amount)
+                        exports['qb-management']:AddMoney(biller.PlayerData.job.name, amount)
                     else
                         MySQL.Async.insert('INSERT INTO phone_invoices (citizenid, amount, society, sender, sendercitizenid) VALUES (?, ?, ?, ?, ?)',{billed.PlayerData.citizenid, amount, biller.PlayerData.job.name, biller.PlayerData.charinfo.firstname, biller.PlayerData.citizenid}, function(id)
                             if id then
@@ -834,7 +834,7 @@ RegisterNetEvent('police:server:BillPlayer', function(playerId, price)
     if not Player or not OtherPlayer or Player.PlayerData.job.name ~= "police" then return end
 
     OtherPlayer.Functions.RemoveMoney("bank", price, "paid-bills")
-    exports['Renewed-Banking']:addAccountMoney("police", price)
+    exports['qb-management']:AddMoney("police", price)
     TriggerClientEvent('QBCore:Notify', OtherPlayer.PlayerData.source, Lang:t("info.fine_received", {fine = price}))
 end)
 

@@ -267,6 +267,10 @@ RegisterNUICallback('SetStancer', function(data, cb)
     local rRotation = data.rRotation * 100 / 1000
     local ped = PlayerPedId()
     local veh = GetVehiclePedIsIn(ped)
-    exports["vstancer"]:SetWheelPreset(veh, -fOffset, -fRotation, -rOffset, -rRotation)
+    if GetResourceState('vstancer') == 'started' then
+        exports["vstancer"]:SetWheelPreset(veh, -fOffset, -fRotation, -rOffset, -rRotation)
+    else
+        QBCore.Functions.Notify('Reglage du carrossage indisponible (ressource vstancer non installee)', 'error')
+    end
     cb("ok")
 end)

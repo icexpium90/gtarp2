@@ -842,7 +842,19 @@ end)
 
 RegisterNUICallback('GetTruckerData', function(_, cb)
     local TruckerMeta = QBCore.Functions.GetPlayerData().metadata["jobrep"]["trucker"]
-    local TierData = exports['qb-trucker']:GetTier(TruckerMeta)
+    local TierData
+    if GetResourceState('qb-trucker') == 'started' then
+        TierData = exports['qb-trucker']:GetTier(TruckerMeta)
+    else
+        -- qb-trucker absent du serveur : niveaux calcules ici a partir de la reputation camionneur
+        local rep = TruckerMeta or 0
+        local tiers = {{min = 0, max = 50}, {min = 50, max = 100}, {min = 100, max = 200}, {min = 200, max = 400}, {min = 400, max = 400}}
+        local current = #tiers
+        for i = 1, #tiers do
+            if rep < tiers[i].max then current = i break end
+        end
+        TierData = {TiersData = tiers, CurrentTier = current, CurrentTierData = tiers[current], CurrentRep = rep}
+    end
     cb(TierData)
 end)
 

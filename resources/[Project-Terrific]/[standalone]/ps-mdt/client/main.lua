@@ -835,11 +835,19 @@ RegisterNetEvent('mdt:client:sig100', function(radio, type)
     local duty = PlayerData.job.onduty
     if AllowedJob(job) and duty == 1 then
         if type == true then
-            exports['erp_notifications']:PersistentAlert("START", "signall100-"..radio, "inform", "Radio "..radio.." is currently signal 100!")
+            if GetResourceState('erp_notifications') == 'started' then
+                exports['erp_notifications']:PersistentAlert("START", "signall100-"..radio, "inform", "Radio "..radio.." is currently signal 100!")
+            else
+                QBCore.Functions.Notify("Radio "..radio.." : signal 100 en cours !", 'error', 10000)
+            end
         end
     end
     if not type then
-        exports['erp_notifications']:PersistentAlert("END", "signall100-"..radio)
+        if GetResourceState('erp_notifications') == 'started' then
+            exports['erp_notifications']:PersistentAlert("END", "signall100-"..radio)
+        else
+            QBCore.Functions.Notify("Radio "..radio.." : fin du signal 100", 'success')
+        end
     end
 end)
 

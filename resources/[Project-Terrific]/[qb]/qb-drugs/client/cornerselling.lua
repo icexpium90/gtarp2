@@ -25,6 +25,36 @@ local function TooFarAway()
     availableDrugs = {}
 end
 
+-- Adaptateur de ciblage : ce fichier a ete ecrit pour ox_target, mais le serveur utilise qb-target.
+-- On garde ox_target s'il est demarre, sinon on traduit les options vers qb-target.
+local Target = {}
+function Target.addEntity(netId, options)
+    if GetResourceState('ox_target') == 'started' then
+        return exports.ox_target:addEntity(netId, options)
+    end
+    local entity = NetworkGetEntityFromNetworkId(netId)
+    local qbOptions = {}
+    for i = 1, #options do
+        local o = options[i]
+        qbOptions[#qbOptions + 1] = {
+            icon = o.icon,
+            label = o.label,
+            canInteract = o.canInteract and function() return o.canInteract() end or nil,
+            action = function() o.onSelect() end,
+        }
+    end
+    exports['qb-target']:AddTargetEntity(entity, { options = qbOptions, distance = 2.0 })
+end
+function Target.removeEntity(netId, names)
+    if GetResourceState('ox_target') == 'started' then
+        return exports.ox_target:removeEntity(netId, names)
+    end
+    local entity = NetworkGetEntityFromNetworkId(netId)
+    if entity and entity ~= 0 then
+        exports['qb-target']:RemoveTargetEntity(entity)
+    end
+end
+
 local function PoliceCall()
     if Config.PoliceCallChance <= math.random(1, 100) then
         TriggerServerEvent('police:server:policeAlert', 'Drug sale in progress')
@@ -52,7 +82,7 @@ local function RobberyPed()
                     TriggerEvent('inventory:client:ItemBox', QBCore.Shared.Items[stealData.item], "add")
                     stealingPed = nil
                     stealData = {}
-                    exports.ox_target:removeEntity(targetStealingPed, 'stealingped')
+                    Target.removeEntity(targetStealingPed, 'stealingped')
                 end,
                 canInteract = function()
                     if IsEntityDead(stealingPed) then
@@ -61,7 +91,7 @@ local function RobberyPed()
                 end
             }
         }
-        exports.ox_target:addEntity(targetStealingPed, options)
+        Target.addEntity(targetStealingPed, options)
         CreateThread(function()
             while stealingPed do
                 local playerPed = PlayerPedId()
@@ -71,7 +101,7 @@ local function RobberyPed()
                 if dist > 100 then
                     stealingPed = nil
                     stealData = {}
-                    exports.ox_target:removeEntity(targetStealingPed, 'stealingped')
+                    Target.removeEntity(targetStealingPed, 'stealingped')
                     break
                 end
                 Wait(0)
@@ -210,7 +240,7 @@ local function SellToPed(ped)
                                     SetEntityAsNoLongerNeeded(ped)
                                     ClearPedTasksImmediately(ped)
                                     lastPed[#lastPed + 1] = ped
-                                    exports.ox_target:removeEntity(targetPedSale, optionNamesTargetPed)
+                                    Target.removeEntity(targetPedSale, optionNamesTargetPed)
                                     PoliceCall()
                                 end,
                             },
@@ -225,11 +255,11 @@ local function SellToPed(ped)
                                     SetEntityAsNoLongerNeeded(ped)
                                     ClearPedTasksImmediately(ped)
                                     lastPed[#lastPed + 1] = ped
-                                    exports.ox_target:removeEntity(targetPedSale, optionNamesTargetPed)
+                                    Target.removeEntity(targetPedSale, optionNamesTargetPed)
                                 end,
                             },
                         }
-                        exports.ox_target:addEntity(targetPedSale, options)
+                        Target.addEntity(targetPedSale, options)
                     elseif not Config.UseTarget then
                         if not textDrawn then
                             textDrawn = true
@@ -265,7 +295,7 @@ local function SellToPed(ped)
                 else
                     if Config.UseTarget then
                         zoneMade = false
-                        exports.ox_target:removeEntity(targetPedSale, optionNamesTargetPed)
+                        Target.removeEntity(targetPedSale, optionNamesTargetPed)
                     else
                         if textDrawn then
                             exports['qb-core']:HideText()

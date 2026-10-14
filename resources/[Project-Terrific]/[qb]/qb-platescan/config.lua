@@ -6,7 +6,7 @@ Config.GKSPhone = false      -- Set to true if using gks phone, false for qb-pho
 
 Config.LockOnFlag = false    -- Set to true to lock front plate reader on flagged status
 Config.NotifDuration = 6000  -- Time until scan notification disappears (default = 6sec)
-Config.OxTarget = true      -- Set True if using ox-target, false will use qb-target
+Config.OxTarget = false     -- Set True if using ox-target, false will use qb-target (le serveur utilise qb-target)
 
 Config.AllowedVehicles = { -- vehicules de police du jeu de base (build 3889), les anciens modeles addon nk* n'etaient pas installes
     [1] = {model = 'police', label = 'Police Cruiser'},
