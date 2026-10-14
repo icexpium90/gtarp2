@@ -1,0 +1,18 @@
+MISE A JOUR PROJECT TERRIFIC - BUILD 3889 (The Kortz Center Heist)
+
+Installation :
+1. Arreter le serveur.
+2. Supprimer le dossier resources/[Project-Terrific]/[standalone]/bob74_ipl
+3. Extraire ce zip a la racine du serveur en ecrasant les fichiers.
+4. Mettre a jour les artifacts FXServer (les anciens refusent la build 3889).
+5. Redemarrer.
+
+Contenu :
+- server.cfg : sv_enforceGameBuild 3889
+- qb-core/shared/vehicles.lua : 899 vehicules (tout le jeu jusqu'a 3889, hors trains/remorques)
+  + 27 versions drift et 20 voitures tuner en vente a l'Import Vehicle Shop (port)
+- qb-vehicleshop : showroom du port corrige + protection contre les modeles manquants
+- qb-platescan : vehicules de police du jeu
+- bob74_ipl 2.7.1 : interieurs des DLC 2023-2026
+- projectterrific.cfg : [Maps] et [Terrific-customscripts] (absents) mis en commentaire
+- tools/vehicules : verificateur des voitures addon (bodykits, pieces moteur, conflits) - voir LISEZMOI.md
