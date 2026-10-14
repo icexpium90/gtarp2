@@ -1,4 +1,4 @@
-# Cartes : quartiers de gangs, villa MLO, domaine mafia, QG sous-marin
+# Cartes : MLO, quartiers de gangs, éclairage, forêts
 
 Toutes les cartes de ce dossier démarrent avec `ensure [cartes]` (dans `projectterrific.cfg`).
 Pour en retirer une, déplacez son dossier hors de `[cartes]` ou ajoutez `stop nom-de-la-ressource` après l'ensure.
@@ -11,8 +11,44 @@ Pour en retirer une, déplacez son dossier hors de `[cartes]` ou ajoutez `stop n
 | pt-carte-marabunta | El Burro Heights (≈ 1149, -1643) | décor (39 objets) | QG de la Marabunta |
 | pt-carte-bloods | Vespucci Canals (≈ -1104, -1656) | « Gang District » (30 objets) | QG d'un gang créé en jeu, ou Sangue Nwè |
 | pt-carte-villa-moderne | Tongva Hills (≈ -2654, 1321) | **MLO** : villa moderne avec intérieur et piscine | bien de luxe (qbx_properties) |
+| pt-carte-malibu | Chumash, bord de mer (≈ -3223, 793) | **MLO** Malibu Mansion : garage 6 places, piscines intérieure et extérieure, studio, basket, héliport, ponton | villa de luxe (qbx_properties) |
+| pt-carte-hlm | West Vinewood (≈ -498, 52) | immeuble HLM (1 736 objets) | immeuble d'appartements en shells, QG de gang |
+| pt-carte-citylights | toute la carte | 4 421 éclairages LED de rues et d'autoroutes (version LOD bas, sans réglage du jeu) | ambiance de nuit |
+| pt-carte-ikon | toute la carte | ikON Projects 3.08 : une quarantaine de MLO et retouches de bâtiments (voir plus bas) | entreprises, QG, lieux publics |
+| pt-carte-ikon-cayo | Cayo Perico | portails et clôtures retirés, véhicules placés comme en ligne | île ouverte |
 | pt-maploader : mafia_mansion | Tongva Hills, domaine viticole (≈ -1899, 2044) | 23 voitures et 43 gardes de décor | QG de la Cosa Nostra |
 | pt-maploader : underwater_hq | lac de Vinewood Hills (≈ -1041, 1045) | QG sous-marin + yacht-club, 2 042 objets, 8 téléporteurs | **désactivé par défaut** |
+
+## ikON Projects (pt-carte-ikon)
+
+Intérieurs MLO **à entrée libre** (porte ouverte) : Bean Machine (Magellan Ave, Morningwood, Heritage Way, Eclipse Medical
+Tower, Peaceful St, Atlee St, Simmet Alley, observatoire), stations RON et 24/7, agences Maze Bank, bureaux de la
+casse (Paleto, Grapeseed, Chiliad), bureau du port (Alpha Mail), club de yacht LSMYC, bureau de streaming (Vinewood),
+grottes aménagées (labo et repaire du Lost MC).
+
+Intérieurs **à téléporteur** (marqueur bleu, E ; en voiture pour les garages) : garage MOD (port, véhicules),
+bureau Maibatsu, LSIA VIP (salon et garage), siège de Mors Mutual Insurance (et terrasse VIP), club souterrain (entrée
+normale et VIP), bureau du Kortz Center, bureau du Vinewood Bowl, agence immobilière WOLFS, bureau de startup, laverie de
+Pacific Bluffs, atelier Hawk & Little, serre « Smoke on the Water », dépôt Post OP de Paleto, QG de Gruppe Sechs,
+hangar privé de LSIA, bureau Clucking Bell. Les 45 téléporteurs viennent du script solo de l'auteur (coordonnées
+extraites), ils sont dans `pt-maploader/cartes/ikon_teleporteurs.lua`.
+
+- **Appartement de Vespucci Beach** : pas de téléporteur public, c'est un bien immobilier à vendre
+  (`/immo` > Lieux MLO disponibles).
+- Non repris (propres au solo) : voyage payant vers Cayo Perico, réparation automatique au garage MOD et LSIA, scénarios
+  de PNJ et `peds.meta`. Les émetteurs de musique (club) sont chargés.
+- Le mod retouche des bâtiments du jeu (ouvertures de portes) : si un autre MLO payant occupe le même bâtiment, gardez-en
+  un seul. `hei_ap1_02_strm_0` (aéroport) reste celui de qb-smallresources (mêmes objets, générateurs de voitures adaptés).
+- `pt-carte-ikon-cayo` est séparé : s'il gêne un script de braquage de Cayo, ajoutez `stop pt-carte-ikon-cayo`.
+
+## Forêts de San Andreas ([cartes-lourdes], désactivé par défaut)
+
+13 766 arbres, buissons et cactus (nord : Paleto, mont Chiliad, Raton Canyon ; sud : Tongva, Vinewood Hills, Tataviam).
+Version 5.7 « Legacy » (la v6 « Enhanced » n'est pas compatible FiveM), sans les modèles de reflets qui demandent un
+shader modifié (les arbres ajoutés n'apparaissent simplement pas dans les reflets).
+L'auteur prévient que, avec les cartes du mode en ligne (toujours chargées sur FiveM), le jeu peut atteindre ses limites
+d'objets : activez-les après un essai à plusieurs joueurs, en décommentant `ensure [cartes-lourdes]` dans
+`projectterrific.cfg`. En cas de plantage au chargement, recommentez la ligne.
 
 ## Brancher les QG de gangs
 
@@ -52,5 +88,10 @@ téléporteurs (E).
 - **pt-carte-families** remplace 3 ymaps du jeu (`lr_sc1_rd`, `lr_sc1_rd_strm_0`, `lr_sc1_10_strm_2` : routes et décor
   de Grove Street jusqu'à Davis). Ils datent d'avant la build 3889 : si un élément récent de Rockstar manque dans le
   secteur, supprimez le dossier `stream/remplacements` (le décor Families reste, avec quelques chevauchements possibles).
-- Ces cartes viennent de gta5-mods (auteurs : Patoche pour Ballas et Vagos, zaforr / Sarbatore pour Families,
-  lafa2k pour la villa, mixtro pour le QG sous-marin). Gardez les crédits et respectez leurs conditions.
+- Poids à télécharger par les joueurs à la première connexion : environ 250 Mo pour `[cartes]` (dont ikON 122 Mo et
+  Malibu 96 Mo), 60 Mo de plus pour les forêts.
+- La piscine du Malibu Mansion est décorative : l'auteur conseille un mod d'eau « nageable partout » qui remplace l'eau
+  du jeu, non inclus.
+- Ces cartes viennent de gta5-mods (auteurs : Patoche pour Ballas, Vagos et l'immeuble HLM, zaforr / Sarbatore pour
+  Families, lafa2k pour la villa, mixtro pour le QG sous-marin, bsnk pour Malibu Mansion, ikON pour ikON Projects,
+  VisualParadox pour CityLights, Larcius / JRod pour les forêts). Gardez les crédits et respectez leurs conditions.

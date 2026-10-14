@@ -38,3 +38,5 @@ Contenu :
   immeubles d'appartements, expulsions, doubles de cles (objet property_key), loyers fiables, /mesbiens.
 - [standalone]/pt-multijob : jusqu'a 3 metiers par personnage, /metiers ; qb-management adapte.
 - pt-gangs : flotte du Schattenkartell remplacee par des BMW et des SUV.
+- [cartes] : Malibu Mansion (MLO), ikON Projects (MLO + 45 teleporteurs), immeuble HLM, CityLights, Cayo Perico ouvert.
+- [cartes-lourdes] : Forets de San Andreas, desactivees par defaut (ensure en commentaire dans projectterrific.cfg).

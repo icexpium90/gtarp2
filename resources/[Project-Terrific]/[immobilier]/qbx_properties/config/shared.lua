@@ -137,6 +137,9 @@ return {
     -- /immo > Lieux MLO : GPS vers le lieu, puis "Creer ici" devant la porte (nom et prix pre-remplis).
     -- Les positions sont celles de la zone : c'est l'agent qui choisit la porte et le point d'arrivee interieur.
     lieux = {
+        { label = 'Malibu Mansion (Chumash)', zone = vec3(-3223.1, 793.0, 8.0), prix = 6500000, type = 'Villa', ressource = 'pt-carte-malibu' },
+        { label = 'Appartement Vespucci Beach (ikON)', zone = vec3(-1384.76, -975.91, 8.95), prix = 450000, type = 'Appartement',
+          ressource = 'pt-carte-ikon', interieur = vec4(-1394.83, -1005.51, 24.76, 129.1) },
         { label = 'Villa moderne (Tongva Hills)', zone = vec3(-2653.6, 1320.5, 144.3), prix = 2500000, type = 'Villa', ressource = 'pt-carte-villa-moderne' },
         { label = 'Maison de Michael (Rockford Hills)', zone = vec3(-816.5, 178.5, 72.2), prix = 3500000, type = 'Villa' },
         { label = 'Maison de Franklin (Vinewood Hills)', zone = vec3(7.9, 538.4, 176.0), prix = 1800000, type = 'Villa' },

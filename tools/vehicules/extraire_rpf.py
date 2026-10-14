@@ -52,10 +52,10 @@ def extraire(data, sortie, prefixe=''):
             else:
                 blob = zlib.decompress(data[debut:debut + size], -15)
         open(p, 'wb').write(blob)
-        if nm.lower().endswith('.rpf'):
+        if nm.lower().endswith('.rpf') and len(blob) >= 16:
             try:
                 extraire(blob, os.path.join(sortie, prefixe, chemins.get(idx, ''), nm + '_'), '')
-            except ValueError as ex:
+            except (ValueError, struct.error) as ex:
                 print('  rpf imbrique %s : %s' % (nm, ex))
 
     # table des chemins (index -> chemin relatif du dossier parent)

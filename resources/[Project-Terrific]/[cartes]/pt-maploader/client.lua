@@ -130,7 +130,7 @@ end
 
 CreateThread(function()
     for _, carte in ipairs(Config.Cartes) do
-        if carte.actif then
+        if carte.actif and (not carte.ressource or GetResourceState(carte.ressource) == 'started') then
             local data = charger(carte)
             if data then
                 carte.data = data
@@ -164,12 +164,13 @@ CreateThread(function()
     end
 end)
 
--- Teleporteurs des cartes (marqueurs Map Editor avec destination)
+-- Teleporteurs des cartes (marqueurs Map Editor avec destination, entrees d'interieurs)
 CreateThread(function()
     while true do
         local attente = 1000
         local ped = PlayerPedId()
         local pos = GetEntityCoords(ped)
+        local vehicule = GetVehiclePedIsIn(ped, false)
         for _, carte in ipairs(cartes) do
             for _, m in ipairs(carte.data.marqueurs or {}) do
                 local dist = #(pos - vector3(m.p[1], m.p[2], m.p[3]))
@@ -177,15 +178,20 @@ CreateThread(function()
                     attente = 0
                     DrawMarker(m.type, m.p[1], m.p[2], m.p[3], 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                         m.taille[1], m.taille[2], m.taille[3], m.rgba[1], m.rgba[2], m.rgba[3], m.rgba[4],
-                        true, true, 2, false, nil, nil, false)
-                    if dist < 1.5 and not IsPedInAnyVehicle(ped, false) then
+                        false, true, 2, false, nil, nil, false)
+                    local enVoiture = vehicule ~= 0
+                    local portee = (m.vehicule and enVoiture) and 3.0 or 1.5
+                    if dist < portee and (not enVoiture or m.vehicule) then
                         BeginTextCommandDisplayHelp('STRING')
-                        AddTextComponentSubstringPlayerName('~INPUT_CONTEXT~ Se rendre de l\'autre cote')
+                        AddTextComponentSubstringPlayerName('~INPUT_CONTEXT~ ' .. (m.texte or 'Se rendre de l\'autre cote'))
                         EndTextCommandDisplayHelp(0, false, true, -1)
                         if IsControlJustReleased(0, Config.ToucheTeleport) then
                             DoScreenFadeOut(400)
                             Wait(450)
-                            SetEntityCoords(ped, m.cible[1], m.cible[2], m.cible[3], false, false, false, false)
+                            local entite = (enVoiture and GetPedInVehicleSeat(vehicule, -1) == ped) and vehicule or ped
+                            RequestCollisionAtCoord(m.cible[1], m.cible[2], m.cible[3])
+                            SetEntityCoords(entite, m.cible[1], m.cible[2], m.cible[3], false, false, false, false)
+                            if m.h then SetEntityHeading(entite, m.h) end
                             Wait(600)
                             DoScreenFadeIn(400)
                         end

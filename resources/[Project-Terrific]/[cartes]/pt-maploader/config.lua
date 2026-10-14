@@ -28,4 +28,13 @@ Config.Cartes = {
         vehicules = true,
         pnj = false,
     },
+    {
+        -- Entrees des interieurs ikON Projects (pt-carte-ikon) : bureaux, club souterrain, LSIA VIP, garage MOD...
+        -- Les appartements de Vespucci Beach sont geres par l'immobilier (qbx_properties), pas ici.
+        nom = 'ikon_teleporteurs',
+        label = 'Entrees ikON Projects',
+        actif = true,
+        ressource = 'pt-carte-ikon',
+        fichier = 'cartes/ikon_teleporteurs.lua',
+    },
 }

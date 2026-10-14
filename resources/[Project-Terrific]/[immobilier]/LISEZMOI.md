@@ -41,9 +41,10 @@ qb-houses et qb-realestatejob sont désactivés (rangés dans `resources/[Projec
 - **Révision globale des prix (%)** (directeur) : tous les loyers, tous les biens à vendre, ou tout.
   Exemple : +5 % sur les loyers = indexation annuelle.
 - **Créer un bien à ma position** : même chose que `/createproperty`.
-- **Lieux MLO disponibles** : bâtiments déjà présents sur la carte (villa moderne de `[cartes]`, maisons de Michael,
+- **Lieux MLO disponibles** : bâtiments déjà présents sur la carte (Malibu Mansion, appartement de Vespucci Beach, villa moderne de `[cartes]`, maisons de Michael,
   Franklin, Lester, caravane de Trevor, appartement de Floyd…). GPS, puis « Créer le bien ici » devant la porte : nom et
-  prix pré-remplis, vous entrez et validez le point d'arrivée avec E. La liste se complète dans
+  prix pré-remplis, vous entrez et validez le point d'arrivée avec E (pour l'appartement de Vespucci Beach, accessible
+  seulement par téléportation, le point d'arrivée est déjà connu). La liste se complète dans
   `qbx_properties/config/shared.lua` > `lieux`.
 
 ## Créer un bien (agent ou admin)

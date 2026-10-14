@@ -219,6 +219,20 @@ function CreerDepuisLieu(lieu)
             garageData = vec4(garageCoords.x, garageCoords.y, garageCoords.z + 1.0, garageHeading)
         end
     end
+    if lieu.interieur then
+        -- interieur accessible seulement par teleportation : point d'arrivee connu
+        local porte = GetEntityCoords(cache.ped)
+        local i = lieu.interieur
+        DoScreenFadeOut(300)
+        Wait(350)
+        SetEntityCoords(cache.ped, i.x, i.y, i.z, false, false, false, false)
+        Wait(1200)
+        TriggerServerEvent('qbx_properties:server:createProperty', Bridge.MLO, input, playerCoords, garageData, vec4(i.x, i.y, i.z, i.w or 0.0))
+        Wait(800)
+        SetEntityCoords(cache.ped, porte.x, porte.y, porte.z, false, false, false, false)
+        DoScreenFadeIn(300)
+        return
+    end
     Bridge.Notify('Porte enregistree. Entrez maintenant dans le batiment.', 'primary')
     local mloPoint = pickMloPoint()
     if not mloPoint then return end
