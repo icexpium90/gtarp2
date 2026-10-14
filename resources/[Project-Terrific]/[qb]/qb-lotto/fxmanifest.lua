@@ -14,13 +14,11 @@ files {
 }
 
 client_script {
-	'config.lua',
 	'click.lua',
 	'client.lua',
 }
 
 server_script {
-  'config.lua',
   'server.lua'
   
 }
