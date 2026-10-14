@@ -90,6 +90,7 @@ end
 
 -- Recharge les points d'interaction pour les joueurs deja a l'interieur (apres un deplacement de point)
 local function refreshInteractions(propertyId)
+    if RafraichirMLO then RafraichirMLO() end
     local property = MySQL.single.await('SELECT * FROM properties WHERE id = ?', {propertyId})
     if not property or not insideProperty[propertyId] then return end
     local interactions = buildInteractions(property)
@@ -674,6 +675,7 @@ local function sendGarages(src)
 end
 
 function SendGaragesToAll()
+    if RafraichirMLO then RafraichirMLO() end
     -- les icones "biens possedes" de chaque joueur sont a jour apres tout changement de proprietaire ou de cles
     TriggerClientEvent('qbx_properties:client:rafraichirBlips', -1)
     for _, src in ipairs(GetPlayers()) do sendGarages(tonumber(src)) end

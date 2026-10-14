@@ -70,9 +70,10 @@ lib.callback.register('qbx_properties:callback:proximite', function(source)
         return nil
     end
     ProcheMLO[source] = meilleur.id
-    local row = MySQL.single.await('SELECT * FROM properties WHERE id = ?', { meilleur.id })
+    -- donnees prises dans le cache (pas de requete SQL toutes les 3 s par joueur)
     local interactions = {}
-    for _, it in ipairs(BuildPropertyInteractions(row)) do
+    for _, it in ipairs(BuildPropertyInteractions({ coords = meilleur.coords, interior = Bridge.MLO,
+        stash_options = meilleur.stash_options or '[]', interact_options = meilleur.interact_options or '[]' })) do
         if it.type ~= 'exit' then interactions[#interactions + 1] = it end
     end
     local player = Bridge.GetPlayer(source)
