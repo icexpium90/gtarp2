@@ -145,6 +145,12 @@ local function AddItem(source, item, amount, slot, info, created)
 
 	local totalWeight = GetTotalWeight(Player.PlayerData.items)
 	local itemInfo = QBCore.Shared.Items[item:lower()]
+	if not itemInfo then
+		-- objet absent de qb-core/shared/items.lua : on refuse proprement au lieu de planter
+		print(('^1[qb-inventory] objet inconnu : %s (a ajouter dans qb-core/shared/items.lua)^7'):format(tostring(item)))
+		if not Player.Offline then QBCore.Functions.Notify(source, "Item does not exist", 'error') end
+		return false
+	end
 	local time = os.time()
 	if not created then
 		itemInfo['created'] = time
