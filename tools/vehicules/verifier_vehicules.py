@@ -159,7 +159,9 @@ def analyser_ressource(res, jeu_de_base, global_yft=frozenset()):
                     (err if suffixe == '.yft' else warn).append('%s%s absent de stream/' % (m, suffixe))
             if v['txd'].lower() + '.ytd' not in stream:
                 warn.append('%s.ytd absent (textures manquantes ou integrees au yft)' % v['txd'])
-            if v['handling'] and handlings and v['handling'].upper() not in handlings:
+            hjeu = os.path.join(ICI, 'handlings_jeu_de_base.txt')
+            hjeu = set(l.strip().upper() for l in open(hjeu)) if os.path.isfile(hjeu) else set()
+            if v['handling'] and v['handling'].upper() not in handlings and v['handling'].upper() not in hjeu:
                 err.append("'%s' : handlingId '%s' introuvable dans handling.meta" % (m, v['handling']))
 
     # carcols.meta : kits, bodykits, pieces moteur

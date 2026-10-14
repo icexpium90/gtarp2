@@ -18,7 +18,7 @@
       <ptfxAssetName>veh_nismo20</ptfxAssetName>
       <audioNameHash>RAPIDGT</audioNameHash>
       <layout>LAYOUT_LOW</layout>
-      <coverBoundOffsets>NISMO20_COVER_OFFSET_INFO</coverBoundOffsets>
+      <coverBoundOffsets>DOMINATOR_COVER_OFFSET_INFO</coverBoundOffsets>
       <explosionInfo>EXPLOSION_INFO_DEFAULT</explosionInfo>
       <scenarioLayout />
       <cameraName>DEFAULT_FOLLOW_VEHICLE_CAMERA</cameraName>

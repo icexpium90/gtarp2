@@ -208,6 +208,10 @@ def importer(src, nom_res, ids, hand, fichiers, modeles, log):
         if remap:
             notes.append('%s renumerotes : %s' % (section.lower(), ', '.join('%s -> %d' % kv for kv in remap.items())))
 
+    # handling : certains mods ecrivent <handlingId> au lieu de <handlingName> dans handling.meta (handling jamais charge)
+    if '<handlingName>' not in hd and '<handlingId>' in hd:
+        hd = re.sub(r'<handlingId>([^<]+)</handlingId>', r'<handlingName>\1</handlingName>', hd)
+        notes.append('handling.meta : balise <handlingId> corrigee en <handlingName>')
     # handling
     for h in sorted(set(re.findall(r'<handlingId>([^<]+)</handlingId>', veh))):
         if h.upper() in HANDLING_JEU or h.upper() in hand:

@@ -17,7 +17,7 @@
       <ptfxAssetName>null</ptfxAssetName>
       <audioNameHash>mamba</audioNameHash>
       <layout>LAYOUT_4X4</layout>
-      <coverBoundOffsets>G65AMG_COVER_OFFSET_INFO</coverBoundOffsets>
+      <coverBoundOffsets>DOMINATOR_COVER_OFFSET_INFO</coverBoundOffsets>
       <explosionInfo>EXPLOSION_INFO_DEFAULT</explosionInfo>
       <scenarioLayout />
       <cameraName>DEFAULT_FOLLOW_VEHICLE_CAMERA</cameraName>

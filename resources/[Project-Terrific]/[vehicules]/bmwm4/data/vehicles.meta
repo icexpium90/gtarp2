@@ -17,7 +17,7 @@
       <ptfxAssetName>null</ptfxAssetName>
       <audioNameHash>RAPIDGT</audioNameHash>
       <layout>LAYOUT_STD_EXITFIXUP</layout>
-      <coverBoundOffsets>F82_COVER_OFFSET_INFO</coverBoundOffsets>
+      <coverBoundOffsets>DOMINATOR_COVER_OFFSET_INFO</coverBoundOffsets>
       <explosionInfo>EXPLOSION_INFO_DEFAULT</explosionInfo>
       <scenarioLayout />
       <cameraName>DEFAULT_FOLLOW_VEHICLE_CAMERA</cameraName>
@@ -126,7 +126,7 @@
       <ptfxAssetName>null</ptfxAssetName>
       <audioNameHash>RAPIDGT</audioNameHash>
       <layout>LAYOUT_STD_EXITFIXUP</layout>
-      <coverBoundOffsets>F82_COVER_OFFSET_INFO</coverBoundOffsets>
+      <coverBoundOffsets>DOMINATOR_COVER_OFFSET_INFO</coverBoundOffsets>
       <explosionInfo>EXPLOSION_INFO_DEFAULT</explosionInfo>
       <scenarioLayout />
       <cameraName>DEFAULT_FOLLOW_VEHICLE_CAMERA</cameraName>
@@ -235,7 +235,7 @@
       <ptfxAssetName>null</ptfxAssetName>
       <audioNameHash>RAPIDGT</audioNameHash>
       <layout>LAYOUT_STD_EXITFIXUP</layout>
-      <coverBoundOffsets>F82_COVER_OFFSET_INFO</coverBoundOffsets>
+      <coverBoundOffsets>DOMINATOR_COVER_OFFSET_INFO</coverBoundOffsets>
       <explosionInfo>EXPLOSION_INFO_DEFAULT</explosionInfo>
       <scenarioLayout />
       <cameraName>DEFAULT_FOLLOW_VEHICLE_CAMERA</cameraName>
@@ -344,7 +344,7 @@
       <ptfxAssetName>null</ptfxAssetName>
       <audioNameHash>RAPIDGT</audioNameHash>
       <layout>LAYOUT_STD_EXITFIXUP</layout>
-      <coverBoundOffsets>F82_COVER_OFFSET_INFO</coverBoundOffsets>
+      <coverBoundOffsets>DOMINATOR_COVER_OFFSET_INFO</coverBoundOffsets>
       <explosionInfo>EXPLOSION_INFO_DEFAULT</explosionInfo>
       <scenarioLayout />
       <cameraName>DEFAULT_FOLLOW_VEHICLE_CAMERA</cameraName>
@@ -453,7 +453,7 @@
       <ptfxAssetName>null</ptfxAssetName>
       <audioNameHash>RAPIDGT</audioNameHash>
       <layout>LAYOUT_STD_EXITFIXUP</layout>
-      <coverBoundOffsets>F82_COVER_OFFSET_INFO</coverBoundOffsets>
+      <coverBoundOffsets>DOMINATOR_COVER_OFFSET_INFO</coverBoundOffsets>
       <explosionInfo>EXPLOSION_INFO_DEFAULT</explosionInfo>
       <scenarioLayout />
       <cameraName>DEFAULT_FOLLOW_VEHICLE_CAMERA</cameraName>

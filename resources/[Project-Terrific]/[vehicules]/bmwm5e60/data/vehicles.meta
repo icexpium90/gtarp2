@@ -17,7 +17,7 @@
       <ptfxAssetName>null</ptfxAssetName>
       <audioNameHash>sentinel2</audioNameHash>
       <layout>LAYOUT_STANDARD</layout>
-      <coverBoundOffsets>M5E60_COVER_OFFSET_INFO</coverBoundOffsets>
+      <coverBoundOffsets>DOMINATOR_COVER_OFFSET_INFO</coverBoundOffsets>
       <explosionInfo>EXPLOSION_INFO_DEFAULT</explosionInfo>
       <scenarioLayout />
       <cameraName>DEFAULT_FOLLOW_VEHICLE_CAMERA</cameraName>
