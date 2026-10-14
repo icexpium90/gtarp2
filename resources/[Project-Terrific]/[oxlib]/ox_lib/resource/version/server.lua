@@ -1,4 +1,6 @@
 function lib.versionCheck(repository)
+	-- Project Terrific : messages de mise a jour desactives (set pt_versioncheck true pour les reactiver)
+	if GetConvar('pt_versioncheck', 'false') ~= 'true' then return end
 	local resource = GetInvokingResource() or GetCurrentResourceName()
 
 	local currentVersion = GetResourceMetadata(resource, 'version', 0)

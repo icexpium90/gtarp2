@@ -39,7 +39,7 @@ Lancez-vous et amusez-vous !
 Un souci ? Notre communauté Discord est là pour vous aider !
 
 ![image](https://github.com/devterrific/ProjectTerrific/assets/119811229/be3b96bb-52a2-4599-a2de-2f6b9efb430f)
-https://discord.gg/fkzvNft7gp
+https://discord.gg/MuFbeK87B4
 
 
 🤝 Contribuer
@@ -48,7 +48,7 @@ Votre expertise peut faire grandir « Project Terrific » ! Que vous ayez repér
 🌐 Communauté et support
 Notre communauté fait notre force. Échangez avec d'autres développeurs, obtenez de l'aide et soyez les premiers informés des nouveautés de « Project Terrific » sur notre serveur Discord.
 
-Rejoignez notre serveur Discord : https://discord.gg/fkzvNft7gp
+Rejoignez notre serveur Discord : https://discord.gg/MuFbeK87B4
 
 
 📜 Licence

@@ -1,3 +1,5 @@
+-- Project Terrific : verification des mises a jour desactivee (set pt_versioncheck true dans server.cfg pour la reactiver)
+if GetConvar('pt_versioncheck', 'false') ~= 'true' then return end
 local function versionCheck(repository)
 	local resource = GetInvokingResource() or GetCurrentResourceName()
 
