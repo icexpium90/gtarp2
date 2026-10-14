@@ -119,7 +119,9 @@ end)
 QBCore.Commands.Add("grantlicense", Lang:t("commands.license_grant"), {{name = "id", help = Lang:t('info.player_id')}, {name = "license", help = Lang:t('info.license_type')}}, true, function(source, args)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
-    if Player.PlayerData.job.name == "police" and Player.PlayerData.job.grade.level >= Config.LicenseRank then
+    -- Project Terrific : les admins peuvent aussi delivrer un permis (sans etre policier)
+    local estAdmin = QBCore.Functions.HasPermission(src, 'admin') or QBCore.Functions.HasPermission(src, 'god')
+    if estAdmin or (Player.PlayerData.job.name == "police" and Player.PlayerData.job.grade.level >= Config.LicenseRank) then
         if args[2] == "driver" or args[2] == "weapon" or args[2] == "pilot" then
             local SearchedPlayer = QBCore.Functions.GetPlayer(tonumber(args[1]))
             if not SearchedPlayer then return end
@@ -130,6 +132,10 @@ QBCore.Commands.Add("grantlicense", Lang:t("commands.license_grant"), {{name = "
             end
             licenseTable[args[2]] = true
             SearchedPlayer.Functions.SetMetaData("licences", licenseTable)
+            -- carte physique du permis de port d'arme (um-idcard)
+            if args[2] == "weapon" and GetResourceState('um-idcard') == 'started' then
+                pcall(function() exports['um-idcard']:CreateMetaLicense(SearchedPlayer.PlayerData.source, { 'weaponlicense' }) end)
+            end
             TriggerClientEvent('QBCore:Notify', SearchedPlayer.PlayerData.source, Lang:t("success.granted_license"), "success")
             TriggerClientEvent('QBCore:Notify', src, Lang:t("success.grant_license"), "success")
         else
@@ -143,7 +149,8 @@ end)
 QBCore.Commands.Add("revokelicense", Lang:t("commands.license_revoke"), {{name = "id", help = Lang:t('info.player_id')}, {name = "license", help = Lang:t('info.license_type')}}, true, function(source, args)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
-    if Player.PlayerData.job.name == "police" and Player.PlayerData.job.grade.level >= Config.LicenseRank then
+    local estAdmin = QBCore.Functions.HasPermission(src, 'admin') or QBCore.Functions.HasPermission(src, 'god')
+    if estAdmin or (Player.PlayerData.job.name == "police" and Player.PlayerData.job.grade.level >= Config.LicenseRank) then
         if args[2] == "driver" or args[2] == "weapon" or args[2] == "pilot" then
             local SearchedPlayer = QBCore.Functions.GetPlayer(tonumber(args[1]))
             if not SearchedPlayer then return end
