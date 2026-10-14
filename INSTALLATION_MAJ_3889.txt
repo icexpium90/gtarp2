@@ -1,11 +1,15 @@
 MISE A JOUR PROJECT TERRIFIC - BUILD 3889 (The Kortz Center Heist)
 
-Installation :
-1. Arreter le serveur.
-2. Supprimer le dossier resources/[Project-Terrific]/[standalone]/bob74_ipl
-3. Extraire ce zip a la racine du serveur en ecrasant les fichiers.
-4. Mettre a jour les artifacts FXServer (les anciens refusent la build 3889).
-5. Redemarrer.
+Installation (ce zip est le serveur COMPLET) :
+1. Arreter le serveur et sauvegarder l'ancien dossier.
+2. Remplacer l'ancien dossier du serveur par le dossier ProjectTerrific-main de ce zip.
+3. Mettre a jour les artifacts FXServer (les anciens refusent la build 3889).
+4. Redemarrer.
+
+Base de donnees : RIEN a faire.
+- Les voitures (jeu de base, drift, Megane) sont declarees dans qb-core/shared/vehicles.lua, pas en base.
+- Quand un joueur achete une voiture, qb-vehicleshop l'ecrit tout seul dans la table player_vehicles.
+- Project-Terrific-SQL/ProjectTerrific.sql n'a pas change : a importer uniquement pour une installation neuve.
 
 Contenu :
 - server.cfg : sv_enforceGameBuild 3889
