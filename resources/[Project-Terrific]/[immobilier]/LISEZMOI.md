@@ -14,7 +14,7 @@ qb-houses et qb-realestatejob sont désactivés (rangés dans `resources/[Projec
 | 3 | Courtier | idem |
 | 4 | Directeur | + révision globale des prix (%), suppression d'un bien, gestion de l'entreprise |
 
-- Bureau : Dynasty 8, Rockford Hills (blip sur la carte). Au point vert : **E** = menu de l'agence.
+- Bureau : agence immobilière MLO à Burton (blip sur la carte, entrée par le marqueur bleu dans la rue). Au point vert près de l'arrivée : **E** = menu de l'agence.
 - Partout : `/immo` (ou le menu radial F1 > métier).
 - **Gestion de l'entreprise** (directeur) : recrutement, grades, licenciement, compte de l'agence (qb-management).
 - Embaucher : le directeur passe par la gestion de l'entreprise, ou un admin fait `/setjob [id] realestate [grade]`.

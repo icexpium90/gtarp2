@@ -281,7 +281,7 @@ end, false)
 ---------------------------------------------------------------- bureau Dynasty 8
 CreateThread(function()
     local b = agence.blip
-    local blip = AddBlipForCoord(agence.bureau.x, agence.bureau.y, agence.bureau.z)
+    local blip = AddBlipForCoord((agence.entree or agence.bureau).x, (agence.entree or agence.bureau).y, (agence.entree or agence.bureau).z)
     SetBlipSprite(blip, b.sprite)
     SetBlipColour(blip, b.couleur)
     SetBlipScale(blip, 0.8)
