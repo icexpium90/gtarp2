@@ -949,6 +949,8 @@ local Vehicles = {
     {['model'] = 'openwheel1',    ['name'] = 'BR8',                           ['brand'] = 'Benefactor',      ['price'] = 100000,  ['categoryLabel'] = 'Open Wheel',      ['shop'] = 'none'},
     {['model'] = 'formula2',      ['name'] = 'R88',                           ['brand'] = 'Ocelot',          ['price'] = 100000,  ['categoryLabel'] = 'Open Wheel',      ['shop'] = 'none'},
     {['model'] = 'formula',       ['name'] = 'PR4',                           ['brand'] = 'Progen',          ['price'] = 100000,  ['categoryLabel'] = 'Open Wheel',      ['shop'] = 'none'},
+    --- Vehicules addon (verifies par tools/vehicules/verifier_vehicules.py)
+    {['model'] = 'mers18', ['name'] = 'Megane 4 RS', ['brand'] = 'Renault', ['price'] = 75000, ['categoryLabel'] = 'Compacts', ['shop'] = 'tuner'},
 }
 
 for i=1, #Vehicles do

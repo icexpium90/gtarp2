@@ -15,4 +15,6 @@ Contenu :
 - qb-platescan : vehicules de police du jeu
 - bob74_ipl 2.7.1 : interieurs des DLC 2023-2026
 - projectterrific.cfg : [Maps] et [Terrific-customscripts] (absents) mis en commentaire
-- tools/vehicules : verificateur des voitures addon (bodykits, pieces moteur, conflits) - voir LISEZMOI.md
+- [vehicules]/mers18 : Renault Megane 4 RS (2018) convertie pour FiveM, vendue 75 000 a l'Import Vehicle Shop
+  (kit de tuning relie et passe en id 1501, entete du .ytd reconstruit). Categorie [vehicules] activee.
+- tools/vehicules : extraire_rpf.py (convertit un dlc.rpf solo) + verificateur des voitures addon (bodykits, pieces moteur, conflits) - voir LISEZMOI.md

@@ -1,0 +1,5 @@
+-- Noms affiches en jeu (remplace le fichier global.gxt2 du mod solo)
+CreateThread(function()
+    AddTextEntry('MEGANE RS 2018', 'Megane RS')
+    AddTextEntry('RENAULT', 'Renault')
+end)
