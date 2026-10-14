@@ -6,6 +6,15 @@ et verifier qu'elles sont completes (bodykits, pieces moteur, conflits) avant de
 
 Elles sont vendues a l'**Import Vehicle Shop** (shop `tuner`, au port, `vector3(163.27, -3043.27, 5.10)`).
 
+## Outils
+
+| Outil | Role |
+|---|---|
+| `extraire_rpf.py dlc.rpf dossier` | decompresse un mod solo (dlc.rpf) pour recuperer modeles et .meta |
+| `importer_pack.py dossier [dossier...]` | importe des voitures deja au format FiveM et corrige les conflits (kits, eclairages, handlings, libelles, pieces, layouts) |
+| `nettoyer_kits.py ressource [--retirer modele]` | retire les options de bodykit sans fichier, ou un modele casse |
+| `verifier_vehicules.py [--apply]` | verifie tout le dossier [vehicules] et ajoute les voitures valides au concessionnaire |
+
 ## Procedure
 
 1. Placer chaque voiture dans son propre dossier : `resources/[Project-Terrific]/[vehicules]/<spawncode>/`

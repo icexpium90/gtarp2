@@ -9,7 +9,13 @@ Ajouts réguliers : de nouvelles fonctionnalités gratuites arrivent régulière
 🆕 Cette version (build 3889)
 Build du jeu 3889 (The Kortz Center Heist) : la dernière build disponible, réglée dans server.cfg.
 Tous les véhicules du jeu : 899 véhicules déclarés dans qb-core (hors trains et remorques), dont les 27 versions drift, en vente à l'Import Vehicle Shop (au port).
-Voiture addon : Renault Mégane 4 RS (spawn : mers18), dans resources/[Project-Terrific]/[vehicules].
+Voitures addon (69, dans resources/[Project-Terrific]/[vehicules], vendues à l'Import Vehicle Shop) :
+- BMW : M3 E30 / E36 / E46 / E92 / GTS / F80 / G80, M4 F82 (5 versions dont Liberty Walk), M2, M1, M5 E34 Touring / E60 / F90 (3 versions), M6, X5 M, X6 M, Z3 M Coupé, i8, i8 ACS8, 530d, 750Li, 760Li, Alpina B6, Mini Cooper S.
+- Mercedes-Benz : AMG GT, C63 S (berline et coupé), A45, CLA 45, CLS 63, E350, W124, S63 / S65 / S500 / S63 cabriolet / W222 Wald, Maybach, 600 SEL, Brabus 850, Brabus 700 6x6, Classe G / G500 / G65, ML Brabus, GLE / GLE 63 S, 300 SL, SL500, SLS AMG, Sauber C9, Classe V.
+- Dodge : Challenger 2016 et SRT Demon, Charger 2016, Ram 1500 (+ jantes Dodge et son V8 HEMI).
+- Japonaises : Nissan GT-R Nismo 2020, Toyota Supra A90 Pandem. Française : Renault Mégane 4 RS.
+- Police : Mercedes-AMG GT R Interceptor (garage police, grades 3 et plus).
+Poids total des voitures addon : environ 2 Go, téléchargés par chaque joueur à sa première connexion.
 bob74_ipl 2.7.1 : intérieurs des DLC jusqu'en 2026.
 Correctifs : boutique du port, doublons de véhicules, scanner de plaques.
 Outils pour ajouter des voitures : tools/vehicules (conversion des mods solo dlc.rpf et vérification des bodykits / pièces moteur). Mode d'emploi dans tools/vehicules/LISEZMOI.md.

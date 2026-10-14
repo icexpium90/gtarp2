@@ -1013,6 +1013,15 @@ local Vehicles = {
     {['model'] = 'cooper15', ['name'] = 'Cooper S (2015)', ['brand'] = 'Mini', ['price'] = 30000, ['categoryLabel'] = 'Compacts', ['shop'] = 'tuner'},
     {['model'] = 's63w222', ['name'] = 'S63 AMG W222', ['brand'] = 'Mercedes-Benz', ['price'] = 190000, ['categoryLabel'] = 'Sedans', ['shop'] = 'tuner'},
     {['model'] = 'w222wald', ['name'] = 'S-Class W222 Wald', ['brand'] = 'Mercedes-Benz', ['price'] = 200000, ['categoryLabel'] = 'Sedans', ['shop'] = 'tuner'},
+    --- Vehicules addon (verifies par tools/vehicules/verifier_vehicules.py)
+    {['model'] = 'brabus700', ['name'] = 'Brabus 700 6x6', ['brand'] = 'Mercedes-Benz', ['price'] = 450000, ['categoryLabel'] = 'Off Road', ['shop'] = 'tuner'},
+    {['model'] = 'demon', ['name'] = 'Challenger SRT Demon 2018', ['brand'] = 'Dodge', ['price'] = 175000, ['categoryLabel'] = 'Muscle', ['shop'] = 'tuner'},
+    {['model'] = 'nismo20', ['name'] = 'GT-R Nismo 2020', ['brand'] = 'Nissan', ['price'] = 230000, ['categoryLabel'] = 'Sports', ['shop'] = 'tuner'},
+    {['model'] = '2019m5', ['name'] = 'M5 F90 Competition 2019', ['brand'] = 'BMW', ['price'] = 170000, ['categoryLabel'] = 'Sedans', ['shop'] = 'tuner'},
+    {['model'] = 'polamggtr', ['name'] = 'AMG GT R Interceptor', ['brand'] = 'Mercedes-Benz', ['price'] = 250000, ['categoryLabel'] = 'Emergency', ['shop'] = 'none'},
+    {['model'] = 'dl2016', ['name'] = 'Ram 1500 Limited 2016', ['brand'] = 'Dodge', ['price'] = 70000, ['categoryLabel'] = 'Off Road', ['shop'] = 'tuner'},
+    {['model'] = 's500w222', ['name'] = 'S500 W222', ['brand'] = 'Mercedes-Benz', ['price'] = 150000, ['categoryLabel'] = 'Sedans', ['shop'] = 'tuner'},
+    {['model'] = 'pandema90', ['name'] = 'Supra A90 Pandem', ['brand'] = 'Toyota', ['price'] = 140000, ['categoryLabel'] = 'Sports', ['shop'] = 'tuner'},
 }
 
 for i=1, #Vehicles do

@@ -33,6 +33,7 @@ Config.AllowedVehicles = { -- vehicules de police du jeu de base (build 3889), l
     [22] = {model = 'polbuffalo', label = 'Buffalo Cruiser'},
     [23] = {model = 'polbuffalo6', label = 'Buffalo STX Pursuit'},
     [24] = {model = 'polignus', label = 'Ignus Pursuit'},
+    [25] = {model = 'polamggtr', label = 'AMG GT R Interceptor'},
 }
 
 Config.GTAVSounds = {        -- Frontend sounds from GTAV (https://wiki.gtanet.work/index.php?title=FrontEndSoundlist)

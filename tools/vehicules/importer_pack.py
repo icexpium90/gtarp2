@@ -107,7 +107,15 @@ def lire_metas(src):
         for cle in TYPES:
             if b == cle or (b.endswith(cle) and cle != 'vehicles.meta') or b == cle:
                 metas.setdefault(cle, []).append(f)
-    return {k: '\n'.join(open(f, encoding='utf-8', errors='ignore').read() for f in v[:1]) for k, v in metas.items()}
+    def propre(texte):
+        # coupe le texte parasite laisse apres la balise racine (erreur frequente dans les mods)
+        m = re.search(r'<([A-Za-z_][\w]*)[^>?!]*>', re.sub(r'<\?.*?\?>|<!--.*?-->', '', texte, flags=re.S))
+        if m:
+            fin = texte.rfind('</%s>' % m.group(1))
+            if fin != -1:
+                return texte[:fin + len(m.group(1)) + 3] + '\n'
+        return texte
+    return {k: propre(open(v[0], encoding='utf-8', errors='ignore').read()) for k, v in metas.items()}
 
 
 def importer(src, nom_res, ids, hand, fichiers, modeles, log):
