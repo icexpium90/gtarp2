@@ -128,11 +128,10 @@ return {
     },
 
     -- Agence immobiliere (Dynasty 8, Rockford Hills) : point du menu agence + menu du patron (qb-management)
-    -- Le bureau est dans l'agence immobiliere MLO d'ikON Projects (pt-carte-ikon, Burton) : entree dans la rue
-    -- (marqueur bleu, E), le point vert du menu est a quelques pas de l'arrivee.
+    -- Bureau de l'agence : Dynasty 8 (Rockford Hills). Pour l'agence MLO d'ikON a Burton, mettre
+    -- bureau = vec3(-227.05, -314.47, 60.87) et entree = vec3(-244.91, -354.11, 28.99).
     agence = {
-        bureau = vec3(-227.05, -314.47, 60.87),
-        entree = vec3(-244.91, -354.11, 28.99),
+        bureau = vec3(-716.11, 261.21, 84.14),
         blip = { sprite = 375, couleur = 2, label = 'Dynasty 8 - Agence immobiliere' },
     },
 
