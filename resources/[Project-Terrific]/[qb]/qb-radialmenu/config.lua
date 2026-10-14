@@ -108,69 +108,6 @@ Config.MenuItems = {
         icon = 'rectangle-list',
         items = {
             {
-                id = 'house',
-                title = 'House Interaction',
-                icon = 'house',
-                items = {
-                    {
-                        id = 'givehousekey',
-                        title = 'Give House Keys',
-                        icon = 'key',
-                        type = 'client',
-                        event = 'qb-houses:client:giveHouseKey',
-                        shouldClose = true
-                    }, {
-                        id = 'removehousekey',
-                        title = 'Remove House Keys',
-                        icon = 'key',
-                        type = 'client',
-                        event = 'qb-houses:client:removeHouseKey',
-                        shouldClose = true
-                    }, {
-                        id = 'togglelock',
-                        title = 'Toggle Doorlock',
-                        icon = 'door-closed',
-                        type = 'client',
-                        event = 'qb-houses:client:toggleDoorlock',
-                        shouldClose = true
-                    }, {
-                        id = 'decoratehouse',
-                        title = 'Decorate House',
-                        icon = 'box',
-                        type = 'client',
-                        event = 'qb-houses:client:decorate',
-                        shouldClose = true
-                    }, {
-                        id = 'houseLocations',
-                        title = 'Interaction Locations',
-                        icon = 'house',
-                        items = {
-                            {
-                                id = 'setstash',
-                                title = 'Set Stash',
-                                icon = 'box-open',
-                                type = 'client',
-                                event = 'qb-houses:client:setLocation',
-                                shouldClose = true
-                            }, {
-                                id = 'setoutift',
-                                title = 'Set Wardrobe',
-                                icon = 'shirt',
-                                type = 'client',
-                                event = 'qb-houses:client:setLocation',
-                                shouldClose = true
-                            }, {
-                                id = 'setlogout',
-                                title = 'Set Logout',
-                                icon = 'door-open',
-                                type = 'client',
-                                event = 'qb-houses:client:setLocation',
-                                shouldClose = true
-                            }
-                        }
-                    }
-                }
-            }, {
                 id = 'clothesmenu',
                 title = 'Clothing',
                 icon = 'shirt',
@@ -1098,13 +1035,6 @@ Config.JobInteractions = {
             icon = 'circle-info',
             type = 'client',
             event = 'qb-tunerchip:client:TuneStatus',
-            shouldClose = true
-        }, {
-            id = 'resethouse',
-            title = 'Reset house lock',
-            icon = 'key',
-            type = 'client',
-            event = 'qb-houses:client:ResetHouse',
             shouldClose = true
         }, {
             id = 'takedriverlicense',
