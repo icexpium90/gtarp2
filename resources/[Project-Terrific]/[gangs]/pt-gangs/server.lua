@@ -131,9 +131,8 @@ CreateThread(function()
     loadAll()
 end)
 
-RegisterNetEvent('QBCore:Server:OnPlayerLoaded', function()
-    TriggerClientEvent('pt-gangs:client:sync', source, snapshot())
-end)
+-- (pas d'envoi sur QBCore:Server:OnPlayerLoaded : le client recupere les donnees lui-meme a son chargement,
+-- et cet evenement peut arriver avec l'ancien identifiant temporaire du joueur)
 lib.callback.register('pt-gangs:server:getData', function()
     return snapshot()
 end)
