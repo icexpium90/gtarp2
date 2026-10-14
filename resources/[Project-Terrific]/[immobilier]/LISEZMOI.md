@@ -103,3 +103,25 @@ Avec un MLO, placez une sortie différente pour chaque appartement (Placer les p
 - Tables : `properties` (colonnes `serrure`, `next_rent`, `impayes` ajoutées automatiquement aux bases existantes),
   `properties_decorations`.
 - Objet ajouté : `property_key` (qb-core/shared/items.lua, image dans qb-inventory).
+
+## Biens MLO : gestion sur place, garage physique, ascenseurs
+
+Dans un bien MLO (villa, appartement, entrepôt sur la carte), le propriétaire, les détenteurs de clés et les doubles
+de clés n'ont pas besoin de passer par la porte : à moins de 80 m du bien, les coffres, le coffre-fort, le vestiaire,
+le lit, les ascenseurs et le garage fonctionnent sur place, et le propriétaire ouvre son menu avec **F6**.
+
+**Garage physique** (F6 > Garage et ascenseurs) :
+- **Ajouter une place de parking** : une voiture fantôme suit la souris, molette pour l'orienter, clic gauche pour valider.
+  Jusqu'à 30 places.
+- Les véhicules garés **apparaissent sur leurs places** (verrouillés) quand quelqu'un est à moins de 150 m, avec leur
+  tuning, et disparaissent quand plus personne n'est autour (ils restent au garage).
+- **Garer** : au volant, arrêtez-vous sur une place libre (marqueur vert) puis **E**. Le véhicule doit appartenir à un
+  joueur ; son état (tuning, essence, dégâts) est enregistré.
+- **Prendre** : à pied, à côté d'un véhicule garé, **E** : clés données, véhicule déverrouillé.
+- Un bien avec des places n'utilise plus le garage « menu » qb-garages : les véhicules qui y étaient apparaissent sur les places.
+
+**Ascenseurs** (F6 > Garage et ascenseurs > Créer un ascenseur) :
+- un nom, « monte-charge » coché pour accepter les véhicules, puis chaque étage placé avec l'aperçu (2 à 12 étages) ;
+- à chaque étage : marqueur bleu, **E** pour choisir l'étage d'arrivée (en voiture pour un monte-charge).
+
+Les portes du MLO elles-mêmes se verrouillent avec ox_doorlock (admin : `/doorlock`).

@@ -122,7 +122,7 @@ end
 -- Clic gauche / Entree : valider. Clic droit / Retour : annuler.
 local HAUTEUR_POINT = 0.9 -- le point d'interaction est a hauteur de hanches au-dessus de la surface visee
 
-function PlacementApercu(modele, titre)
+function PlacementApercu(modele, titre, hauteur)
     local fantome
     if modele then
         lib.requestModel(modele, 5000)
@@ -151,7 +151,7 @@ function PlacementApercu(modele, titre)
             local fx, fy = math.sin(math.rad(-heading)) * 0.5, math.cos(math.rad(-heading)) * 0.5
             DrawLine(c.x, c.y, c.z + 0.05, c.x + fx, c.y + fy, c.z + 0.05, 60, 200, 120, 255)
             if IsDisabledControlJustPressed(0, 24) or IsControlJustPressed(0, 18) or IsControlJustPressed(0, 201) then
-                resultat = { x = c.x, y = c.y, z = c.z + HAUTEUR_POINT, w = heading }
+                resultat = { x = c.x, y = c.y, z = c.z + (hauteur or HAUTEUR_POINT), w = heading }
                 break
             end
         end
@@ -327,6 +327,15 @@ local function prepareManageMenu()
             end
         },
         {
+            title = 'Garage et ascenseurs',
+            description = 'Biens MLO : places de parking (vehicules visibles), ascenseurs entre etages',
+            icon = 'warehouse',
+            arrow = true,
+            onSelect = function()
+                OuvrirMenuGarage()
+            end
+        },
+        {
             title = locale('menu.place_points'),
             description = 'Coffres, coffre-fort, vestiaire, lit, sortie : placement libre avec apercu',
             icon = 'location-crosshairs',
@@ -396,8 +405,10 @@ function OpenPropertySafe()
     lib.showContext('qbx_properties_safe')
 end
 
-local function checkInteractions()
-    local interactOptions = {
+local interactOptions
+local function construireActions()
+    if interactOptions then return interactOptions end
+    interactOptions = {
         ['stash'] = function(coords, data)
             qbx.drawText3d({ coords = coords, text = data and data.label and ('[E] ' .. data.label) or locale('drawtext.stash') })
             if IsControlJustPressed(0, 38) then
@@ -447,6 +458,11 @@ local function checkInteractions()
             end
         end,
     }
+    return interactOptions
+end
+
+local function checkInteractions()
+    construireActions()
     CreateThread(function()
         while insideProperty do
             local sleep = 800
@@ -747,10 +763,204 @@ end)
 
 -- Menu proprietaire : touche F6 (modifiable : Echap > Parametres > Raccourcis > FiveM) ou /monbien, partout dans le bien
 RegisterCommand('monbien', function()
-    if not insideProperty then
+    if not insideProperty and not (ProcheBien and ProcheBien.proprietaire) then
         return Bridge.Notify('Entrez dans votre bien pour ouvrir le menu proprietaire (ou /mesbiens pour la liste).', 'error')
     end
     prepareManageMenu()
 end, false)
 RegisterKeyMapping('monbien', 'Menu proprietaire (immobilier)', 'keyboard', 'F6')
 RegisterNetEvent('qbx_properties:client:menuProprietaire', function() ExecuteCommand('monbien') end)
+
+
+---------------------------------------------------------------- biens MLO : gestion sur place, garage physique, ascenseurs
+ProcheBien = nil
+
+local function menuAscenseur(asc)
+    local opts = {}
+    local pos = GetEntityCoords(cache.ped)
+    for _, e in ipairs(asc.etages) do
+        local ici = #(pos - vec3(e.x, e.y, e.z)) < 2.5
+        opts[#opts + 1] = {
+            title = e.nom, icon = ici and 'location-dot' or 'elevator', disabled = ici,
+            description = ici and 'Vous etes ici' or nil,
+            onSelect = function()
+                local ped = cache.ped
+                local veh = cache.vehicle
+                local entite = (veh and asc.vehicule and GetPedInVehicleSeat(veh, -1) == ped) and veh or ped
+                DoScreenFadeOut(400)
+                while not IsScreenFadedOut() do Wait(0) end
+                RequestCollisionAtCoord(e.x, e.y, e.z)
+                -- monte-charge : etage enregistre au niveau du sol ; ascenseur pieton : a hauteur du joueur
+                local z = asc.vehicule and (e.z + (entite == ped and 1.0 or 0.5)) or e.z
+                SetEntityCoords(entite, e.x, e.y, z, false, false, false, false)
+                SetEntityHeading(entite, e.w or 0.0)
+                Wait(500)
+                DoScreenFadeIn(400)
+            end,
+        }
+    end
+    lib.registerContext({ id = 'qbx_properties_ascenseur', title = asc.nom, options = opts })
+    lib.showContext('qbx_properties_ascenseur')
+end
+
+function OuvrirMenuGarage()
+    local opts = {
+        { title = 'Ajouter une place de parking', description = 'Visez le sol : la voiture fantome montre la place (biens MLO)', icon = 'square-parking',
+          onSelect = function()
+              local pos = PlacementApercu('sultanrs', 'Place de parking', 0.0)
+              if pos then TriggerServerEvent('qbx_properties:server:ajouterPlace', pos) end
+          end },
+        { title = 'Retirer la place la plus proche', icon = 'trash', onSelect = function()
+              TriggerServerEvent('qbx_properties:server:retirerPlace')
+          end },
+        { title = 'Creer un ascenseur', description = 'Placez chaque etage (2 a 12), puis validez', icon = 'elevator',
+          onSelect = function()
+              local input = lib.inputDialog('Nouvel ascenseur', {
+                  { type = 'input', label = 'Nom', default = 'Ascenseur', max = 24, required = true },
+                  { type = 'checkbox', label = 'Monte-charge (accepte les vehicules)' },
+              })
+              if not input then return end
+              local etages = {}
+              while #etages < 12 do
+                  local nom = lib.inputDialog(('Etage %d'):format(#etages + 1), {
+                      { type = 'input', label = 'Nom de l\'etage', default = (#etages == 0 and 'Rez-de-chaussee' or ('Etage %d'):format(#etages)), max = 24, required = true },
+                  })
+                  if not nom then break end
+                  local pos = PlacementApercu(nil, ('Etage %d : %s'):format(#etages + 1, nom[1]), input[2] and 0.0 or 1.0)
+                  if not pos then break end
+                  pos.nom = nom[1]
+                  etages[#etages + 1] = pos
+                  if #etages >= 2 then
+                      local encore = lib.alertDialog({ header = input[1], content = ('%d etages places. Ajouter un autre etage ?'):format(#etages), centered = true, cancel = true, labels = { confirm = 'Oui', cancel = 'Terminer' } })
+                      if encore ~= 'confirm' then break end
+                  end
+              end
+              if #etages >= 2 then
+                  TriggerServerEvent('qbx_properties:server:creerAscenseur', input[1], input[2] == true, etages)
+              else
+                  Bridge.Notify('Il faut au moins 2 etages.', 'error')
+              end
+          end },
+    }
+    for i, a in ipairs(ProcheBien and ProcheBien.ascenseurs or {}) do
+        opts[#opts + 1] = { title = ('Supprimer : %s'):format(a.nom), description = ('%d etages'):format(#a.etages), icon = 'xmark',
+            onSelect = function()
+                local ok = lib.alertDialog({ header = a.nom, content = 'Supprimer cet ascenseur ?', centered = true, cancel = true })
+                if ok == 'confirm' then TriggerServerEvent('qbx_properties:server:supprimerAscenseur', i) end
+            end }
+    end
+    lib.registerContext({ id = 'qbx_properties_garageMenu', title = 'Garage et ascenseurs', menu = 'qbx_properties_manageMenu', options = opts })
+    lib.showContext('qbx_properties_garageMenu')
+end
+
+-- proprietes appliquees par le client qui possede l'entite d'un vehicule gare
+AddStateBagChangeHandler('ptGarage', nil, function(bagName, _, value)
+    if not value then return end
+    local limite = GetGameTimer() + 5000
+    local ent = GetEntityFromStateBagName(bagName)
+    while (not ent or ent == 0) and GetGameTimer() < limite do Wait(50) ent = GetEntityFromStateBagName(bagName) end
+    if not ent or ent == 0 or not NetworkHasControlOfEntity(ent) then return end
+    if value.props and next(value.props) then QBCore.Functions.SetVehicleProperties(ent, value.props) end
+    SetVehicleNumberPlateText(ent, value.plate)
+    if value.engine then SetVehicleEngineHealth(ent, value.engine + 0.0) end
+    if value.body then SetVehicleBodyHealth(ent, value.body + 0.0) end
+    SetVehicleOnGroundProperly(ent)
+end)
+
+RegisterNetEvent('qbx_properties:client:vehiculePris', function(netId, fuel)
+    local veh = NetworkGetEntityFromNetworkId(netId)
+    if veh and veh ~= 0 then
+        SetVehicleDoorsLocked(veh, 1)
+        if fuel and GetResourceState('cdn-fuel') == 'started' then pcall(function() exports['cdn-fuel']:SetFuel(veh, fuel + 0.0) end) end
+    end
+end)
+
+RegisterNetEvent('qbx_properties:client:quitterVehicule', function()
+    if cache.vehicle then TaskLeaveVehicle(cache.ped, cache.vehicle, 0) end
+end)
+
+-- donnees du bien MLO a proximite (toutes les 3 s)
+CreateThread(function()
+    while true do
+        if not insideProperty and LocalPlayer.state.isLoggedIn ~= false then
+            local data = lib.callback.await('qbx_properties:callback:proximite', false)
+            local avant = ProcheBien and ProcheBien.id
+            ProcheBien = data
+            if data then
+                interactions = data.interactions
+                poserMeubles(data.interactions)
+            elseif avant then
+                interactions = {}
+                retirerMeubles()
+            end
+        end
+        Wait(3000)
+    end
+end)
+
+-- interactions sur place : coffres, coffre-fort, vestiaire, lit, ascenseurs, garage physique
+CreateThread(function()
+    while true do
+        local attente = 750
+        if ProcheBien and not insideProperty and not IsDecorating then
+            local actions = construireActions()
+            local pos = GetEntityCoords(cache.ped)
+            for _, it in ipairs(ProcheBien.interactions or {}) do
+                if #(pos - it.coords) < 1.5 then
+                    attente = 0
+                    local action = actions[it.type]
+                    if action then action(it.coords, it) end
+                end
+            end
+            for _, asc in ipairs(ProcheBien.ascenseurs or {}) do
+                for _, e in ipairs(asc.etages) do
+                    local d = #(pos - vec3(e.x, e.y, e.z))
+                    local portee = (asc.vehicule and cache.vehicle) and 4.0 or 1.5
+                    if d < 12.0 then
+                        attente = 0
+                        DrawMarker(asc.vehicule and 1 or 25, e.x, e.y, e.z - (asc.vehicule and -0.02 or 0.98), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                            asc.vehicule and 3.0 or 0.9, asc.vehicule and 3.0 or 0.9, asc.vehicule and 0.3 or 0.9, 80, 160, 255, 120, false, false, 2, false, nil, nil, false)
+                        if d < portee then
+                            qbx.drawText3d({ coords = vec3(e.x, e.y, e.z + 0.3), text = ('[E] %s - %s'):format(asc.nom, e.nom) })
+                            if IsControlJustPressed(0, 38) then menuAscenseur(asc) end
+                        end
+                    end
+                end
+            end
+            -- garer : conducteur sur une place libre
+            if cache.vehicle and GetPedInVehicleSeat(cache.vehicle, -1) == cache.ped then
+                for _, p in ipairs(ProcheBien.places or {}) do
+                    local d = #(GetEntityCoords(cache.vehicle) - vec3(p.x, p.y, p.z))
+                    if d < 15.0 then
+                        attente = 0
+                        DrawMarker(1, p.x, p.y, p.z - 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.2, 4.5, 0.3, 60, 200, 120, 90, false, false, 2, false, nil, nil, false)
+                        if d < 2.5 then
+                            qbx.drawText3d({ coords = vec3(p.x, p.y, p.z + 1.0), text = '[E] Garer le vehicule ici' })
+                            if IsControlJustPressed(0, 38) then
+                                local veh = cache.vehicle
+                                local fuel = GetVehicleFuelLevel(veh)
+                                if GetResourceState('cdn-fuel') == 'started' then pcall(function() fuel = exports['cdn-fuel']:GetFuel(veh) end) end
+                                TriggerServerEvent('qbx_properties:server:garerVehicule', VehToNet(veh), QBCore.Functions.GetVehicleProperties(veh),
+                                    fuel, GetVehicleEngineHealth(veh), GetVehicleBodyHealth(veh))
+                                Wait(1000)
+                            end
+                        end
+                    end
+                end
+            elseif not cache.vehicle then
+                -- prendre un vehicule gare (a pied, a cote)
+                local veh = lib.getClosestVehicle(pos, 3.0, false)
+                if veh and Entity(veh).state.ptGarage then
+                    attente = 0
+                    local c = GetEntityCoords(veh)
+                    qbx.drawText3d({ coords = vec3(c.x, c.y, c.z + 1.0), text = ('[E] Prendre %s'):format(Entity(veh).state.ptGarage.plate or 'le vehicule') })
+                    if IsControlJustPressed(0, 38) then
+                        TriggerServerEvent('qbx_properties:server:prendreVehicule', VehToNet(veh))
+                        Wait(1000)
+                    end
+                end
+            end
+        end
+        Wait(attente)
+    end
+end)

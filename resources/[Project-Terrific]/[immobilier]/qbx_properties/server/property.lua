@@ -3,6 +3,10 @@ local sharedConfig = require 'config.shared'
 local logger = Bridge.logger
 
 local enteredProperty = {}
+-- MLO : un joueur qui a acces a un bien MLO et se trouve dedans (physiquement, sans passer par la porte)
+-- peut gerer ses coffres, son garage et ses ascenseurs. Rempli par server/garage.lua (callback de proximite).
+ProcheMLO = {}
+function ProprieteActive(src) return enteredProperty[src] or ProcheMLO[src] end
 local insideProperty = {}
 local citizenid = {}
 local ring = {}
@@ -109,7 +113,7 @@ end
 
 RegisterNetEvent('qbx_properties:server:setInteraction', function(kind, taille, nom, pos, modele, deplacerIndex)
     local src = source
-    local propertyId = enteredProperty[src]
+    local propertyId = ProprieteActive(src)
     if not propertyId then return end
     if kind ~= 'stash' and kind ~= 'clothing' and kind ~= 'logout' and kind ~= 'exit' and kind ~= 'safe' then return end
     local player = Bridge.GetPlayer(src)
@@ -178,6 +182,8 @@ RegisterNetEvent('qbx_properties:server:setInteraction', function(kind, taille, 
     refreshInteractions(propertyId)
 end)
 
+BuildPropertyInteractions = buildInteractions
+
 ---@param playerSource integer
 local function exitProperty(playerSource, isLogout)
     if not enteredProperty[playerSource] then return end
@@ -217,7 +223,7 @@ local function exitProperty(playerSource, isLogout)
 end
 
 ExitProperty = exitProperty
-function GetEnteredProperty(src) return enteredProperty[src] end
+function GetEnteredProperty(src) return ProprieteActive(src) end
 function GetPlayersInside(propertyId) return insideProperty[propertyId] or {} end
 
 RegisterNetEvent('qbx_properties:server:exitProperty', function()
@@ -321,7 +327,7 @@ RegisterNetEvent('qbx_properties:server:ringProperty', function(data)
 end)
 
 lib.callback.register('qbx_properties:callback:requestKeyHolders', function(source)
-    local propertyId = enteredProperty[source]
+    local propertyId = ProprieteActive(source)
     local result = MySQL.single.await('SELECT owner, keyholders FROM properties WHERE id = ?', {propertyId})
     local player = Bridge.GetPlayer(source)
 
@@ -342,13 +348,22 @@ lib.callback.register('qbx_properties:callback:requestKeyHolders', function(sour
 end)
 
 lib.callback.register('qbx_properties:callback:requestPotentialKeyholders', function(source)
-    local propertyId = enteredProperty[source]
+    local propertyId = ProprieteActive(source)
     local result = MySQL.single.await('SELECT owner FROM properties WHERE id = ?', {propertyId})
     local owner = Bridge.GetPlayer(source)
 
     if owner.PlayerData.citizenid ~= result.owner then return end
 
     local players = insideProperty[propertyId]
+    if not players or #players == 0 then
+        -- bien MLO gere sur place : joueurs a moins de 15 m
+        players = {}
+        local pos = GetEntityCoords(GetPlayerPed(source))
+        for _, id in ipairs(GetPlayers()) do
+            id = tonumber(id)
+            if id ~= source and #(GetEntityCoords(GetPlayerPed(id)) - pos) < 15.0 then players[#players + 1] = id end
+        end
+    end
     local insidePlayers = {}
     for i = 1, #players do
         local player = Bridge.GetPlayer(players[i])
@@ -379,7 +394,7 @@ lib.callback.register('qbx_properties:callback:requestRingers', function(source)
 end)
 
 lib.callback.register('qbx_properties:callback:checkAccess', function(source)
-    local propertyId = enteredProperty[source]
+    local propertyId = ProprieteActive(source)
     local result = MySQL.single.await('SELECT owner FROM properties WHERE id = ?', {propertyId})
     if not result then return false end
     return result.owner == Bridge.GetPlayer(source).PlayerData.citizenid or Bridge.IsRealtor(source)
@@ -408,7 +423,7 @@ end)
 RegisterNetEvent('qbx_properties:server:addKeyholder', function(keyholderCid)
     local playerSource = source --[[@as number]]
     local owner = Bridge.GetPlayer(playerSource)
-    local propertyId = enteredProperty[playerSource]
+    local propertyId = ProprieteActive(playerSource)
     local result = MySQL.single.await('SELECT owner, keyholders FROM properties WHERE id = ?', {propertyId})
 
     if owner.PlayerData.citizenid ~= result.owner then return end
@@ -434,7 +449,7 @@ end)
 RegisterNetEvent('qbx_properties:server:removeKeyholder', function(keyholderCid)
     local playerSource = source --[[@as number]]
     local owner = Bridge.GetPlayer(playerSource)
-    local propertyId = enteredProperty[playerSource]
+    local propertyId = ProprieteActive(playerSource)
 
     local result = MySQL.single.await('SELECT owner, keyholders FROM properties WHERE id = ?', {propertyId})
     if owner.PlayerData.citizenid ~= result.owner then return end
@@ -496,7 +511,7 @@ end
 
 RegisterNetEvent('qbx_properties:server:openStash', function(index)
     local playerSource = source --[[@as number]]
-    local propertyId = enteredProperty[playerSource]
+    local propertyId = ProprieteActive(playerSource)
     if not propertyId or not HasPropertyAccess(playerSource, propertyId) then return end
 
     local property = MySQL.single.await('SELECT property_name, stash_options FROM properties WHERE id = ?', {propertyId})
@@ -508,7 +523,7 @@ end)
 -- retire le coffre le plus proche (proprietaire ou agent). Son contenu reste en base : remettre un coffre ne le recupere pas.
 RegisterNetEvent('qbx_properties:server:removeStash', function()
     local src = source
-    local propertyId = enteredProperty[src]
+    local propertyId = ProprieteActive(src)
     local player = Bridge.GetPlayer(src)
     if not propertyId or not player then return end
     local property = MySQL.single.await('SELECT * FROM properties WHERE id = ?', {propertyId})
@@ -543,7 +558,7 @@ local function sumMarkedBills(player)
 end
 
 lib.callback.register('qbx_properties:callback:listStashes', function(source)
-    local propertyId = enteredProperty[source]
+    local propertyId = ProprieteActive(source)
     if not propertyId then return {} end
     local stashes = json.decode(MySQL.scalar.await('SELECT stash_options FROM properties WHERE id = ?', { propertyId }) or '[]') or {}
     local liste = {}
@@ -554,7 +569,7 @@ lib.callback.register('qbx_properties:callback:listStashes', function(source)
 end)
 
 lib.callback.register('qbx_properties:callback:getSafe', function(source)
-    local propertyId = enteredProperty[source]
+    local propertyId = ProprieteActive(source)
     if not propertyId or not HasPropertyAccess(source, propertyId) then return nil end
     local row = MySQL.single.await('SELECT coffre_propre, coffre_sale FROM properties WHERE id = ?', { propertyId })
     local player = Bridge.GetPlayer(source)
@@ -564,7 +579,7 @@ end)
 
 RegisterNetEvent('qbx_properties:server:safe', function(action, typ, montant)
     local src = source
-    local propertyId = enteredProperty[src]
+    local propertyId = ProprieteActive(src)
     local player = Bridge.GetPlayer(src)
     if not propertyId or not player or not HasPropertyAccess(src, propertyId) then return end
     if typ ~= 'propre' and typ ~= 'sale' then return end
@@ -664,9 +679,14 @@ end
 
 local function registerGarage(name, owner, keyholders, garage)
     local id = garageId(name)
+    -- bien avec garage physique (places de parking) : les vehicules sont gares sur place, pas de garage qb-garages
+    local places = MySQL.scalar.await('SELECT places FROM properties WHERE property_name = ?', { name })
+    if places and places ~= '[]' and places ~= '' then propertyGarages[id] = nil return end
     propertyGarages[id] = { label = name, takeVehicle = vec4(garage.x, garage.y, garage.z, garage.w or 0.0), propertyName = name }
 end
 RegisterPropertyGarage = registerGarage
+
+function PropertyGarageId(name) return garageId(name) end
 
 function UnregisterPropertyGarage(name)
     propertyGarages[garageId(name)] = nil
@@ -857,6 +877,8 @@ Citizen.CreateThreadNow(function()
         impayes = 'INT NOT NULL DEFAULT 0',
         coffre_propre = 'BIGINT NOT NULL DEFAULT 0',
         coffre_sale = 'BIGINT NOT NULL DEFAULT 0',
+        places = "LONGTEXT NULL",
+        ascenseurs = "LONGTEXT NULL",
     }) do
         local existe = MySQL.scalar.await("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'properties' AND COLUMN_NAME = ?", { colonne })
         if existe == 0 then
