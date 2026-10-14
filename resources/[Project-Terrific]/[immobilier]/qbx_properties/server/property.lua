@@ -19,14 +19,16 @@ local function buildInteractions(property)
     for i = 1, #stashes do
         if stashes[i].coords then
             local c = isInteriorShell and CalculateOffsetCoords(propertyCoords, stashes[i].coords) or stashes[i].coords
-            interactions[#interactions + 1] = { type = 'stash', coords = vec3(c.x, c.y, c.z), index = i, label = stashes[i].label }
+            interactions[#interactions + 1] = { type = 'stash', coords = vec3(c.x, c.y, c.z), index = i, label = stashes[i].label,
+                model = stashes[i].model, w = stashes[i].coords.w or 0.0 }
         end
     end
     local interactData = json.decode(property.interact_options) or {}
     for i = 1, #interactData do
         if interactData[i].coords then
             local c = isInteriorShell and CalculateOffsetCoords(propertyCoords, interactData[i].coords) or interactData[i].coords
-            interactions[#interactions + 1] = { type = interactData[i].type, coords = vec3(c.x, c.y, c.z) }
+            interactions[#interactions + 1] = { type = interactData[i].type, coords = vec3(c.x, c.y, c.z),
+                model = interactData[i].model, w = interactData[i].coords.w or 0.0 }
             if interactData[i].type == 'exit' then exitCoords = c end
         end
     end
@@ -93,7 +95,19 @@ local function refreshInteractions(propertyId)
 end
 
 -- Le proprietaire (ou un agent immobilier / admin) place un point a sa position actuelle
-RegisterNetEvent('qbx_properties:server:setInteraction', function(kind, taille, nom)
+local MODELES_AUTORISES = {}
+for _, m in ipairs(sharedConfig.meubles or {}) do if m.model then MODELES_AUTORISES[m.model] = true end end
+if sharedConfig.coffreFort then MODELES_AUTORISES[sharedConfig.coffreFort] = true end
+
+-- position envoyee par l'apercu de placement : verifiee (a moins de 12 m du joueur)
+local function positionChoisie(src, pos)
+    if type(pos) ~= 'table' or not tonumber(pos.x) or not tonumber(pos.y) or not tonumber(pos.z) then return nil end
+    local p = vec3(pos.x + 0.0, pos.y + 0.0, pos.z + 0.0)
+    if #(GetEntityCoords(GetPlayerPed(src)) - p) > 12.0 then return nil end
+    return p, tonumber(pos.w) or GetEntityHeading(GetPlayerPed(src))
+end
+
+RegisterNetEvent('qbx_properties:server:setInteraction', function(kind, taille, nom, pos, modele, deplacerIndex)
     local src = source
     local propertyId = enteredProperty[src]
     if not propertyId then return end
@@ -105,7 +119,10 @@ RegisterNetEvent('qbx_properties:server:setInteraction', function(kind, taille, 
         return Bridge.Notify(src, locale('notify.no_access'), 'error')
     end
     local ped = GetPlayerPed(src)
-    local pos, heading = GetEntityCoords(ped), GetEntityHeading(ped)
+    local pos, heading = positionChoisie(src, pos)
+    if not pos then pos, heading = GetEntityCoords(ped), GetEntityHeading(ped) end
+    if modele ~= nil and modele ~= '' and not MODELES_AUTORISES[modele] then modele = nil end
+    local modeleFinal = (modele and modele ~= '') and modele or nil
     local pc = json.decode(property.coords)
     local point
     if tonumber(property.interior) ~= nil then
@@ -113,7 +130,15 @@ RegisterNetEvent('qbx_properties:server:setInteraction', function(kind, taille, 
     else
         point = { x = pos.x, y = pos.y, z = pos.z, w = heading }
     end
-    if kind == 'stash' then
+    if kind == 'stash' and tonumber(deplacerIndex) then
+        -- deplacer un coffre existant (meme contenu)
+        local stashes = json.decode(property.stash_options) or {}
+        local s = stashes[tonumber(deplacerIndex)]
+        if not s then return end
+        s.coords = point
+        if modele ~= nil then s.model = modeleFinal end
+        MySQL.update.await('UPDATE properties SET stash_options = ? WHERE id = ?', { json.encode(stashes), propertyId })
+    elseif kind == 'stash' then
         -- un coffre de plus (armes, objets, argent sale en billets marques...), dans la limite de config.coffres.max
         local stashes = json.decode(property.stash_options) or {}
         local cfg = config.coffres
@@ -130,23 +155,23 @@ RegisterNetEvent('qbx_properties:server:setInteraction', function(kind, taille, 
         local reutilise = false
         for i = 1, #stashes do
             if not stashes[i].coords then
-                stashes[i] = { coords = point, slots = t.slots, maxWeight = t.maxWeight, label = label, id = stashes[i].id }
+                stashes[i] = { coords = point, slots = t.slots, maxWeight = t.maxWeight, label = label, id = stashes[i].id, model = modeleFinal }
                 reutilise = true
                 break
             end
         end
         if not reutilise then
             -- le tout premier coffre garde l'identifiant historique (sans numero) pour conserver son contenu
-            stashes[#stashes + 1] = { coords = point, slots = t.slots, maxWeight = t.maxWeight, label = label, id = #stashes > 0 and prochainId or nil }
+            stashes[#stashes + 1] = { coords = point, slots = t.slots, maxWeight = t.maxWeight, label = label, id = #stashes > 0 and prochainId or nil, model = modeleFinal }
         end
         MySQL.update.await('UPDATE properties SET stash_options = ? WHERE id = ?', { json.encode(stashes), propertyId })
     else
         local inter = json.decode(property.interact_options) or {}
         local trouve = false
         for i = 1, #inter do
-            if inter[i].type == kind then inter[i].coords = point trouve = true end
+            if inter[i].type == kind then inter[i].coords = point inter[i].model = modeleFinal trouve = true end
         end
-        if not trouve then inter[#inter + 1] = { type = kind, coords = point } end
+        if not trouve then inter[#inter + 1] = { type = kind, coords = point, model = modeleFinal } end
         MySQL.update.await('UPDATE properties SET interact_options = ? WHERE id = ?', { json.encode(inter), propertyId })
     end
     Bridge.Notify(src, locale('notify.point_placed'), 'success')
@@ -516,6 +541,17 @@ local function sumMarkedBills(player)
     end
     return total, items
 end
+
+lib.callback.register('qbx_properties:callback:listStashes', function(source)
+    local propertyId = enteredProperty[source]
+    if not propertyId then return {} end
+    local stashes = json.decode(MySQL.scalar.await('SELECT stash_options FROM properties WHERE id = ?', { propertyId }) or '[]') or {}
+    local liste = {}
+    for i, s in ipairs(stashes) do
+        liste[#liste + 1] = { index = i, label = s.label or ('Coffre %d'):format(i), slots = s.slots, model = s.model }
+    end
+    return liste
+end)
 
 lib.callback.register('qbx_properties:callback:getSafe', function(source)
     local propertyId = enteredProperty[source]

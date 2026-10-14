@@ -117,6 +117,157 @@ local function prepareDoorbellMenu()
     lib.showContext('qbx_properties_doorbellMenu')
 end
 
+---------------------------------------------------------------- placement libre avec apercu
+-- Vise avec la souris : un fantome du meuble (ou un marqueur) suit le viseur. Molette ou fleches : tourner.
+-- Clic gauche / Entree : valider. Clic droit / Retour : annuler.
+local HAUTEUR_POINT = 0.9 -- le point d'interaction est a hauteur de hanches au-dessus de la surface visee
+
+function PlacementApercu(modele, titre)
+    local fantome
+    if modele then
+        lib.requestModel(modele, 5000)
+        fantome = CreateObjectNoOffset(joaat(modele), GetEntityCoords(cache.ped), false, false, false)
+        SetEntityAlpha(fantome, 170, false)
+        SetEntityCollision(fantome, false, false)
+        FreezeEntityPosition(fantome, true)
+        SetModelAsNoLongerNeeded(joaat(modele))
+    end
+    local heading = (GetEntityHeading(cache.ped) + 180.0) % 360.0
+    lib.showTextUI(('%s  \n[Souris] viser  \n[Molette / fleches] tourner  \n[Clic gauche / Entree] valider  \n[Clic droit / Retour] annuler'):format(titre or 'Placement'))
+    local resultat
+    while true do
+        Wait(0)
+        for _, c in ipairs({ 14, 15, 16, 17, 24, 25, 37, 44, 140, 141, 142, 200, 257, 263 }) do DisableControlAction(0, c, true) end
+        if IsDisabledControlPressed(0, 14) or IsControlPressed(0, 174) then heading = (heading - 3.0) % 360.0 end
+        if IsDisabledControlPressed(0, 15) or IsControlPressed(0, 175) then heading = (heading + 3.0) % 360.0 end
+        local hit, _, c = lib.raycast.fromCamera(1 | 16, 4, 10.0)
+        local valide = hit and #(GetEntityCoords(cache.ped) - c) < 10.0
+        if valide then
+            if fantome then
+                SetEntityCoordsNoOffset(fantome, c.x, c.y, c.z, false, false, false)
+                SetEntityHeading(fantome, heading)
+            end
+            DrawMarker(25, c.x, c.y, c.z + 0.02, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.8, 0.8, 0.8, 60, 200, 120, 160, false, false, 2, false, nil, nil, false)
+            local fx, fy = math.sin(math.rad(-heading)) * 0.5, math.cos(math.rad(-heading)) * 0.5
+            DrawLine(c.x, c.y, c.z + 0.05, c.x + fx, c.y + fy, c.z + 0.05, 60, 200, 120, 255)
+            if IsDisabledControlJustPressed(0, 24) or IsControlJustPressed(0, 18) or IsControlJustPressed(0, 201) then
+                resultat = { x = c.x, y = c.y, z = c.z + HAUTEUR_POINT, w = heading }
+                break
+            end
+        end
+        if IsDisabledControlJustPressed(0, 25) or IsControlJustPressed(0, 177) or IsDisabledControlJustPressed(0, 200) then break end
+    end
+    lib.hideTextUI()
+    if fantome and DoesEntityExist(fantome) then DeleteEntity(fantome) end
+    return resultat
+end
+
+local function choisirMeuble(titre)
+    local options = {}
+    for _, m in ipairs(sharedConfig.meubles or {}) do
+        options[#options + 1] = { value = m.model or '', label = m.label }
+    end
+    return options
+end
+
+function OuvrirMenuPoints()
+    local points = {
+        { kind = 'safe', label = 'Coffre-fort (argent propre et sale)', icon = 'vault', modele = sharedConfig.coffreFort },
+        { kind = 'clothing', label = locale('menu.place_clothing'), icon = 'shirt' },
+        { kind = 'logout', label = locale('menu.place_logout'), icon = 'bed' },
+        { kind = 'exit', label = locale('menu.place_exit'), icon = 'door-open' },
+    }
+    local opts = {
+        {
+            title = 'Ajouter un coffre',
+            description = 'Taille, nom et meuble, puis placement libre (jusqu\'a 5 coffres)',
+            icon = 'box',
+            onSelect = function()
+                local input = lib.inputDialog('Nouveau coffre', {
+                    { type = 'select', label = 'Taille', required = true, default = 'moyen', options = {
+                        { value = 'petit', label = 'Petit (30 places, 100 kg)' },
+                        { value = 'moyen', label = 'Moyen (50 places, 250 kg)' },
+                        { value = 'grand', label = 'Grand / armurerie (80 places, 600 kg)' } } },
+                    { type = 'input', label = 'Nom (facultatif)', placeholder = 'Armurerie, Cave...', max = 30 },
+                    { type = 'select', label = 'Meuble', required = true, default = 'prop_box_wood05a', options = choisirMeuble() },
+                })
+                if not input then return end
+                local modele = input[3] ~= '' and input[3] or nil
+                local pos = PlacementApercu(modele, 'Placer le coffre')
+                if pos then TriggerServerEvent('qbx_properties:server:setInteraction', 'stash', input[1], input[2], pos, input[3]) end
+            end
+        },
+        {
+            title = 'Deplacer un coffre',
+            description = 'Garde son contenu, change sa position et son meuble',
+            icon = 'arrows-up-down-left-right',
+            arrow = true,
+            onSelect = function()
+                local liste = lib.callback.await('qbx_properties:callback:listStashes', false) or {}
+                local o = {}
+                for _, c in ipairs(liste) do
+                    o[#o + 1] = { title = c.label, description = ('%s places'):format(c.slots or '?'), icon = 'box', onSelect = function()
+                        local input = lib.inputDialog(c.label, {
+                            { type = 'select', label = 'Meuble', required = true, default = c.model or '', options = choisirMeuble() },
+                        })
+                        if not input then return end
+                        local pos = PlacementApercu(input[1] ~= '' and input[1] or nil, 'Deplacer : ' .. c.label)
+                        if pos then TriggerServerEvent('qbx_properties:server:setInteraction', 'stash', nil, nil, pos, input[1], c.index) end
+                    end }
+                end
+                if #o == 0 then o[1] = { title = 'Aucun coffre', readOnly = true } end
+                lib.registerContext({ id = 'qbx_properties_moveStash', title = 'Deplacer un coffre', menu = 'qbx_properties_pointsMenu', options = o })
+                lib.showContext('qbx_properties_moveStash')
+            end
+        },
+        {
+            title = 'Retirer le coffre le plus proche',
+            description = 'Videz-le avant : son contenu ne sera plus accessible',
+            icon = 'trash',
+            onSelect = function()
+                local ok = lib.alertDialog({ header = 'Retirer le coffre', content = 'Le contenu du coffre le plus proche ne sera plus accessible. Continuer ?', centered = true, cancel = true })
+                if ok == 'confirm' then TriggerServerEvent('qbx_properties:server:removeStash') end
+            end
+        },
+    }
+    for _, pt in ipairs(points) do
+        opts[#opts + 1] = {
+            title = pt.label,
+            description = 'Placement libre avec apercu',
+            icon = pt.icon,
+            onSelect = function()
+                local pos = PlacementApercu(pt.modele, pt.label)
+                if pos then TriggerServerEvent('qbx_properties:server:setInteraction', pt.kind, nil, nil, pos, pt.modele) end
+            end
+        }
+    end
+    lib.registerContext({ id = 'qbx_properties_pointsMenu', title = locale('menu.place_points'), menu = 'qbx_properties_manageMenu', options = opts })
+    lib.showContext('qbx_properties_pointsMenu')
+end
+
+---------------------------------------------------------------- meubles des points (coffres, coffre-fort) visibles dans le bien
+local meublesPoints = {}
+local function retirerMeubles()
+    for _, e in ipairs(meublesPoints) do if DoesEntityExist(e) then DeleteEntity(e) end end
+    meublesPoints = {}
+end
+local function poserMeubles(liste)
+    retirerMeubles()
+    for _, it in ipairs(liste or {}) do
+        if it.model then
+            local h = joaat(it.model)
+            if IsModelInCdimage(h) then
+                lib.requestModel(h, 5000)
+                local e = CreateObjectNoOffset(h, it.coords.x, it.coords.y, it.coords.z - HAUTEUR_POINT, false, false, false)
+                SetEntityHeading(e, it.w or 0.0)
+                FreezeEntityPosition(e, true)
+                SetModelAsNoLongerNeeded(h)
+                meublesPoints[#meublesPoints + 1] = e
+            end
+        end
+    end
+end
+
 local function prepareManageMenu()
     local hasAccess = lib.callback.await('qbx_properties:callback:checkAccess')
     if not hasAccess then Bridge.Notify(locale('notify.no_access'), 'error') return end
@@ -177,53 +328,11 @@ local function prepareManageMenu()
         },
         {
             title = locale('menu.place_points'),
-            description = locale('menu.place_points_description'),
+            description = 'Coffres, coffre-fort, vestiaire, lit, sortie : placement libre avec apercu',
             icon = 'location-crosshairs',
             arrow = true,
             onSelect = function()
-                local points = {
-                    { kind = 'clothing', label = locale('menu.place_clothing'), icon = 'shirt' },
-                    { kind = 'logout', label = locale('menu.place_logout'), icon = 'bed' },
-                    { kind = 'exit', label = locale('menu.place_exit'), icon = 'door-open' },
-                    { kind = 'safe', label = 'Coffre-fort (argent propre et sale) ici', icon = 'vault' },
-                }
-                local opts = {
-                    {
-                        title = 'Ajouter un coffre ici',
-                        description = 'Armes, objets, billets marques... (jusqu\'a 5 coffres)',
-                        icon = 'box',
-                        onSelect = function()
-                            local input = lib.inputDialog('Nouveau coffre', {
-                                { type = 'select', label = 'Taille', required = true, default = 'moyen', options = {
-                                    { value = 'petit', label = 'Petit (30 places, 100 kg)' },
-                                    { value = 'moyen', label = 'Moyen (50 places, 250 kg)' },
-                                    { value = 'grand', label = 'Grand / armurerie (80 places, 600 kg)' } } },
-                                { type = 'input', label = 'Nom (facultatif)', placeholder = 'Armurerie, Cave...', max = 30 },
-                            })
-                            if input then TriggerServerEvent('qbx_properties:server:setInteraction', 'stash', input[1], input[2]) end
-                        end
-                    },
-                    {
-                        title = 'Retirer le coffre le plus proche',
-                        description = 'Videz-le avant : son contenu ne sera plus accessible',
-                        icon = 'trash',
-                        onSelect = function()
-                            local ok = lib.alertDialog({ header = 'Retirer le coffre', content = 'Le contenu du coffre le plus proche ne sera plus accessible. Continuer ?', centered = true, cancel = true })
-                            if ok == 'confirm' then TriggerServerEvent('qbx_properties:server:removeStash') end
-                        end
-                    },
-                }
-                for _, pt in ipairs(points) do
-                    opts[#opts + 1] = {
-                        title = pt.label,
-                        icon = pt.icon,
-                        onSelect = function()
-                            TriggerServerEvent('qbx_properties:server:setInteraction', pt.kind)
-                        end
-                    }
-                end
-                lib.registerContext({ id = 'qbx_properties_pointsMenu', title = locale('menu.place_points'), menu = 'qbx_properties_manageMenu', options = opts })
-                lib.showContext('qbx_properties_pointsMenu')
+                OuvrirMenuPoints()
             end
         }
     }
@@ -376,6 +485,7 @@ RegisterNetEvent('qbx_properties:client:updateInteractions', function(interactio
     DoScreenFadeIn(1000)
     interactions = interactionsData
     isPropertyRental = isRental
+    poserMeubles(interactionsData)
     if not insideProperty then
         insideProperty = true
         checkInteractions()
@@ -447,6 +557,7 @@ end)
 RegisterNetEvent('qbx_properties:client:unloadProperty', function()
     DoScreenFadeIn(1000)
     insideProperty = false
+    retirerMeubles()
     if DoesEntityExist(interiorShell) then DeleteEntity(interiorShell) end
     for _, v in pairs(DecorationObjects) do
         if DoesEntityExist(v) then DeleteEntity(v) end
@@ -633,3 +744,13 @@ end)
 RegisterNetEvent('qbx_properties:client:reloadProperties', function()
     properties = lib.callback.await('qbx_properties:callback:loadProperties') or properties
 end)
+
+-- Menu proprietaire : touche F6 (modifiable : Echap > Parametres > Raccourcis > FiveM) ou /monbien, partout dans le bien
+RegisterCommand('monbien', function()
+    if not insideProperty then
+        return Bridge.Notify('Entrez dans votre bien pour ouvrir le menu proprietaire (ou /mesbiens pour la liste).', 'error')
+    end
+    prepareManageMenu()
+end, false)
+RegisterKeyMapping('monbien', 'Menu proprietaire (immobilier)', 'keyboard', 'F6')
+RegisterNetEvent('qbx_properties:client:menuProprietaire', function() ExecuteCommand('monbien') end)

@@ -12,6 +12,13 @@ Config.MenuItems = {
         icon = 'user',
         items = {
             {
+                id = 'monbien',
+                title = 'Mon bien',
+                icon = 'house',
+                type = 'client',
+                event = 'qbx_properties:client:menuProprietaire',
+                shouldClose = true
+            }, {
                 id = 'mesmetiers',
                 title = 'Mes metiers',
                 icon = 'briefcase',

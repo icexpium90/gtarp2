@@ -66,7 +66,13 @@ Avec un MLO, placez une sortie différente pour chaque appartement (Placer les p
 ## Pour les joueurs
 
 - Devant la porte : E pour voir le bien (acheter, louer, sonner, entrer, ou choisir l'appartement).
-- À l'intérieur, au point de sortie : E pour sortir, G pour gérer :
+- **Menu propriétaire : F6** (ou `/monbien`, ou menu radial F1 > Mon bien), n'importe où dans le bien.
+  Aussi : au point de sortie, E pour sortir, G pour gérer.
+- **Placement libre avec aperçu** (Placer les points) : un fantôme du meuble suit la souris ; molette ou flèches
+  pour tourner, clic gauche ou Entrée pour valider, clic droit ou Retour pour annuler (10 m autour de vous).
+  Meubles au choix pour les coffres (caisse en bois, caisse militaire, servante d'atelier, frigo, mallette ou
+  invisible) ; le coffre-fort est un vrai coffre-fort. « Déplacer un coffre » garde son contenu.
+- Le menu propriétaire contient :
   - clés numériques (ajouter ou retirer des détenteurs) ;
   - **clés et serrures** : faire un **double de clé** (objet « Double de clé » à donner ou à prêter : il ouvre la porte et le
     coffre) et **changer les serrures** (tous les doubles distribués deviennent inutilisables) ;

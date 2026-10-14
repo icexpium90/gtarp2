@@ -151,4 +151,15 @@ return {
         { label = 'Caravane de Trevor (Sandy Shores)', zone = vec3(1973.2, 3815.4, 33.4), prix = 60000, loyer = 24, type = 'Maison' },
         { label = 'Appartement de Floyd (Vespucci Beach)', zone = vec3(-1150.7, -1520.7, 10.6), prix = 2500, loyer = 24, type = 'Appartement' },
     },
+
+    -- Meubles affiches sur les coffres places par le proprietaire (apercu de placement)
+    meubles = {
+        { label = 'Caisse en bois', model = 'prop_box_wood05a' },
+        { label = 'Caisse militaire (armes)', model = 'prop_mil_crate_01' },
+        { label = 'Servante d\'atelier', model = 'prop_toolchest_05' },
+        { label = 'Refrigerateur', model = 'prop_fridge_01' },
+        { label = 'Mallette', model = 'prop_ld_case_01' },
+        { label = 'Aucun (point invisible)', model = false },
+    },
+    coffreFort = 'prop_ld_int_safe_01',
 }
