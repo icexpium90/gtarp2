@@ -951,6 +951,12 @@ local Vehicles = {
     {['model'] = 'formula',       ['name'] = 'PR4',                           ['brand'] = 'Progen',          ['price'] = 100000,  ['categoryLabel'] = 'Open Wheel',      ['shop'] = 'none'},
     --- Vehicules addon (verifies par tools/vehicules/verifier_vehicules.py)
     {['model'] = 'mers18', ['name'] = 'Megane 4 RS', ['brand'] = 'Renault', ['price'] = 75000, ['categoryLabel'] = 'Compacts', ['shop'] = 'tuner'},
+    --- Vehicules addon (verifies par tools/vehicules/verifier_vehicules.py)
+    {['model'] = 'acs8', ['name'] = 'i8 AC Schnitzer ACS8', ['brand'] = 'BMW', ['price'] = 220000, ['categoryLabel'] = 'Sports', ['shop'] = 'tuner'},
+    {['model'] = 'bmci', ['name'] = 'M5 F90', ['brand'] = 'BMW', ['price'] = 160000, ['categoryLabel'] = 'Sports', ['shop'] = 'tuner'},
+    {['model'] = 'm3e30', ['name'] = 'M3 E30', ['brand'] = 'BMW', ['price'] = 85000, ['categoryLabel'] = 'Sports Classics', ['shop'] = 'tuner'},
+    {['model'] = 'm3e46', ['name'] = 'M3 E46', ['brand'] = 'BMW', ['price'] = 95000, ['categoryLabel'] = 'Sports', ['shop'] = 'tuner'},
+    {['model'] = 'm3g80', ['name'] = 'M3 G80', ['brand'] = 'BMW', ['price'] = 175000, ['categoryLabel'] = 'Sports', ['shop'] = 'tuner'},
 }
 
 for i=1, #Vehicles do

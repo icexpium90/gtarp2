@@ -177,12 +177,17 @@ def analyser_ressource(res, jeu_de_base):
             visibles = kit.find('visibleMods')
             pieces = list(visibles) if visibles is not None else []
             manquants = set()
+            vides = set()
             types = set()
             for piece in pieces:
                 mn = txt(piece, 'modelName').lower()
                 types.add(txt(piece, 'type'))
-                if mn and mn + '.yft' not in stream:
-                    manquants.add(mn)
+                os_ = piece.find('turnOffBones')
+                retire_piece = os_ is not None and len(list(os_)) > 0
+                if mn in ('', 'null'):
+                    continue  # emplacement vide volontaire (astuce de moddeur)
+                if mn + '.yft' not in stream:
+                    (vides if retire_piece else manquants).add(mn)
                 lies = piece.find('linkedModels')
                 for l in (lies if lies is not None else []):
                     ln = (l.text or '').strip().lower()
@@ -194,6 +199,8 @@ def analyser_ressource(res, jeu_de_base):
                          % (kname, kid, len(pieces), len(types - {''}), ', '.join(sorted(stats)) or 'aucune'))
             for mn in sorted(manquants):
                 err.append("bodykit %s : piece '%s.yft' absente de stream/ (piece invisible en jeu)" % (kname, mn))
+            for mn in sorted(vides):
+                infos.append("kit %s : option '%s' sans fichier, elle retire seulement une piece (normal pour une option \"sans\")" % (kname, mn))
             absents = [s for s in STATMODS_ATTENDUS if s not in stats]
             if absents:
                 warn.append('kit %s : pieces moteur manquantes (%s) -> pas d\'amelioration possible au garage'
