@@ -69,6 +69,11 @@ $erreurs = [];
 if (!$installe && !is_file($fichierCode)) {
     @file_put_contents($fichierCode, strtoupper(bin2hex(random_bytes(4))) . PHP_EOL, LOCK_EX);
     @chmod($fichierCode, 0640);
+    if (!is_file($fichierCode)) {
+        $erreurs[] = 'Le site ne peut pas écrire dans ' . $donnees . ' (dossier absent ou droits insuffisants). '
+            . 'Sur le serveur : sudo mkdir -p ' . $donnees . ' && sudo chown -R www-data:www-data ' . $donnees
+            . ' && sudo chmod 770 ' . $donnees . ' , puis rechargez cette page.';
+    }
 }
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
@@ -257,8 +262,8 @@ if ($connecte && $_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, ['en
         <form class="boite carte" method="post" autocomplete="off">
             <h1>Créer l'accès admin</h1>
             <p class="aide">Première connexion : le code d'installation se trouve sur le serveur web, dans le fichier
-                <code>app/donnees/code_installation.txt</code> (à ouvrir avec FileZilla / WinSCP, ou
-                <code>sudo cat /var/www/lusorp/app/donnees/code_installation.txt</code>).</p>
+                <code><?= e($fichierCode) ?></code> (à ouvrir avec FileZilla / WinSCP, ou
+                <code>sudo cat <?= e($fichierCode) ?></code>).</p>
             <input type="hidden" name="action" value="installer">
             <input type="hidden" name="jeton" value="<?= e(jeton()) ?>">
             <label for="code">Code d'installation</label>
