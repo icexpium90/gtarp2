@@ -209,17 +209,9 @@ RegisterNetEvent('hospital:server:RevivePlayer', function(playerId, isOldMan)
 				TriggerClientEvent('hospital:client:Revive', Patient.PlayerData.source)
 			end
 		else
-			MySQL.insert('INSERT INTO bans (name, license, discord, ip, reason, expire, bannedby) VALUES (?, ?, ?, ?, ?, ?, ?)', {
-				GetPlayerName(src),
-				QBCore.Functions.GetIdentifier(src, 'license'),
-				QBCore.Functions.GetIdentifier(src, 'discord'),
-				QBCore.Functions.GetIdentifier(src, 'ip'),
-				"Trying to revive theirselves or other players",
-				2147483647,
-				'qb-ambulancejob'
-			})
-			TriggerEvent('qb-log:server:CreateLog', 'ambulancejob', 'Player Banned', 'red', string.format('%s was banned by %s for %s', GetPlayerName(src), 'qb-ambulancejob', "Trying to revive theirselves or other players"), true)
-			DropPlayer(src, 'You were permanently banned by the server for: Exploiting')
+			-- LUSO RP : pas de ban automatique, il faut simplement une trousse de premiers secours
+			TriggerClientEvent('QBCore:Notify', src, 'Il vous faut une trousse de premiers secours (firstaid) pour reanimer.', 'error')
+			print(('^3[qb-ambulancejob] %s a tente de reanimer sans trousse ni metier (refuse, pas de ban)^7'):format(GetPlayerName(src)))
 		end
 	end
 end)

@@ -23,20 +23,22 @@ end)
 
 -- Functions
 
+-- LUSO RP : plus de bannissement automatique (trop de faux positifs : admins, joueurs legitimes).
+-- L'action est refusee, le joueur est prevenu, et l'alerte part dans la console et chez les admins en ligne.
+local function signalerExploit(id, raison, ressource)
+	local nom = GetPlayerName(id) or tostring(id)
+	print(('^3[%s] action suspecte de %s (id %s) : %s (refusee, pas de ban)^7'):format(ressource, nom, tostring(id), tostring(raison)))
+	TriggerEvent('qb-log:server:CreateLog', 'bans', 'Action suspecte', 'orange', ('%s (%s) : %s'):format(nom, ressource, tostring(raison)), false)
+	TriggerClientEvent('QBCore:Notify', id, 'Action refusee.', 'error')
+	for _, sid in pairs(QBCore.Functions.GetPlayers()) do
+		if QBCore.Functions.HasPermission(sid, 'admin') and sid ~= id then
+			TriggerClientEvent('QBCore:Notify', sid, ('[Anti-triche] %s : %s'):format(nom, tostring(raison)), 'error', 10000)
+		end
+	end
+end
+
 local function exploitBan(id, reason)
-    MySQL.insert('INSERT INTO bans (name, license, discord, ip, reason, expire, bannedby) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        {
-            GetPlayerName(id),
-            QBCore.Functions.GetIdentifier(id, 'license'),
-            QBCore.Functions.GetIdentifier(id, 'discord'),
-            QBCore.Functions.GetIdentifier(id, 'ip'),
-            reason,
-            2147483647,
-            'qb-jewelery'
-        })
-    TriggerEvent('qb-log:server:CreateLog', 'jewelery', 'Player Banned', 'red',
-        string.format('%s was banned by %s for %s', GetPlayerName(id), 'qb-jewelery', reason), true)
-    DropPlayer(id, 'You were permanently banned by the server for: Exploiting')
+	signalerExploit(id, reason, 'qb-jewelery')
 end
 
 -- Events
@@ -60,7 +62,7 @@ RegisterNetEvent('qb-jewellery:server:vitrineReward', function(vitrineIndex)
         return
     end
     if cachedPoliceAmount[source] == nil then
-        DropPlayer(src, "Exploiting")
+        signalerExploit(src, "vitrineReward sans compteur police", "qb-jewelery")
         return
     end
 
@@ -109,9 +111,9 @@ RegisterNetEvent('qb-jewellery:server:vitrineReward', function(vitrineIndex)
             flags[license] = 1
         end
         if flags[license] >= 3 then
-            exploitBan("Getting flagged many times from exploiting the \"qb-jewellery:server:vitrineReward\" event")
+            exploitBan(src, "Getting flagged many times from exploiting the \"qb-jewellery:server:vitrineReward\" event")
         else
-            DropPlayer(src, "Exploiting")
+            signalerExploit(src, "vitrineReward suspect", "qb-jewelery")
         end
     end
 end)
