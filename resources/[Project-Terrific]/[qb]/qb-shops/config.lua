@@ -397,10 +397,11 @@ Config.Products = {
         --     slot = 4,
         -- },
     },
+    -- LUSO RP : armes legales (permis de port d'arme obligatoire pour les armes a feu) volontairement hors de prix
     ["weapons"] = {
         [1] = {
             name = "weapon_knife",
-            price = 250,
+            price = 90,
             amount = 100,
             info = {},
             type = "item",
@@ -408,7 +409,7 @@ Config.Products = {
         },
         [2] = {
             name = "weapon_bat",
-            price = 250,
+            price = 60,
             amount = 100,
             info = {},
             type = "item",
@@ -416,7 +417,7 @@ Config.Products = {
         },
         [3] = {
             name = "weapon_hatchet",
-            price = 250,
+            price = 70,
             amount = 100,
             info = {},
             type = "item",
@@ -425,7 +426,7 @@ Config.Products = {
         },
         [4] = {
             name = "weapon_pistol",
-            price = 2500,
+            price = 650,
             amount = 5,
             info = {},
             type = "item",
@@ -434,7 +435,7 @@ Config.Products = {
         },
         [5] = {
             name = "weapon_snspistol",
-            price = 1500,
+            price = 450,
             amount = 5,
             info = {},
             type = "item",
@@ -443,7 +444,7 @@ Config.Products = {
         },
         [6] = {
             name = "weapon_vintagepistol",
-            price = 4000,
+            price = 900,
             amount = 5,
             info = {},
             type = "item",
@@ -452,7 +453,7 @@ Config.Products = {
         },
         [7] = {
             name = "pistol_ammo",
-            price = 250,
+            price = 40,
             amount = 100,
             info = {},
             type = "item",

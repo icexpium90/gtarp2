@@ -136,6 +136,7 @@ Config.AuthorizedVehicles = {
 		["policet"] = "Police Car 6",
 		["sheriff"] = "Sheriff Car 1",
 		["sheriff2"] = "Sheriff Car 2",
+		["polamggtr"] = "AMG GT R Interceptor",
 	},
 	-- Grade 3
 	[3] = {
@@ -160,6 +161,7 @@ Config.AuthorizedVehicles = {
 		["sheriff"] = "Sheriff Car 1",
 		["sheriff2"] = "Sheriff Car 2",
 		["polamggtr"] = "AMG GT R Interceptor",
+		["s63w222"] = "Mercedes S63 AMG (banalisee, commandement)",
 	}
 }
 

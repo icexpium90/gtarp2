@@ -16,6 +16,8 @@ RegisterNetEvent('qb-drugs:server:updateDealerItems', function(itemData, amount,
     local Player = QBCore.Functions.GetPlayer(src)
 
     if not Player then return end
+    -- LUSO RP : achats chez l'armurier clandestin (pt-illegal) : pas un dealer qb-drugs, rien a mettre a jour
+    if not dealer or not Config.Dealers[dealer] or not Config.Dealers[dealer].products[itemData.slot] then return end
 
     if Config.Dealers[dealer].products[itemData.slot].amount - 1 >= 0 then
         Config.Dealers[dealer].products[itemData.slot].amount -= amount
