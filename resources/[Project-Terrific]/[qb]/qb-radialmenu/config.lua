@@ -26,6 +26,13 @@ Config.MenuItems = {
                 event = 'pt-multijob:client:menu',
                 shouldClose = true
             }, {
+                id = 'mesfactures',
+                title = 'Mes factures',
+                icon = 'file-invoice-dollar',
+                type = 'client',
+                event = 'pt-factures:client:mesFactures',
+                shouldClose = true
+            }, {
                 id = 'givenum',
                 title = 'Give Contact Details',
                 icon = 'address-book',
@@ -941,6 +948,14 @@ Config.VehicleExtras = {
 Config.JobInteractions = {
     ["ambulance"] = {
         {
+            id = 'facturer',
+            title = 'Facturer un client',
+            icon = 'file-invoice-dollar',
+            type = 'client',
+            event = 'pt-factures:client:ouvrirFacture',
+            shouldClose = true
+        },
+        {
             id = 'statuscheck',
             title = 'Check Health Status',
             icon = 'heart-pulse',
@@ -993,6 +1008,14 @@ Config.JobInteractions = {
     },
     ["taxi"] = {
         {
+            id = 'facturer',
+            title = 'Facturer un client',
+            icon = 'file-invoice-dollar',
+            type = 'client',
+            event = 'pt-factures:client:ouvrirFacture',
+            shouldClose = true
+        },
+        {
             id = 'togglemeter',
             title = 'Show/Hide Meter',
             icon = 'eye-slash',
@@ -1033,6 +1056,14 @@ Config.JobInteractions = {
         }
     },
     ["mechanic"] = {
+        {
+            id = 'facturer',
+            title = 'Facturer un client',
+            icon = 'file-invoice-dollar',
+            type = 'client',
+            event = 'pt-factures:client:ouvrirFacture',
+            shouldClose = true
+        },
         {
             id = 'towvehicle',
             title = 'Tow vehicle',

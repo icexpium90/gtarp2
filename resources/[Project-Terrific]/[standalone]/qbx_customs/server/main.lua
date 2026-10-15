@@ -37,6 +37,13 @@ local function atelierGratuit(source)
     return ok and gratuit == true
 end
 
+-- Project Terrific : montant des travaux faits gratuitement par un mecanicien (a facturer au client ensuite)
+local travaux = {}
+local function ajouterTravaux(source, montant)
+    travaux[source] = (travaux[source] or 0) + (tonumber(montant) or 0)
+end
+AddEventHandler('playerDropped', function() travaux[source] = nil end)
+
 -- Won't charge money for mods if the player's job is in the list
 lib.callback.register('qbx_customs:server:pay', function(source, mod, level)
     if atelierGratuit(source) then return true end
@@ -47,6 +54,7 @@ lib.callback.register('qbx_customs:server:pay', function(source, mod, level)
             local playerJob = QbxCore.GetPlayer(source)?.PlayerData?.job?.name
             for _, job in ipairs(v.freeMods) do
                 if playerJob == job then
+                    if job == 'mechanic' then ajouterTravaux(source, getModPrice(mod, level)) end
                     return true
                 end
             end
@@ -66,6 +74,7 @@ lib.callback.register('qbx_customs:server:repair', function(source, bodyHealth)
             local playerJob = QbxCore.GetPlayer(source)?.PlayerData?.job?.name
             for _, job in ipairs(v.freeRepair) do
                 if playerJob == job then
+                    if job == 'mechanic' then ajouterTravaux(source, math.ceil(1000 - bodyHealth)) end
                     return true
                 end
             end
@@ -88,6 +97,11 @@ end
 --Copied from qb-mechanicjob
 RegisterNetEvent('qbx_customs:server:saveVehicleProps', function()
     local src = source --[[@as number]]
+    -- fin des travaux du mecanicien : proposer la facture du total au client
+    if travaux[src] and travaux[src] > 0 then
+        if GetResourceState('pt-factures') == 'started' then exports['pt-factures']:ProposerTravaux(src, travaux[src]) end
+        travaux[src] = nil
+    end
     local vehicleProps = lib.callback.await('qbx_customs:client:vehicleProps', src)
     if IsVehicleOwned(vehicleProps.plate) then
         MySQL.update.await('UPDATE player_vehicles SET mods = ? WHERE plate = ?', {json.encode(vehicleProps), vehicleProps.plate})

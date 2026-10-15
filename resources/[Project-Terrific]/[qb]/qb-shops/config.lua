@@ -281,6 +281,20 @@ Config.Products = {
             slot = 17,
         },
     },
+    -- Project Terrific : fournitures du garage des mecaniciens (Burton), reservees au metier mechanic
+    ["mecano"] = {
+        [1] = { name = "repairkit", price = 250, amount = 500, info = {}, type = "item", slot = 1, requiredJob = { "mechanic" } },
+        [2] = { name = "advancedrepairkit", price = 500, amount = 500, info = {}, type = "item", slot = 2, requiredJob = { "mechanic" } },
+        [3] = { name = "cleaningkit", price = 100, amount = 500, info = {}, type = "item", slot = 3, requiredJob = { "mechanic" } },
+        [4] = { name = "metalscrap", price = 15, amount = 500, info = {}, type = "item", slot = 4, requiredJob = { "mechanic" } },
+        [5] = { name = "plastic", price = 12, amount = 500, info = {}, type = "item", slot = 5, requiredJob = { "mechanic" } },
+        [6] = { name = "steel", price = 20, amount = 500, info = {}, type = "item", slot = 6, requiredJob = { "mechanic" } },
+        [7] = { name = "iron", price = 15, amount = 500, info = {}, type = "item", slot = 7, requiredJob = { "mechanic" } },
+        [8] = { name = "aluminum", price = 20, amount = 500, info = {}, type = "item", slot = 8, requiredJob = { "mechanic" } },
+        [9] = { name = "copper", price = 18, amount = 500, info = {}, type = "item", slot = 9, requiredJob = { "mechanic" } },
+        [10] = { name = "rubber", price = 10, amount = 500, info = {}, type = "item", slot = 10, requiredJob = { "mechanic" } },
+        [11] = { name = "glass", price = 10, amount = 500, info = {}, type = "item", slot = 11, requiredJob = { "mechanic" } },
+    },
     ["weedshop"] = {
         [1] = {
             name = "joint",
@@ -1418,5 +1432,24 @@ Config.Locations = {
         ["blipscale"] = 0.6,
         ["blipcolor"] = 2,
         ["delivery"] = vector4(-1531.31, -403.21, 35.64, 233.4)
+    },
+    -- Project Terrific : fournitures mecano dans le garage des mecaniciens (LS Customs de Burton), entre le point de
+    -- service et le coffre. Kits de reparation et materiaux utilises par qb-mechanicjob (plastique, acier, fer...).
+    -- Si le vendeur est mal place, ajustez "coords" (x, y, z, orientation).
+    ["mecano"] = {
+        ["label"] = "Fournitures mecano",
+        ["coords"] = vector4(-321.40, -130.75, 39.01, 250.0),
+        ["ped"] = 's_m_y_xmech_02',
+        ["scenario"] = "WORLD_HUMAN_CLIPBOARD",
+        ["radius"] = 1.5,
+        ["targetIcon"] = "fas fa-toolbox",
+        ["targetLabel"] = "Fournitures mecano",
+        ["products"] = Config.Products["mecano"],
+        ["requiredJob"] = { ["mechanic"] = 0 },
+        ["showblip"] = false,
+        ["blipsprite"] = 446,
+        ["blipscale"] = 0.6,
+        ["blipcolor"] = 5,
+        ["delivery"] = vector4(-361.26, -132.56, 38.68, 70.0)
     }
 }
