@@ -1,6 +1,6 @@
 local QBCore = exports['qb-core']:GetCoreObject()
 
--- Project Terrific : les "maisons" proposees au spawn sont les biens qbx_properties (possedes ou avec cle)
+-- LUSO RP : les "maisons" proposees au spawn sont les biens qbx_properties (possedes ou avec cle)
 QBCore.Functions.CreateCallback('qb-spawn:server:getOwnedHouses', function(_, cb, cid)
     if not cid or GetResourceState('qbx_properties') ~= 'started' then return cb({}) end
     local rows = MySQL.query.await('SELECT id, property_name, coords, owner FROM properties WHERE owner = ? OR keyholders LIKE ? ORDER BY owner = ? DESC, property_name', { cid, '%' .. cid .. '%', cid }) or {}

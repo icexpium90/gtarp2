@@ -46,7 +46,7 @@ dependencies { -- Make sure these are started before cdn-fuel in your server.cfg
     --'qb-menu',
     -- QBox | Overextended Functionalities (Input, Progressbar, Target, Menu etc.)
     'ox_lib', -- Ox Library
-    'qb-target', -- Project Terrific : qb-target (ox_target n'est pas utilise, Config.TargetResource = qb-target)
+    'qb-target', -- LUSO RP : qb-target (ox_target n'est pas utilise, Config.TargetResource = qb-target)
 }
 
 

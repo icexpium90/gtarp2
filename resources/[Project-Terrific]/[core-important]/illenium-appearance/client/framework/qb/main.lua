@@ -90,7 +90,7 @@ RegisterNetEvent("qb-clothes:client:CreateFirstCharacter", function()
     QBCore.Functions.GetPlayerData(function(pd)
         PlayerData = pd
         setClientParams()
-        -- Project Terrific : meme editeur que l'ouverture automatique (jamais deux editeurs en meme temps)
+        -- LUSO RP : meme editeur que l'ouverture automatique (jamais deux editeurs en meme temps)
         OuvrirEditeurPremierPerso()
     end)
 end)

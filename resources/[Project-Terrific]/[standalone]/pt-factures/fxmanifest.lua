@@ -3,7 +3,7 @@ game 'gta5'
 lua54 'yes'
 
 name 'pt-factures'
-description 'Project Terrific : factures des metiers (mecano, EMS, taxi...) payables tout de suite, avec /factures ou dans le telephone'
+description 'LUSO RP : factures des metiers (mecano, EMS, taxi...) payables tout de suite, avec /factures ou dans le telephone'
 version '1.0.0'
 
 shared_scripts {

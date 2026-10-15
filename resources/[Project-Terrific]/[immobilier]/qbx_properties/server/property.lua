@@ -896,7 +896,7 @@ Citizen.CreateThreadNow(function()
     MySQL.query.await(sql2)
     if sql3 then MySQL.query.await(sql3) end
 
-    -- colonnes ajoutees par Project Terrific (bases creees avant la mise a jour) : une seule lecture de la table
+    -- colonnes ajoutees par LUSO RP (bases creees avant la mise a jour) : une seule lecture de la table
     local presentes = {}
     for _, c in ipairs(MySQL.query.await('SHOW COLUMNS FROM properties') or {}) do
         presentes[c.Field] = true

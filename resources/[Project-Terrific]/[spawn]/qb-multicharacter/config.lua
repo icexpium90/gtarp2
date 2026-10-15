@@ -6,7 +6,7 @@ Config.HiddenCoords = vector4(-261.8508, -949.5483, 75.8287, 142.5654) -- Hides 
 Config.CamCoords = vector4(-258.5254, -943.3583, 76.1148, 309.1309) -- Camera coordinates for character preview screen
 Config.EnableDeleteButton = true -- Define if the player can delete the character or not
 
--- Project Terrific : tenue de base affichee a la selection pour un personnage qui n'a encore aucune apparence enregistree
+-- LUSO RP : tenue de base affichee a la selection pour un personnage qui n'a encore aucune apparence enregistree
 -- (le modele suit le sexe du personnage). Format : [numero de composant] = { modele, texture }
 -- 3 = bras, 4 = pantalon, 6 = chaussures, 8 = sous-haut, 11 = haut. A ajuster avec /pedmenu si besoin.
 Config.TenueParDefaut = {

@@ -1,4 +1,4 @@
-Project Terrific est un serveur FiveM Roleplay public et gratuit, construit sur la base QBCore. Plongez dans le roleplay sans vous soucier de l'installation : tout est déjà configuré pour vous !
+LUSO RP est un serveur FiveM Roleplay public et gratuit, construit sur la base QBCore. Plongez dans le roleplay sans vous soucier de l'installation : tout est déjà configuré pour vous !
 
 🌟 Fonctionnalités
 Prêt à l'emploi : pas besoin de savoir coder ! Le serveur est déjà assemblé, vous pouvez passer directement à l'action.
@@ -27,9 +27,9 @@ Outils pour ajouter des voitures : tools/vehicules (conversion des mods solo dlc
 Le détail de l'installation de cette mise à jour est dans INSTALLATION_MAJ_3889.txt.
 
 🚀 Pour commencer
-Pour entrer dans l'univers de « Project Terrific », suivez ces étapes :
+Pour entrer dans l'univers de « LUSO RP », suivez ces étapes :
 
-Clonez le dépôt Project Terrific sur votre VPS ou votre machine locale (ou téléchargez-le avec « Code → Download ZIP »).
+Clonez le dépôt LUSO RP sur votre VPS ou votre machine locale (ou téléchargez-le avec « Code → Download ZIP »).
 Créez une base de données et importez le fichier .sql fourni dans le dossier Project-Terrific-SQL. Veillez à exécuter les fichiers dans le bon ordre.
 Ajustez les fichiers .cfg selon vos préférences (clé de licence, nom du serveur, administrateurs...).
 Mettez à jour vos artifacts FXServer : la build 3889 nécessite des artifacts récents (scripts de mise à jour automatique dans tools/serveur, mode d'emploi dans tools/serveur/LISEZMOI.md).
@@ -43,17 +43,17 @@ https://discord.gg/MuFbeK87B4
 
 
 🤝 Contribuer
-Votre expertise peut faire grandir « Project Terrific » ! Que vous ayez repéré un bug, que vous ayez une idée de fonctionnalité ou que vous souhaitiez proposer une pull request, chaque contribution compte.
+Votre expertise peut faire grandir « LUSO RP » ! Que vous ayez repéré un bug, que vous ayez une idée de fonctionnalité ou que vous souhaitiez proposer une pull request, chaque contribution compte.
 
 🌐 Communauté et support
-Notre communauté fait notre force. Échangez avec d'autres développeurs, obtenez de l'aide et soyez les premiers informés des nouveautés de « Project Terrific » sur notre serveur Discord.
+Notre communauté fait notre force. Échangez avec d'autres développeurs, obtenez de l'aide et soyez les premiers informés des nouveautés de « LUSO RP » sur notre serveur Discord.
 
 Rejoignez notre serveur Discord : https://discord.gg/MuFbeK87B4
 
 
 📜 Licence
-Project Terrific est publié sous la licence publique générale GNU (GNU GPL). Vous êtes libre de le redistribuer et/ou de le modifier selon les termes de la GNU GPL publiée par la Free Software Foundation, en version 3 de la licence ou toute version ultérieure.
+LUSO RP est publié sous la licence publique générale GNU (GNU GPL). Vous êtes libre de le redistribuer et/ou de le modifier selon les termes de la GNU GPL publiée par la Free Software Foundation, en version 3 de la licence ou toute version ultérieure.
 
-Merci de l'intérêt que vous portez à Project Terrific ! Pour toute question ou tout problème, rejoignez notre communauté Discord via le lien ci-dessus.
+Merci de l'intérêt que vous portez à LUSO RP ! Pour toute question ou tout problème, rejoignez notre communauté Discord via le lien ci-dessus.
 
 README inspiré et adapté du dépôt GitHub mercy-collective

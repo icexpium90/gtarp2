@@ -3,7 +3,7 @@ game 'gta5'
 lua54 'yes'
 
 name 'pt-gangs'
-author 'Project Terrific'
+author 'LUSO RP'
 description 'Gangs et organisations : QG (MLO, IPL ou shell), depot, vestiaire, menu du chef, garage et flotte de vehicules avec cles. Setup admin en jeu (/gangadmin).'
 version '1.0.0'
 

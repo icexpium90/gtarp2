@@ -2,7 +2,7 @@ fx_version 'cerulean'
 game 'gta5'
 
 name 'qbx_properties'
-description 'Systeme immobilier Qbox adapte a QBCore (Project Terrific) : maisons, appartements, entrepots, villas, shells et MLO'
+description 'Systeme immobilier Qbox adapte a QBCore (LUSO RP) : maisons, appartements, entrepots, villas, shells et MLO'
 repository 'https://github.com/Qbox-project/qbx_properties'
 version '0.0.1-qbcore'
 

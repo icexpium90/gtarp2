@@ -3,7 +3,7 @@ game 'gta5'
 lua54 'yes'
 
 name 'pt-dj'
-description 'Project Terrific : cabines DJ (musique YouTube / MP3 entendue autour de la scene, file d\'attente, effets fumee / confettis / feux d\'artifice)'
+description 'LUSO RP : cabines DJ (musique YouTube / MP3 entendue autour de la scene, file d\'attente, effets fumee / confettis / feux d\'artifice)'
 version '1.0.0'
 
 shared_scripts {

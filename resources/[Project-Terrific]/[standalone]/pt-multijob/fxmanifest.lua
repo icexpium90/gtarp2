@@ -3,7 +3,7 @@ game 'gta5'
 lua54 'yes'
 
 name 'pt-multijob'
-description 'Project Terrific : plusieurs metiers par personnage (2 ou 3), changement de metier actif en jeu'
+description 'LUSO RP : plusieurs metiers par personnage (2 ou 3), changement de metier actif en jeu'
 version '1.0.0'
 
 shared_scripts {

@@ -30,14 +30,14 @@ local function removeMoney(source, amount)
     return false
 end
 
--- Project Terrific : atelier prive d'un bien immobilier de luxe (qbx_properties) = modifications gratuites
+-- LUSO RP : atelier prive d'un bien immobilier de luxe (qbx_properties) = modifications gratuites
 local function atelierGratuit(source)
     if GetResourceState('qbx_properties') ~= 'started' then return false end
     local ok, gratuit = pcall(function() return exports.qbx_properties:AtelierGratuit(source) end)
     return ok and gratuit == true
 end
 
--- Project Terrific : montant des travaux faits gratuitement par un mecanicien (a facturer au client ensuite)
+-- LUSO RP : montant des travaux faits gratuitement par un mecanicien (a facturer au client ensuite)
 local travaux = {}
 local function ajouterTravaux(source, montant)
     travaux[source] = (travaux[source] or 0) + (tonumber(montant) or 0)

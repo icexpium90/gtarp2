@@ -52,7 +52,7 @@ local function LoadPlayerUniform()
     end)
 end
 
--- Project Terrific : un personnage sans apparence enregistree (nouveau perso, ou ancien perso jamais sauvegarde)
+-- LUSO RP : un personnage sans apparence enregistree (nouveau perso, ou ancien perso jamais sauvegarde)
 -- ouvre automatiquement l'editeur complet une fois a l'ecran. Un seul editeur a la fois.
 local editeurInitialEnCours = false
 

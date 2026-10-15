@@ -2,7 +2,7 @@ fx_version 'cerulean'
 game 'gta5'
 
 author 'Jorn#0008'
-description 'qbx_customs adapte a QBCore (Project Terrific) : Los Santos Customs en libre-service'
+description 'qbx_customs adapte a QBCore (LUSO RP) : Los Santos Customs en libre-service'
 repository 'https://github.com/Qbox-project/qbx_customs'
 version '0.1.1'
 

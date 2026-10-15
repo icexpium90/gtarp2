@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Verificateur de vehicules addon pour Project Terrific (FiveM / QBCore, build 3889).
+Verificateur de vehicules addon pour LUSO RP (FiveM / QBCore, build 3889).
 
 Usage :
     python3 tools/vehicules/verifier_vehicules.py                      # analyse resources/[Project-Terrific]/[vehicules]

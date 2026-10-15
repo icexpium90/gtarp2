@@ -13,10 +13,10 @@ Citizen.CreateThread(function()
     Citizen.Wait(10000)
     
     -- Print the message
-    print("Project Terrific | https://discord.gg/MuFbeK87B4")
+    print("LUSO RP | https://discord.gg/MuFbeK87B4")
 	Citizen.Wait(20000)
-	print("Project Terrific | https://discord.gg/MuFbeK87B4")
-    print("Project Terrific | https://discord.gg/MuFbeK87B4")		
+	print("LUSO RP | https://discord.gg/MuFbeK87B4")
+    print("LUSO RP | https://discord.gg/MuFbeK87B4")		
 end)
 
 -- To use this export in a script instead of manifest method

@@ -281,7 +281,7 @@ Config.Products = {
             slot = 17,
         },
     },
-    -- Project Terrific : fournitures du garage des mecaniciens (Burton), reservees au metier mechanic
+    -- LUSO RP : fournitures du garage des mecaniciens (Burton), reservees au metier mechanic
     ["mecano"] = {
         [1] = { name = "repairkit", price = 250, amount = 500, info = {}, type = "item", slot = 1, requiredJob = { "mechanic" } },
         [2] = { name = "advancedrepairkit", price = 500, amount = 500, info = {}, type = "item", slot = 2, requiredJob = { "mechanic" } },
@@ -1433,7 +1433,7 @@ Config.Locations = {
         ["blipcolor"] = 2,
         ["delivery"] = vector4(-1531.31, -403.21, 35.64, 233.4)
     },
-    -- Project Terrific : fournitures mecano dans le garage des mecaniciens (LS Customs de Burton), entre le point de
+    -- LUSO RP : fournitures mecano dans le garage des mecaniciens (LS Customs de Burton), entre le point de
     -- service et le coffre. Kits de reparation et materiaux utilises par qb-mechanicjob (plastique, acier, fer...).
     -- Si le vendeur est mal place, ajustez "coords" (x, y, z, orientation).
     ["mecano"] = {

@@ -292,7 +292,7 @@ QBCore.Functions.CreateCallback('qb-phone:server:GetPhoneData', function(source,
 end)
 
 QBCore.Functions.CreateCallback('qb-phone:server:PayInvoice', function(source, cb, society, amount, invoiceId, sendercitizenid)
-    -- Project Terrific : paiement par pt-factures (montant lu en base, verification des fonds, commission deduite)
+    -- LUSO RP : paiement par pt-factures (montant lu en base, verification des fonds, commission deduite)
     if GetResourceState('pt-factures') == 'started' then
         local ok = exports['pt-factures']:Payer(source, invoiceId)
         local Ply = QBCore.Functions.GetPlayer(source)

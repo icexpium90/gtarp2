@@ -23,7 +23,7 @@ return {
         --     },
         -- Default GTA 5 Customs and Benny's Locations
         {
-            -- Project Terrific : c'est le garage du metier mecanicien (qb-mechanicjob), reserve aux mecaniciens
+            -- LUSO RP : c'est le garage du metier mecanicien (qb-mechanicjob), reserve aux mecaniciens
             -- qui personnalisent les vehicules des clients. Les autres LS Customs sont en libre-service.
             job = { 'mechanic' },
             -- le mecanicien ne paie pas les pieces : a la fermeture du menu, il peut facturer le total au client (pt-factures)

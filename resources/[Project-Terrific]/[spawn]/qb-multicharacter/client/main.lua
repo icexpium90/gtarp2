@@ -147,7 +147,7 @@ RegisterNUICallback('cDataPed', function(nData, cb)
                     exports['illenium-appearance']:setPedAppearance(charPed, skinData)
                 end)
             else
-                -- Project Terrific : pas encore d'apparence enregistree -> modele du bon sexe avec une tenue de base
+                -- LUSO RP : pas encore d'apparence enregistree -> modele du bon sexe avec une tenue de base
                 CreateThread(function()
                     local sexe = (cData.charinfo and tonumber(cData.charinfo.gender)) == 1 and 1 or 0
                     local tenue = Config.TenueParDefaut and Config.TenueParDefaut[sexe]

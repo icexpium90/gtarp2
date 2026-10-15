@@ -119,7 +119,7 @@ end)
 QBCore.Commands.Add("grantlicense", Lang:t("commands.license_grant"), {{name = "id", help = Lang:t('info.player_id')}, {name = "license", help = Lang:t('info.license_type')}}, true, function(source, args)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
-    -- Project Terrific : les admins peuvent aussi delivrer un permis (sans etre policier)
+    -- LUSO RP : les admins peuvent aussi delivrer un permis (sans etre policier)
     local estAdmin = QBCore.Functions.HasPermission(src, 'admin') or QBCore.Functions.HasPermission(src, 'god')
     if estAdmin or (Player.PlayerData.job.name == "police" and Player.PlayerData.job.grade.level >= Config.LicenseRank) then
         if args[2] == "driver" or args[2] == "weapon" or args[2] == "pilot" then

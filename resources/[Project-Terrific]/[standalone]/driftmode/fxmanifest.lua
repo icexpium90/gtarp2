@@ -2,7 +2,7 @@ fx_version 'cerulean'
 game 'gta5'
 lua54 'yes'
 
-author 'Ethan4t0r (adapte pour Project Terrific / QBCore)'
+author 'Ethan4t0r (adapte pour LUSO RP / QBCore)'
 description 'Mode drift (pneus drift + suspension abaissee + fumee) - https://github.com/ethanfs20/fivem_driftmode'
 version '1.1.0'
 

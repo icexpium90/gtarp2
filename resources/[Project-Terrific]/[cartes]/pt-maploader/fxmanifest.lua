@@ -3,7 +3,7 @@ game 'gta5'
 lua54 'yes'
 
 name 'pt-maploader'
-description 'Project Terrific : chargement des cartes Map Editor / Menyoo converties (objets, vehicules, pnj, teleporteurs, eau)'
+description 'LUSO RP : chargement des cartes Map Editor / Menyoo converties (objets, vehicules, pnj, teleporteurs, eau)'
 version '1.0.0'
 
 shared_script 'config.lua'

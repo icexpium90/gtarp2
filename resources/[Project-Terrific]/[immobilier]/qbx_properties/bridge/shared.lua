@@ -1,4 +1,4 @@
--- Pont QBCore pour qbx_properties (Project Terrific)
+-- Pont QBCore pour qbx_properties (LUSO RP)
 -- Remplace qbx_core, ox_inventory et qbx_garages par QBCore, qb-inventory et qb-garages.
 QBCore = exports['qb-core']:GetCoreObject()
 Bridge = {}

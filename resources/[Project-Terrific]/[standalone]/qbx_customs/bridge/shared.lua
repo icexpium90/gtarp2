@@ -1,4 +1,4 @@
--- Pont QBCore pour qbx_customs (Project Terrific) : remplace qbx_core et le systeme de traduction d'ox_lib recent
+-- Pont QBCore pour qbx_customs (LUSO RP) : remplace qbx_core et le systeme de traduction d'ox_lib recent
 QBCore = exports['qb-core']:GetCoreObject()
 
 do
