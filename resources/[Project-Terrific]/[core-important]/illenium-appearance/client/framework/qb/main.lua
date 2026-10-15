@@ -90,7 +90,8 @@ RegisterNetEvent("qb-clothes:client:CreateFirstCharacter", function()
     QBCore.Functions.GetPlayerData(function(pd)
         PlayerData = pd
         setClientParams()
-        InitializeCharacter(Framework.GetGender(true))
+        -- Project Terrific : meme editeur que l'ouverture automatique (jamais deux editeurs en meme temps)
+        OuvrirEditeurPremierPerso()
     end)
 end)
 

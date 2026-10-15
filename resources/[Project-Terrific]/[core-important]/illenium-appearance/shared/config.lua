@@ -33,6 +33,10 @@ Config.EnablePedsForShops = false
 Config.EnablePedsForClothingRooms = false
 Config.EnablePedsForPlayerOutfitRooms = false
 
+-- Project Terrific : ouvre l'editeur complet a l'arrivee en jeu si le personnage n'a aucune apparence enregistree
+-- (nouveau personnage, ou ancien personnage dont la tenue n'a jamais ete sauvegardee)
+Config.OuvrirEditeurSansTenue = true
+
 Config.EnablePedMenu = true
 Config.PedMenuGroup = "group.admin"
 

@@ -52,10 +52,47 @@ local function LoadPlayerUniform()
     end)
 end
 
+-- Project Terrific : un personnage sans apparence enregistree (nouveau perso, ou ancien perso jamais sauvegarde)
+-- ouvre automatiquement l'editeur complet une fois a l'ecran. Un seul editeur a la fois.
+local editeurInitialEnCours = false
+
+function OuvrirEditeurPremierPerso()
+    if editeurInitialEnCours then return end
+    editeurInitialEnCours = true
+    CreateThread(function()
+        -- attendre la fin de l'apparition (fondu au noir, camera de spawn, entree dans l'appartement)
+        local limite = GetGameTimer() + 30000
+        repeat
+            Wait(500)
+            local pret = IsScreenFadedIn() and not IsPlayerSwitchInProgress() and LocalPlayer.state.isLoggedIn
+            if pret then
+                Wait(2500)
+                pret = IsScreenFadedIn() and not IsPlayerSwitchInProgress()
+            end
+        until pret or GetGameTimer() > limite
+        Framework.UpdatePlayerData()
+        if not LocalPlayer.state.isLoggedIn then
+            editeurInitialEnCours = false
+            return
+        end
+        -- revalider : la tenue a peut-etre ete creee entre-temps
+        local apparence = lib.callback.await("illenium-appearance:server:getAppearance", false)
+        if apparence then
+            editeurInitialEnCours = false
+            return
+        end
+        local fini = function() editeurInitialEnCours = false end
+        InitializeCharacter(Framework.GetGender(true), fini, fini)
+    end)
+end
+
 function InitAppearance()
     Framework.UpdatePlayerData()
     lib.callback("illenium-appearance:server:getAppearance", false, function(appearance)
         if not appearance then
+            if Config.OuvrirEditeurSansTenue then
+                OuvrirEditeurPremierPerso()
+            end
             return
         end
 

@@ -147,22 +147,29 @@ RegisterNUICallback('cDataPed', function(nData, cb)
                     exports['illenium-appearance']:setPedAppearance(charPed, skinData)
                 end)
             else
+                -- Project Terrific : pas encore d'apparence enregistree -> modele du bon sexe avec une tenue de base
                 CreateThread(function()
-                    local randommodels = {
-                        "mp_m_freemode_01",
-                        "mp_f_freemode_01",
-                    }
-                    model = joaat(randommodels[math.random(1, #randommodels)])
+                    local sexe = (cData.charinfo and tonumber(cData.charinfo.gender)) == 1 and 1 or 0
+                    local tenue = Config.TenueParDefaut and Config.TenueParDefaut[sexe]
+                    local model = joaat(tenue and tenue.modele or (sexe == 1 and "mp_f_freemode_01" or "mp_m_freemode_01"))
                     RequestModel(model)
                     while not HasModelLoaded(model) do
                         Wait(0)
                     end
                     charPed = CreatePed(2, model, Config.PedCoords.x, Config.PedCoords.y, Config.PedCoords.z - 0.98, Config.PedCoords.w, false, true)
-                    SetPedComponentVariation(charPed, 0, 0, 0, 2)
+                    SetPedDefaultComponentVariation(charPed)
+                    SetPedHeadBlendData(charPed, 0, 0, 0, 0, 0, 0, 0.5, 0.5, 0.0, false)
+                    if tenue and tenue.composants then
+                        for composant, valeurs in pairs(tenue.composants) do
+                            SetPedComponentVariation(charPed, composant, valeurs[1], valeurs[2] or 0, 0)
+                        end
+                    end
+                    SetModelAsNoLongerNeeded(model)
                     FreezeEntityPosition(charPed, false)
                     SetEntityInvincible(charPed, true)
                     PlaceObjectOnGroundProperly(charPed)
                     SetBlockingOfNonTemporaryEvents(charPed, true)
+                    TaskStartScenarioInPlace(charPed, "WORLD_HUMAN_STAND_IMPATIENT", 0, true)
                 end)
             end
             cb("ok")
