@@ -44,8 +44,31 @@ local function ajouterTravaux(source, montant)
 end
 AddEventHandler('playerDropped', function() travaux[source] = nil end)
 
+-- LUSO RP : kit grand angle paye, en attente d'installation (source -> niveau)
+local angleAchete = {}
+
 -- Won't charge money for mods if the player's job is in the list
 lib.callback.register('qbx_customs:server:pay', function(source, mod, level)
+    if mod == 'anglekit' then
+        local ok = (function()
+            if atelierGratuit(source) then return true end
+            local zone = lib.callback.await('qbx_customs:client:zone', source)
+            for i, v in ipairs(sharedConfig.zones) do
+                if i == zone and v.freeMods then
+                    local playerJob = QbxCore.GetPlayer(source)?.PlayerData?.job?.name
+                    for _, job in ipairs(v.freeMods) do
+                        if playerJob == job then
+                            if job == 'mechanic' then ajouterTravaux(source, getModPrice(mod, level)) end
+                            return true
+                        end
+                    end
+                end
+            end
+            return removeMoney(source, getModPrice(mod, level) or 0)
+        end)()
+        if ok then angleAchete[source] = (tonumber(level) or 1) - 1 end
+        return ok
+    end
     if atelierGratuit(source) then return true end
     local zone = lib.callback.await('qbx_customs:client:zone', source)
 
@@ -107,3 +130,43 @@ RegisterNetEvent('qbx_customs:server:saveVehicleProps', function()
         MySQL.update.await('UPDATE player_vehicles SET mods = ? WHERE plate = ?', {json.encode(vehicleProps), vehicleProps.plate})
     end
 end)
+
+---------------------------------------------------------------- LUSO RP : kit grand angle (drift)
+local function plaqueDe(veh)
+    return ((GetVehicleNumberPlateText(veh) or ''):gsub('^%s+', ''):gsub('%s+$', ''))
+end
+
+CreateThread(function()
+    -- colonne anglekit dans player_vehicles (ajoutee une seule fois)
+    local existe = MySQL.query.await("SHOW COLUMNS FROM player_vehicles LIKE 'anglekit'")
+    if not existe or not existe[1] then
+        MySQL.query.await('ALTER TABLE player_vehicles ADD COLUMN anglekit TINYINT NOT NULL DEFAULT 0')
+        print('[qbx_customs] colonne anglekit ajoutee a player_vehicles')
+    end
+end)
+
+-- installation apres paiement (le niveau doit correspondre a ce qui vient d'etre paye)
+RegisterNetEvent('qbx_customs:server:angleKit', function(netId, niveau)
+    local src = source
+    niveau = tonumber(niveau)
+    if niveau == nil or angleAchete[src] ~= niveau then return end
+    angleAchete[src] = nil
+    local veh = NetworkGetEntityFromNetworkId(tonumber(netId) or 0)
+    if not veh or veh == 0 or not DoesEntityExist(veh) then return end
+    if #(GetEntityCoords(GetPlayerPed(src)) - GetEntityCoords(veh)) > 10.0 then return end
+    Entity(veh).state:set('ptAngle', niveau, true)
+    MySQL.update('UPDATE player_vehicles SET anglekit = ? WHERE plate = ?', { niveau, plaqueDe(veh) })
+end)
+
+-- niveau d'un vehicule possede, a la prise du volant
+lib.callback.register('qbx_customs:server:angleDuVehicule', function(source, netId)
+    local veh = NetworkGetEntityFromNetworkId(tonumber(netId) or 0)
+    if not veh or veh == 0 or not DoesEntityExist(veh) then return 0 end
+    local etat = Entity(veh).state.ptAngle
+    if etat ~= nil then return etat end
+    local niveau = MySQL.scalar.await('SELECT anglekit FROM player_vehicles WHERE plate = ?', { plaqueDe(veh) }) or 0
+    Entity(veh).state:set('ptAngle', niveau, true)
+    return niveau
+end)
+
+AddEventHandler('playerDropped', function() angleAchete[source] = nil end)

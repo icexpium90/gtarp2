@@ -30,7 +30,8 @@ function InstallMod(duplicate, mod, props, level)
         return false
     end
     
-    local success = openedWithExports or lib.callback.await('qbx_customs:server:pay', false, mod, level)
+    -- LUSO RP : toujours verifie par le serveur (atelier de bien : gratuit a partir du prix configure, sinon payant)
+    local success = lib.callback.await('qbx_customs:server:pay', false, mod, level)
     if success then
         QbxCore.Notify(
             props?.title or locale('notifications.props.installTitle'),

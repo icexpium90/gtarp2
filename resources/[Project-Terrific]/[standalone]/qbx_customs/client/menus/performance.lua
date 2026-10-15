@@ -82,6 +82,30 @@ local function performance()
         return a.label < b.label
     end)
 
+    -- LUSO RP : kit grand angle (toujours en bas de la liste)
+    if AngleKitCompatible and AngleKitCompatible(vehicle) then
+        local angleCfg = sharedConfig.angleKit
+        local niveauActuel = NiveauAngle(vehicle)
+        options[#options + 1] = {
+            id = 'anglekit',
+            label = 'Kit grand angle (drift)',
+            description = priceLabel(sharedConfig.prices['anglekit']),
+            values = angleCfg.labels,
+            close = true,
+            defaultIndex = niveauActuel + 1,
+            set = function(index)
+                AppliquerAngle(vehicle, index - 1)
+                return niveauActuel == index - 1, ('%s installe'):format(angleCfg.labels[index])
+            end,
+            restore = function()
+                AppliquerAngle(vehicle, niveauActuel)
+            end,
+            apres = function(index)
+                TriggerServerEvent('qbx_customs:server:angleKit', NetworkGetNetworkIdFromEntity(vehicle), index - 1)
+            end,
+        }
+    end
+
     return options
 end
 
@@ -105,7 +129,11 @@ local function onSubmit(selected, scrollIndex)
         description = desc,
     }, scrollIndex)
 
-    if not success then menu.options[selected].restore() end
+    if not success then
+        menu.options[selected].restore()
+    elseif menu.options[selected].apres then
+        menu.options[selected].apres(scrollIndex)
+    end
 
     lib.setMenuOptions(menu.id, performance())
     lib.showMenu(menu.id, lastIndex)

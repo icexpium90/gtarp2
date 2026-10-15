@@ -14,6 +14,7 @@ shared_scripts {
 client_scripts {
     'bridge/client.lua',
     'client/utils.lua',
+    'client/angle.lua',
     'client/menus/main.lua',
     'client/zones.lua',
 }

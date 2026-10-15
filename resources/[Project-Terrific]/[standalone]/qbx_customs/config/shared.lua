@@ -131,6 +131,16 @@ return {
         [12] = { 0, 2500, 5000, 7500 },               -- Brakes
         [13] = { 0, 5000, 10000, 15000, 20000 },      -- Transmission
         [15] = { 0, 3000, 6000, 9000, 12000, 15000 }, -- Suspension
-        [18] = 10000                                  -- Turbo
-    }
+        [18] = 10000,                                 -- Turbo
+        ['anglekit'] = { 0, 15000, 30000, 50000 },    -- Kit grand angle (origine, 1, 2, 3)
+    },
+
+    -- LUSO RP : kit grand angle (drift) : augmente l'angle de braquage des roues avant, comme les kits des voitures
+    -- de drift. ajouts = degres ajoutes a l'angle d'origine du vehicule pour chaque niveau (le 1er = origine),
+    -- max = angle maximum en degres. Voitures uniquement (pas motos, velos, bateaux, avions).
+    angleKit = {
+        labels = { 'Origine', 'Kit rue (+10 deg)', 'Kit drift (+20 deg)', 'Kit competition (+30 deg)' },
+        ajouts = { 0, 10.0, 20.0, 30.0 },
+        max = 70.0,
+    },
 }
