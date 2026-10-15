@@ -120,6 +120,12 @@ le lit, les ascenseurs et le garage fonctionnent sur place, et le propriétaire 
 - **Prendre** : à pied, à côté d'un véhicule garé, **E** : clés données, véhicule déverrouillé.
 - Un bien avec des places n'utilise plus le garage « menu » qb-garages : les véhicules qui y étaient apparaissent sur les places.
 
+**Atelier de modification** (F6 > Placer les points > Atelier de modification) : une voiture fantôme montre
+l'emplacement (comme une place de parking). Au volant, arrêtez-vous sur le marqueur orange et appuyez sur **E** : le menu
+LS Customs complet s'ouvre (réparation, moteur / freins / turbo, bodykits et pièces de carrosserie, peinture, jantes,
+néons, vitres, extras), payé comme dans un LS Customs. Un seul atelier par bien (à replacer pour le déplacer), utilisable par
+le propriétaire et les détenteurs de clés. Prévu pour les biens MLO où l'on entre en voiture (garage de villa, Mancave).
+
 **Ascenseurs** (F6 > Garage et ascenseurs > Créer un ascenseur) :
 - un nom, « monte-charge » coché pour accepter les véhicules, puis chaque étage placé avec l'aperçu (2 à 12 étages) ;
 - à chaque étage : marqueur bleu, **E** pour choisir l'étage d'arrivée (en voiture pour un monte-charge).

@@ -176,6 +176,7 @@ function OuvrirMenuPoints()
         { kind = 'clothing', label = locale('menu.place_clothing'), icon = 'shirt' },
         { kind = 'logout', label = locale('menu.place_logout'), icon = 'bed' },
         { kind = 'exit', label = locale('menu.place_exit'), icon = 'door-open' },
+        { kind = 'atelier', label = 'Atelier de modification (tuning, bodykits, peinture)', icon = 'wrench', vehicule = true },
     }
     local opts = {
         {
@@ -236,7 +237,8 @@ function OuvrirMenuPoints()
             description = 'Placement libre avec apercu',
             icon = pt.icon,
             onSelect = function()
-                local pos = PlacementApercu(pt.modele, pt.label)
+                -- l'atelier se place comme une place de parking : voiture fantome (le modele n'est pas enregistre)
+                local pos = PlacementApercu(pt.vehicule and 'sultanrs' or pt.modele, pt.label, pt.vehicule and 0.0 or nil)
                 if pos then TriggerServerEvent('qbx_properties:server:setInteraction', pt.kind, nil, nil, pos, pt.modele) end
             end
         }
@@ -449,6 +451,19 @@ local function construireActions()
                 TriggerEvent('illenium-appearance:client:openOutfitMenu')
             end
         end,
+        ['atelier'] = function(coords)
+            -- atelier prive du bien : menu LS Customs complet (moteur, bodykits, peinture, jantes, neons...), paye normalement
+            local conducteur = cache.vehicle and GetPedInVehicleSeat(cache.vehicle, -1) == cache.ped
+            qbx.drawText3d({ coords = vec3(coords.x, coords.y, coords.z + 1.0),
+                text = conducteur and '[E] Atelier : modifier le vehicule' or 'Atelier : venez au volant d\'un vehicule' })
+            if conducteur and IsControlJustPressed(0, 38) then
+                if GetResourceState('qbx_customs') ~= 'started' then
+                    return lib.notify({ description = 'LS Customs (qbx_customs) n\'est pas demarre.', type = 'error' })
+                end
+                SetEntityVelocity(cache.vehicle, 0.0, 0.0, 0.0)
+                exports.qbx_customs:OpenMenu()
+            end
+        end,
         ['logout'] = function(coords)
             qbx.drawText3d({ coords = coords, text = locale('drawtext.logout') })
             if IsControlJustPressed(0, 38) then
@@ -468,7 +483,7 @@ local function checkInteractions()
             local sleep = 800
             local playerCoords = GetEntityCoords(cache.ped)
             for i = 1, #interactions do
-                if #(playerCoords - interactions[i].coords) < 1.5 and not IsDecorating then
+                if #(playerCoords - interactions[i].coords) < (interactions[i].type == 'atelier' and 3.5 or 1.5) and not IsDecorating then
                     sleep = 0
                     local action = interactOptions[interactions[i].type]
                     if action then action(interactions[i].coords, interactions[i]) end
@@ -909,7 +924,12 @@ CreateThread(function()
             local actions = construireActions()
             local pos = GetEntityCoords(cache.ped)
             for _, it in ipairs(not insideProperty and ProcheBien.interactions or {}) do
-                if #(pos - it.coords) < 1.5 then
+                local d = #(pos - it.coords)
+                if it.type == 'atelier' and d < 20.0 then
+                    attente = 0
+                    DrawMarker(1, it.coords.x, it.coords.y, it.coords.z - 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 5.0, 0.3, 255, 170, 40, 90, false, false, 2, false, nil, nil, false)
+                end
+                if d < (it.type == 'atelier' and 3.5 or 1.5) then
                     attente = 0
                     local action = actions[it.type]
                     if action then action(it.coords, it) end

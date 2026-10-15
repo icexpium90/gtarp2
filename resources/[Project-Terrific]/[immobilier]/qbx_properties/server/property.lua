@@ -116,7 +116,7 @@ RegisterNetEvent('qbx_properties:server:setInteraction', function(kind, taille, 
     local src = source
     local propertyId = ProprieteActive(src)
     if not propertyId then return end
-    if kind ~= 'stash' and kind ~= 'clothing' and kind ~= 'logout' and kind ~= 'exit' and kind ~= 'safe' then return end
+    if kind ~= 'stash' and kind ~= 'clothing' and kind ~= 'logout' and kind ~= 'exit' and kind ~= 'safe' and kind ~= 'atelier' then return end
     local player = Bridge.GetPlayer(src)
     local property = MySQL.single.await('SELECT owner, coords, interior, interact_options, stash_options FROM properties WHERE id = ?', {propertyId})
     if not property or not player then return end
