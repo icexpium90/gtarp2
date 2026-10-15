@@ -2,14 +2,19 @@
 
 FiveM affiche `Asset ... uses XX MiB of physical memory. Oversized assets can and WILL lead to streaming issues`
 quand un fichier de textures dépasse 16 Mo en mémoire. Résultat en jeu : textures qui ne chargent pas, voitures
-invisibles ou grises, chutes de FPS. Ce script réduit les textures des `.ytd` jusqu'à passer sous la limite.
+invisibles ou grises, chutes de FPS. Ce script réduit les textures des `.ytd` et les textures **intégrées** aux
+modèles (`.ydr`, `.ydd`, `.yft`) jusqu'à passer sous la limite.
 
-Déjà appliqué à tout le dépôt le 15/10/2026 : 70 fichiers `.ytd` ramenés sous 15 Mo (voitures addon et villa
-moderne), par exemple `16challenger.ytd` 240 Mo → 15 Mo. Les fichiers d'origine restent dans l'historique git.
+Déjà appliqué à tout le dépôt le 15/10/2026 : 70 fichiers `.ytd` et 8 jantes Dodge (`.ydr`) ramenés sous 15 Mo
+(voitures addon et villa moderne), par exemple `16challenger.ytd` 240 Mo → 15 Mo, `wheel_dodge_redeye.ydr` 64 Mo → 12 Mo. Les fichiers d'origine restent dans l'historique git.
 
 ## Utilisation (sur le VPS ou un PC avec Python 3)
 
 ```bash
+# le plus simple : tout le serveur en une commande (installe les modules si besoin)
+bash tools/optimiseur/optimiser.sh
+
+# ou a la main
 pip install etcpak texture2ddecoder pillow          # une seule fois (ajouter --break-system-packages si demandé)
 
 # voir ce qui serait fait, sans rien modifier
@@ -44,11 +49,12 @@ Puis redémarrez le serveur. Les joueurs retéléchargent les fichiers modifiés
 
 ## Limites
 
-- Seuls les `.ytd` (dictionnaires de textures) sont modifiés. À la fin, le script liste les `.yft`, `.ydr` et `.ydd`
-  au-dessus de 16 Mo :
-  - les jantes Dodge (`dodgewheels`, 20 à 64 Mo) ont leurs textures **intégrées** dans le modèle ;
-  - plusieurs voitures (`.yft`, ~32 Mo) sont lourdes à cause de la **géométrie** (trop de polygones), pas des
-    textures : seul un remodelage les allège.
+- Dans un modèle, la géométrie n'est pas touchée : seules les textures intégrées sont réduites. Une texture dont les
+  données sont partagées avec une autre (fréquent dans les modèles convertis) est gardée telle quelle.
+- `Asset ... uses XX MiB of virtual memory` (sans « Oversized ») sur des `.yft` de voitures (~20 à 32 Mo) : c'est la
+  **géométrie** (trop de polygones, souvent le même modèle copié dans `_hi.yft` et `.yft`), pas les textures. Le script
+  les liste à la fin ; seul un remodelage (ZModeler / Blender) les allège. C'est un avertissement moins grave que la
+  mémoire physique.
 - Une texture réduite est plus floue de près : sur une voiture, logos et compteurs perdent en netteté avant le reste.
   Si un rendu ne plaît pas, remettez l'original (`textures_originales/`) et relancez sur ce fichier seulement avec
   `--min-dim 512` : aucune texture ne descend sous 512 px, quitte à ce que le fichier reste un peu au-dessus de 16 Mo.

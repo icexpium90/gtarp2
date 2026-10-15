@@ -34,7 +34,6 @@ files {
     "module/renderers/shaders/ShaderChunk/*.js",
     "module/renderers/shaders/ShaderLib/*.js",
     "module/renderers/webgl/*.js",
-    "module/renderers/webxr/*.js",
     "module/renderers/webvr/*.js",
     "module/renderers/*.js",
     "module/scenes/*.js",

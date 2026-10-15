@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Optimiseur de textures (.ytd) pour FiveM : ramene chaque dictionnaire de textures sous une taille cible
-(16 Mo par defaut, seuil de l'avertissement "oversized asset" de FiveM) en reduisant les plus grosses textures.
+"""Optimiseur de textures pour FiveM : ramene chaque fichier sous une taille cible (15 Mo par defaut, sous le seuil
+de 16 Mo de l'avertissement "Oversized assets" de FiveM) en reduisant les plus grosses textures.
+Fichiers traites : .ytd (dictionnaires de textures) et .ydr / .ydd / .yft (modeles avec textures integrees).
 
 Usage :
   python3 tools/optimiseur/optimiser_textures.py DOSSIER_OU_FICHIER [...] [options]
@@ -21,7 +22,9 @@ Fonctionnement :
   - textures sans mipmaps : decodage, reduction de moitie (filtre Lanczos), re-encodage dans le meme format
     (DXT1, DXT5, ATI1, ATI2, BC7, ARGB 32 bits, L8 / A8 ; DXT3 devient DXT5) ;
   - on reduit toujours la plus grosse texture en premier, jusqu'a passer sous la cible.
-Seuls les .ytd sont modifies. Les .yft / .ydr / .ydd trop gros (textures integrees ou geometrie) sont listes a la fin.
+Dans un modele, la geometrie n'est jamais modifiee (deplacee telle quelle) : seules les textures integrees sont reduites.
+Les modeles dont la memoire virtuelle depasse 16 Mo (geometrie trop detaillee) sont listes a la fin : ce n'est pas
+un probleme de textures, seul un remodelage les allege.
 
 Dependances : pip install etcpak texture2ddecoder pillow
 """
@@ -234,6 +237,8 @@ class Texture:
         return len(self.donnees)
 
     def reductible(self, min_dim):
+        if getattr(self, 'fige', False):
+            return False
         if min(self.w, self.h) // 2 < min_dim:
             return False
         if self.lv > 1:
@@ -268,100 +273,209 @@ class Texture:
         self.reduite += 1
 
 
-def lire_ytd(chemin):
+VERSIONS = {'ytd': 13, 'ydr': 165, 'ydd': 165, 'yft': 162}
+
+
+def pages_origine(gf):
+    """Pages du segment graphique dans l'ordre du fichier (les plus grandes d'abord) : [(debut, taille)]"""
+    unite = 0x200 << (gf & 0xF)
+    pos, pages = 0, []
+    for dec, bits, u in COMPARTIMENTS:
+        for _ in range((gf >> dec) & ((1 << bits) - 1)):
+            pages.append((pos, u * unite))
+            pos += u * unite
+    return pages
+
+
+def lire_ressource(chemin):
+    """Lit un .ytd / .ydr / .ydd / .yft et repere les textures (dictionnaire du fichier ou integre au modele).
+    Renvoie None si le fichier n'a aucune texture dans son segment graphique."""
+    ext = chemin.lower().rsplit('.', 1)[-1]
     brut = open(chemin, 'rb').read()
     if brut[:4] != b'RSC7':
         raise ValueError('pas une ressource RSC7')
     version, sf, gf = struct.unpack_from('<III', brut, 4)
-    if version != 13:
-        raise ValueError(f'version {version} (13 attendue)')
+    if VERSIONS.get(ext) != version:
+        raise ValueError(f'version {version} non geree pour un .{ext}')
     data = bytearray(zlib.decompress(brut[16:], -15))
     S, G = taille_flags(sf), taille_flags(gf)
     if len(data) != S + G:
         raise ValueError('taille des segments incoherente')
 
+    def q(o):
+        return struct.unpack_from('<Q', data, o)[0]
+
     def sys_(p):
-        if p >> 28 != 5:
+        if p >> 28 != 5 or (p & 0x0FFFFFFF) >= S:
             raise ValueError('pointeur systeme attendu')
         return p & 0x0FFFFFFF
 
-    tp, tc = struct.unpack_from('<QH', data, 0x30)
-    textures = []
-    vus = set()
-    for i in range(tc):
-        t = sys_(struct.unpack_from('<Q', data, sys_(tp) + 8 * i)[0])
-        np_ = struct.unpack_from('<Q', data, t + 0x28)[0]
-        o = sys_(np_)
-        nom = bytes(data[o:o + 128]).split(b'\0')[0].decode('latin-1')
-        w, h, d, st, fmt = struct.unpack_from('<HHHHI', data, t + 0x50)
-        lv = data[t + 0x5D]
-        dp = struct.unpack_from('<Q', data, t + 0x70)[0]
-        if dp >> 28 != 6:
-            raise ValueError(f'{nom} : pointeur de donnees inattendu')
-        if fmt not in BLOCS and fmt not in OCTETS_PIXEL:
-            raise ValueError(f'{nom} : format {hex(fmt)} non gere')
-        if d != 1:
-            raise ValueError(f'{nom} : texture 3D / cube non geree')
-        if st == 0:
-            raise ValueError(f'{nom} : pas de ligne nul')
-        debut = S + (dp & 0x0FFFFFFF)
-        total = sum(niveaux(st, h, lv))
-        if (dp & 0x0FFFFFFF) + total > G:
-            raise ValueError(f'{nom} : donnees hors du segment')
-        if dp in vus:
-            raise ValueError(f'{nom} : donnees partagees entre textures')
-        vus.add(dp)
-        textures.append(Texture(nom, t, w, h, st, fmt, lv, bytes(data[debut:debut + total])))
-    # verifie que les donnees ne se chevauchent pas
-    zones = sorted((struct.unpack_from('<Q', data, x.decal + 0x70)[0] & 0x0FFFFFFF, x.taille()) for x in textures)
-    for (a, ta), (b, _) in zip(zones, zones[1:]):
-        if a + ta > b:
+    def dico_du_modele(drawable):
+        sg = q(sys_(drawable) + 0x10)
+        if sg >> 28 != 5:
+            return []
+        td = q(sys_(sg) + 0x08)
+        return [sys_(td)] if td >> 28 == 5 else []
+
+    if ext == 'ytd':
+        dicos = [0]
+    elif ext == 'ydr':
+        dicos = dico_du_modele(0x50000000)
+    elif ext == 'yft':
+        dr = q(0x30)
+        dicos = dico_du_modele(dr) if dr >> 28 == 5 else []
+    else:  # ydd : dictionnaire de modeles
+        lp, lc = struct.unpack_from('<QH', data, 0x30)
+        dicos = []
+        for k in range(lc):
+            dicos += dico_du_modele(q(sys_(lp) + 8 * k))
+    textures, vus = [], set()
+    for t0 in dict.fromkeys(dicos):
+        tp, tc = struct.unpack_from('<QH', data, t0 + 0x30)
+        for i in range(tc):
+            t = sys_(q(sys_(tp) + 8 * i))
+            if t in vus:
+                continue
+            vus.add(t)
+            o = sys_(q(t + 0x28))
+            nom = bytes(data[o:o + 128]).split(b'\0')[0].decode('latin-1')
+            w, h, d, st, fmt = struct.unpack_from('<HHHHI', data, t + 0x50)
+            lv = data[t + 0x5D]
+            dp = q(t + 0x70)
+            if dp >> 28 != 6:
+                raise ValueError(f'{nom} : pointeur de donnees inattendu')
+            if fmt not in BLOCS and fmt not in OCTETS_PIXEL:
+                raise ValueError(f'{nom} : format {hex(fmt)} non gere')
+            if d != 1:
+                raise ValueError(f'{nom} : texture 3D / cube non geree')
+            if st == 0:
+                raise ValueError(f'{nom} : pas de ligne nul')
+            debut = dp & 0x0FFFFFFF
+            total = sum(niveaux(st, h, lv))
+            if debut + total > G:
+                raise ValueError(f'{nom} : donnees hors du segment')
+            tx = Texture(nom, t, w, h, st, fmt, lv, bytes(data[S + debut:S + debut + total]))
+            tx.origine = (debut, debut + total)
+            textures.append(tx)
+    if not textures:
+        return None
+
+    # tous les pointeurs du segment systeme vers le segment graphique (tampons de sommets, d'indices, textures)
+    refs = []
+    for i in range(0, S, 8):
+        v = q(i)
+        # (les blocs du segment graphique sont alignes sur 16 octets : filtre les faux positifs, ex. du texte)
+        if v >> 32 == 0 and v >> 28 == 6 and (v & 0x0FFFFFFF) < G and v % 16 == 0:
+            refs.append((i, v & 0x0FFFFFFF))
+    zones = sorted(t.origine for t in textures)
+    for (a, b), (c, _) in zip(zones, zones[1:]):
+        if b > c:
             raise ValueError('donnees de textures qui se chevauchent')
-    return {'version': version, 'sf': sf, 'gf': gf, 'S': S, 'G': G, 'data': data, 'textures': textures}
+    debuts = {t.origine[0]: t for t in textures}
+    if len(debuts) != len(textures):
+        raise ValueError('donnees partagees entre textures')
+
+    # le reste du segment graphique (geometrie) est garde par morceaux, deplaces d'un bloc
+    pages = pages_origine(gf)
+    if sum(p[1] for p in pages) != G:
+        raise ValueError('pages graphiques incoherentes')
+    morceaux = []
+    for ps, pt in pages:
+        pe = ps + pt
+        curseur = ps
+        for a, b in zones:
+            if b <= ps or a >= pe:
+                continue
+            if a < ps or b > pe:
+                raise ValueError('texture a cheval sur deux pages')
+            if a > curseur:
+                morceaux.append([curseur, a])
+            curseur = max(curseur, b)
+        if curseur < pe:
+            morceaux.append([curseur, pe])
+    cibles = sorted({c for _, c in refs if c not in debuts})
+    utiles = []
+    for m in morceaux:
+        dedans = [c for c in cibles if m[0] <= c < m[1]]
+        if dedans:
+            utiles.append([min(dedans), m[1]])
+    for _, c in refs:
+        if c in debuts or any(a <= c < b for a, b in utiles):
+            continue
+        # pointeur vers l'interieur d'une texture (autre texture qui partage ses donnees, frequent dans les
+        # modeles convertis) : la texture est deplacee telle quelle, sans etre reduite
+        conteneur = next((t for t in textures if t.origine[0] < c < t.origine[1]), None)
+        if conteneur is None:
+            raise ValueError('pointeur graphique inattendu')
+        conteneur.fige = True
+    return {'ext': ext, 'version': version, 'sf': sf, 'gf': gf, 'S': S, 'G': G, 'data': data,
+            'textures': textures, 'refs': refs, 'morceaux': utiles}
 
 
-def ecrire_ytd(ytd, chemin):
-    data, S, tex = ytd['data'], ytd['S'], ytd['textures']
-    disp = disposer([t.taille() for t in tex])
+def blocs(res):
+    return [b - a for a, b in res['morceaux']] + [t.taille() for t in res['textures']]
+
+
+def ecrire_ressource(res, chemin):
+    data, S, tex, morceaux = res['data'], res['S'], res['textures'], res['morceaux']
+    disp = disposer(blocs(res))
     if not disp:
-        raise ValueError('impossible de ranger les textures dans des pages')
+        raise ValueError('impossible de ranger les donnees dans des pages')
     flags, positions, total = disp
+    pos_m, pos_t = positions[:len(morceaux)], positions[len(morceaux):]
     systeme = bytearray(data[:S])
     graphique = bytearray(total)
-    for t, pos in zip(tex, positions):
+    for (a, b), pos in zip(morceaux, pos_m):
+        graphique[pos:pos + b - a] = data[S + a:S + b]
+    nouv_texture = {}
+    for t, pos in zip(tex, pos_t):
         graphique[pos:pos + t.taille()] = t.donnees
         struct.pack_into('<HHHHI', systeme, t.decal + 0x50, t.w, t.h, 1, t.st, t.fmt)
         systeme[t.decal + 0x5D] = t.lv
-        struct.pack_into('<Q', systeme, t.decal + 0x70, 0x60000000 | pos)
-    gf = (ytd['gf'] & 0xF0000000) | flags
+        nouv_texture[t.origine[0]] = pos
+    for i, c in res['refs']:
+        if c in nouv_texture:
+            n = nouv_texture[c]
+        elif any(t.origine[0] < c < t.origine[1] for t in tex):
+            t = next(t for t in tex if t.origine[0] < c < t.origine[1])
+            n = nouv_texture[t.origine[0]] + (c - t.origine[0])
+        else:
+            k = next(k for k, (a, b) in enumerate(morceaux) if a <= c < b)
+            n = pos_m[k] + (c - morceaux[k][0])
+        struct.pack_into('<Q', systeme, i, 0x60000000 | n)
+    gf = (res['gf'] & 0xF0000000) | flags
     corps = zlib.compress(bytes(systeme + graphique), 9)[2:-4]  # deflate brut
     tmp = chemin + '.tmp'
     with open(tmp, 'wb') as f:
-        f.write(b'RSC7' + struct.pack('<III', ytd['version'], ytd['sf'], gf) + corps)
+        f.write(b'RSC7' + struct.pack('<III', res['version'], res['sf'], gf) + corps)
     os.replace(tmp, chemin)
     return total
 
 
-def taille_physique(tex):
-    d = disposer([t.taille() for t in tex])
-    return d[2] if d else sum(t.taille() for t in tex) * 2
+# compatibilite avec les premieres versions du script
+lire_ytd = lire_ressource
 
 
-def optimiser(ytd, cible, max_dim, min_dim, forcer):
-    tex = ytd['textures']
+def taille_physique(res):
+    d = disposer(blocs(res))
+    return d[2] if d else sum(blocs(res)) * 2
+
+
+def optimiser(res, cible, max_dim, min_dim, forcer):
+    tex = res['textures']
     if max_dim:
         for t in tex:
             while max(t.w, t.h) > max_dim and t.reductible(16):
                 t.reduire()
     for plancher in ([min_dim] + ([128, 64] if forcer else [])):
-        while taille_physique(tex) > cible:
+        while taille_physique(res) > cible:
             candidats = [t for t in tex if t.reductible(plancher)]
             if not candidats:
                 break
             max(candidats, key=lambda t: t.taille()).reduire()
-        if taille_physique(tex) <= cible:
+        if taille_physique(res) <= cible:
             break
-    return taille_physique(tex)
+    return taille_physique(res)
 
 
 # ---------------------------------------------------------------------------------------------------------------
@@ -397,7 +511,7 @@ def main():
     restent = []
     for chemin in fichiers(a.chemins):
         ext = chemin.lower().rsplit('.', 1)[-1]
-        if ext not in ('ytd', 'yft', 'ydr', 'ydd'):
+        if ext not in VERSIONS:
             continue
         try:
             with open(chemin, 'rb') as f:
@@ -407,19 +521,23 @@ def main():
         if tete[:4] != b'RSC7':
             continue
         _, sf, gf = struct.unpack_from('<III', tete, 4)
-        physique = taille_flags(gf)
-        if ext != 'ytd':
-            if physique > 16 * MO:
-                trop_gros.append((physique, chemin))
-            continue
+        physique, virtuel = taille_flags(gf), taille_flags(sf)
+        if virtuel > 16 * MO:
+            trop_gros.append((virtuel, chemin))
         if physique <= cible and not a.max_dim:
             continue
         try:
-            ytd = lire_ytd(chemin)
+            res = lire_ressource(chemin)
+            if res is None:
+                if physique > 16 * MO:
+                    erreurs.append((chemin, f'{physique / MO:.0f} Mo de geometrie, aucune texture integree'))
+                continue
             avant_fichier = os.path.getsize(chemin)
-            apres = optimiser(ytd, cible, a.max_dim, a.min_dim, a.forcer)
-            reduites = [t for t in ytd['textures'] if t.reduite]
+            apres = optimiser(res, cible, a.max_dim, a.min_dim, a.forcer)
+            reduites = [t for t in res['textures'] if t.reduite]
             if not reduites:
+                if physique > cible:
+                    restent.append((physique, chemin))
                 continue
             if apres > cible:
                 restent.append((apres, chemin))
@@ -432,16 +550,16 @@ def main():
                 if not os.path.exists(dest):
                     os.makedirs(os.path.dirname(dest), exist_ok=True)
                     shutil.copy2(chemin, dest)
-            ecrire_ytd(ytd, chemin)
-            verif = lire_ytd(chemin)  # relecture de controle
-            if len(verif['textures']) != len(ytd['textures']):
-                raise ValueError('relecture : nombre de textures different')
+            ecrire_ressource(res, chemin)
+            verif = lire_ressource(chemin)  # relecture de controle
+            if verif is None or len(verif['textures']) != len(res['textures']) or len(verif['refs']) != len(res['refs']):
+                raise ValueError('relecture : contenu different')
             gain += avant_fichier - os.path.getsize(chemin)
             n_ok += 1
         except Exception as e:  # un fichier illisible ne bloque pas les autres
             erreurs.append((chemin, str(e)))
 
-    print(f'\n{n_ok} fichier(s) .ytd optimise(s), {gain / MO:.0f} Mo gagnes sur le disque.')
+    print(f'\n{n_ok} fichier(s) optimise(s), {gain / MO:.0f} Mo gagnes sur le disque.')
     if not a.simulation and not a.sans_sauvegarde and n_ok:
         print(f'Originaux copies dans : {os.path.abspath(a.sauvegarde)}')
     if restent:
@@ -453,7 +571,7 @@ def main():
         for c, e in erreurs:
             print(f'  {c} : {e}')
     if trop_gros:
-        print('\nModeles (.yft / .ydr / .ydd) au-dessus de 16 Mo : textures integrees ou geometrie, non modifies ici :')
+        print('\nMemoire virtuelle au-dessus de 16 Mo (geometrie et physique du modele, les textures n\'y sont pas) :')
         for t, c in sorted(trop_gros, reverse=True)[:40]:
             print(f'  {t / MO:.1f} Mo  {c}')
         if len(trop_gros) > 40:

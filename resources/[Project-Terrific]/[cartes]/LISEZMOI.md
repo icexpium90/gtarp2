@@ -58,7 +58,7 @@ d'objets : activez-les après un essai à plusieurs joueurs, en décommentant `e
 
 `pt-carte-remastered` : 13 400 objets ajoutés par Larcius (3 400 palmiers, 5 000 arbres, buissons, cactus, mobilier
 urbain), version 5.6 « Legacy », sans les modèles de reflets (même raison que les forêts). Il utilise les textures LOD
-de `pt-carte-forets-commun` et il est prévu pour aller avec les forêts (aucun doublon d'objets entre les deux).
+de `pt-vegetation-lod` (dans `[cartes]`, toujours chargé) et il est prévu pour aller avec les forêts (aucun doublon d'objets entre les deux).
 47 Mo de plus à télécharger. Il démarre avec `ensure [cartes-lourdes]`, comme les forêts.
 Si les palmiers semblent doublés quelque part avec `pt-carte-palmiers` ou `pt-carte-lively`, ajoutez
 `stop pt-carte-palmiers` (ou `stop pt-carte-lively`).

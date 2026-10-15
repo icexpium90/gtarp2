@@ -34,4 +34,4 @@ data_file 'DLC_ITYP_REQUEST' 'stream/vremastered_legion_square_slod2.ytyp'
 data_file 'DLC_ITYP_REQUEST' 'stream/vremastered_slod4.ytyp'
 
 -- textures LOD partagees avec les forets
-dependency 'pt-carte-forets-commun'
+dependency 'pt-vegetation-lod'

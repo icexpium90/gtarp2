@@ -20,3 +20,6 @@ data_file 'DLC_ITYP_REQUEST' 'stream/forests_s_e_slod2.ytyp'
 data_file 'DLC_ITYP_REQUEST' 'stream/forests_s_f_lod.ytyp'
 data_file 'DLC_ITYP_REQUEST' 'stream/forests_s_f_slod2.ytyp'
 data_file 'DLC_ITYP_REQUEST' 'stream/forests_s_slod4.ytyp'
+
+-- textures LOD de vegetation partagees
+dependency 'pt-vegetation-lod'

@@ -39,6 +39,7 @@ local Translations = {
         healthy = 'Olet taas täysin terve!',
         safe = 'Sairaalan varustekaappi',
         pb_hospital = 'Sairaala',
+        vc_hospital = 'Vespucci Hospital',
         pain_message = 'Sinun %{limb} tuntuu %{severity}',
         many_places = 'Tunnet kipua monessa paikassa..',
         bleed_alert = 'Vuodat %{bleedstate}',

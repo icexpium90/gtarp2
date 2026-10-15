@@ -39,6 +39,7 @@ local Translations = {
         healthy = 'Þú ert alveg heilbrigð aftur!',
         safe = 'Sjúkrahús örugg',
         pb_hospital = 'Pillbox sjúkrahúsið',
+        vc_hospital = 'Vespucci Hospital',
         pain_message = 'Þinn %{limb} finnst %{severity}',
         many_places = 'Þú ert með verki víða...',
         bleed_alert = 'Þú ert %{bleedstate}',
