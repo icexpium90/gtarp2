@@ -79,19 +79,23 @@ local function loadAll()
     end
 
     -- colonne "flotte" (version de la flotte par defaut) pour les bases creees avant son ajout
-    local col = MySQL.scalar.await("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'pt_gangs_settings' AND COLUMN_NAME = 'flotte'")
-    if col == 0 then
+    local col = MySQL.query.await("SHOW COLUMNS FROM pt_gangs_settings LIKE 'flotte'") or {}
+    if #col == 0 then
         MySQL.query.await('ALTER TABLE pt_gangs_settings ADD COLUMN `flotte` INT NOT NULL DEFAULT 1')
     end
 
     -- gangs de la config : flotte par defaut a la premiere installation, ou remplacee quand
     -- la version "flotte" de la config augmente (les vehicules ajoutes en jeu a ce gang sont alors remplaces)
+    -- (lecture groupee : 2 requetes au lieu de 2 par gang)
+    local flottes, nbVehicules = {}, {}
+    for _, r in ipairs(MySQL.query.await('SELECT gang, flotte FROM pt_gangs_settings') or {}) do flottes[r.gang] = r.flotte end
+    for _, r in ipairs(MySQL.query.await('SELECT gang, COUNT(*) AS n FROM pt_gangs_vehicles GROUP BY gang') or {}) do nbVehicules[r.gang] = r.n end
     for name, g in pairs(Config.Gangs) do
         Gangs[name] = { label = g.label, color = g.color, plate = g.plate }
         registerGang(name, g.label, g.grades)
         local version = g.flotte or 1
-        local stockee = MySQL.scalar.await('SELECT flotte FROM pt_gangs_settings WHERE gang = ?', { name })
-        local deja = MySQL.scalar.await('SELECT COUNT(*) FROM pt_gangs_vehicles WHERE gang = ?', { name })
+        local stockee = flottes[name]
+        local deja = nbVehicules[name] or 0
         local remplacer = stockee and stockee < version
         if (not stockee and deja == 0) or remplacer then
             if remplacer then

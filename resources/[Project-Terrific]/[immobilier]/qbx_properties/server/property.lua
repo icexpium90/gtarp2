@@ -874,7 +874,11 @@ Citizen.CreateThreadNow(function()
     MySQL.query.await(sql2)
     if sql3 then MySQL.query.await(sql3) end
 
-    -- colonnes ajoutees par Project Terrific (bases creees avant la mise a jour)
+    -- colonnes ajoutees par Project Terrific (bases creees avant la mise a jour) : une seule lecture de la table
+    local presentes = {}
+    for _, c in ipairs(MySQL.query.await('SHOW COLUMNS FROM properties') or {}) do
+        presentes[c.Field] = true
+    end
     for colonne, definition in pairs({
         serrure = 'INT NOT NULL DEFAULT 1',
         next_rent = 'BIGINT DEFAULT NULL',
@@ -884,8 +888,7 @@ Citizen.CreateThreadNow(function()
         places = "LONGTEXT NULL",
         ascenseurs = "LONGTEXT NULL",
     }) do
-        local existe = MySQL.scalar.await("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'properties' AND COLUMN_NAME = ?", { colonne })
-        if existe == 0 then
+        if not presentes[colonne] then
             MySQL.query.await(('ALTER TABLE properties ADD COLUMN `%s` %s'):format(colonne, definition))
         end
     end
