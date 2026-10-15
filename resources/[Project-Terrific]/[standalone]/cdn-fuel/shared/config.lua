@@ -44,6 +44,7 @@ Config.EmergencyServicesDiscount = {
     ['ondutyonly'] = true, -- Discount only applies while on duty.
     ['job'] = {
         "police",
+        "gendarmerie",
         "sasp",
         "trooper",
         "ambulance",
@@ -211,7 +212,7 @@ Config.AirAndWaterVehicleFueling = {
                 ['enabled'] = true,
                 ['on_duty_only'] = true,
                 ['whitelisted_jobs'] = {
-                    'police', 'ambulance'
+                    'police', 'gendarmerie', 'ambulance'
                 },
             },
             ['prop'] = {
@@ -243,7 +244,7 @@ Config.AirAndWaterVehicleFueling = {
                 ['enabled'] = true,
                 ['on_duty_only'] = true,
                 ['whitelisted_jobs'] = {
-                    'police', 'ambulance'
+                    'police', 'gendarmerie', 'ambulance'
                 },
             },
             ['prop'] = {
@@ -271,7 +272,7 @@ Config.AirAndWaterVehicleFueling = {
                 ['enabled'] = true,
                 ['on_duty_only'] = true,
                 ['whitelisted_jobs'] = {
-                    'police', 'ambulance'
+                    'police', 'gendarmerie', 'ambulance'
                 },
             },
             ['prop'] = {
@@ -299,7 +300,7 @@ Config.AirAndWaterVehicleFueling = {
                 ['enabled'] = false,
                 ['on_duty_only'] = false,
                 ['whitelisted_jobs'] = {
-                    'police', 'ambulance'
+                    'police', 'gendarmerie', 'ambulance'
                 },
             },
             ['prop'] = {
@@ -327,7 +328,7 @@ Config.AirAndWaterVehicleFueling = {
                 ['enabled'] = false,
                 ['on_duty_only'] = false,
                 ['whitelisted_jobs'] = {
-                    'police', 'ambulance'
+                    'police', 'gendarmerie', 'ambulance'
                 },
             },
             ['prop'] = {
@@ -355,7 +356,7 @@ Config.AirAndWaterVehicleFueling = {
                 ['enabled'] = false,
                 ['on_duty_only'] = false,
                 ['whitelisted_jobs'] = {
-                    'police', 'ambulance'
+                    'police', 'gendarmerie', 'ambulance'
                 },
             },
             ['prop'] = {
@@ -383,7 +384,7 @@ Config.AirAndWaterVehicleFueling = {
                 ['enabled'] = false,
                 ['on_duty_only'] = false,
                 ['whitelisted_jobs'] = {
-                    'police', 'ambulance'
+                    'police', 'gendarmerie', 'ambulance'
                 },
             },
             ['prop'] = {
@@ -411,7 +412,7 @@ Config.AirAndWaterVehicleFueling = {
                 ['enabled'] = false,
                 ['on_duty_only'] = false,
                 ['whitelisted_jobs'] = {
-                    'police', 'ambulance'
+                    'police', 'gendarmerie', 'ambulance'
                 },
             },
             ['prop'] = {
@@ -439,7 +440,7 @@ Config.AirAndWaterVehicleFueling = {
                 ['enabled'] = true,
                 ['on_duty_only'] = true,
                 ['whitelisted_jobs'] = {
-                    'police', 'ambulance'
+                    'police', 'gendarmerie', 'ambulance'
                 },
             },
             ['prop'] = {
@@ -467,7 +468,7 @@ Config.AirAndWaterVehicleFueling = {
                 ['enabled'] = true,
                 ['on_duty_only'] = true,
                 ['whitelisted_jobs'] = {
-                    'police', 'ambulance'
+                    'police', 'gendarmerie', 'ambulance'
                 },
             },
             ['prop'] = {
@@ -495,7 +496,7 @@ Config.AirAndWaterVehicleFueling = {
                 ['enabled'] = false,
                 ['on_duty_only'] = false,
                 ['whitelisted_jobs'] = {
-                    'police', 'ambulance'
+                    'police', 'gendarmerie', 'ambulance'
                 },
             },
             ['prop'] = {
@@ -523,7 +524,7 @@ Config.AirAndWaterVehicleFueling = {
                 ['enabled'] = false,
                 ['on_duty_only'] = false,
                 ['whitelisted_jobs'] = {
-                    'police', 'ambulance'
+                    'police', 'gendarmerie', 'ambulance'
                 },
             },
             ['prop'] = {
@@ -555,7 +556,7 @@ Config.AirAndWaterVehicleFueling = {
                 ['enabled'] = true,
                 ['on_duty_only'] = true,
                 ['whitelisted_jobs'] = {
-                    'police', 'ambulance'
+                    'police', 'gendarmerie', 'ambulance'
                 },
             },
             ['prop'] = {
@@ -587,7 +588,7 @@ Config.AirAndWaterVehicleFueling = {
                 ['enabled'] = false,
                 ['on_duty_only'] = false,
                 ['whitelisted_jobs'] = {
-                    'police', 'ambulance'
+                    'police', 'gendarmerie', 'ambulance'
                 },
             },
             ['prop'] = {
@@ -615,7 +616,7 @@ Config.AirAndWaterVehicleFueling = {
                 ['enabled'] = false,
                 ['on_duty_only'] = false,
                 ['whitelisted_jobs'] = {
-                    'police', 'ambulance'
+                    'police', 'gendarmerie', 'ambulance'
                 },
             },
             ['prop'] = {
@@ -643,7 +644,7 @@ Config.AirAndWaterVehicleFueling = {
                 ['enabled'] = false,
                 ['on_duty_only'] = false,
                 ['whitelisted_jobs'] = {
-                    'police', 'ambulance'
+                    'police', 'gendarmerie', 'ambulance'
                 },
             },
             ['prop'] = {
@@ -671,7 +672,7 @@ Config.AirAndWaterVehicleFueling = {
                 ['enabled'] = false,
                 ['on_duty_only'] = false,
                 ['whitelisted_jobs'] = {
-                    'police', 'ambulance'
+                    'police', 'gendarmerie', 'ambulance'
                 },
             },
             ['prop'] = {
@@ -700,7 +701,7 @@ Config.AirAndWaterVehicleFueling = {
                 ['enabled'] = false,
                 ['on_duty_only'] = false,
                 ['whitelisted_jobs'] = {
-                    'police', 'ambulance'
+                    'police', 'gendarmerie', 'ambulance'
                 },
             },
             ['prop'] = {
@@ -733,7 +734,7 @@ Config.AirAndWaterVehicleFueling = {
         --         ['enabled'] = false,
         --         ['on_duty_only'] = true,
         --         ['whitelisted_jobs'] = {
-        --             'police', 'ambulance',
+        --             'police', 'gendarmerie', 'ambulance',
         --         }
         --     },
         --     ['prop'] = {

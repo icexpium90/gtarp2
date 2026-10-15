@@ -1136,3 +1136,6 @@ Config.InitialPlayerClothes = {
         }
     }
 }
+
+-- Gendarmerie : memes tenues de service que la police (tenues francaises completes : /tenue, pt-tenues-ordre)
+Config.Outfits["gendarmerie"] = Config.Outfits["police"]

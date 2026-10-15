@@ -1,0 +1,87 @@
+local QBCore = exports['qb-core']:GetCoreObject()
+local enTenue = false
+
+local function autorise(t)
+    local job = QBCore.Functions.GetPlayerData().job
+    if not job or not job.onduty or not Config.Metiers[job.name] then return false end
+    return t == nil or (t.metiers or {})[job.name] == true
+end
+
+local function remettreCivil()
+    if not enTenue then return end
+    enTenue = false
+    TriggerEvent('illenium-appearance:client:reloadSkin', true)
+end
+
+local function appliquer(t)
+    local h = joaat(t.modele)
+    if not lib.requestModel(h, 10000) then
+        lib.notify({ description = 'Tenue introuvable (ressource pt-tenues-ordre demarree ?)', type = 'error' })
+        return
+    end
+    local ped = PlayerPedId()
+    local vie, armure = GetEntityHealth(ped), GetPedArmour(ped)
+    SetPlayerModel(PlayerId(), h)
+    SetModelAsNoLongerNeeded(h)
+    ped = PlayerPedId()
+    SetPedDefaultComponentVariation(ped)
+    ClearAllPedProps(ped)
+    SetEntityHealth(ped, vie)
+    SetPedArmour(ped, armure)
+    enTenue = true
+end
+
+local function couvreChef(index)
+    local ped = PlayerPedId()
+    if index < 0 then ClearPedProp(ped, 0) return end
+    if GetNumberOfPedPropDrawableVariations(ped, 0) > index then
+        SetPedPropIndex(ped, 0, index, 0, true)
+    else
+        lib.notify({ description = 'Pas de couvre-chef supplementaire pour cette tenue', type = 'inform' })
+    end
+end
+
+local function variante(composant, sens)
+    local ped = PlayerPedId()
+    local n = GetNumberOfPedDrawableVariations(ped, composant)
+    if n <= 1 then return end
+    local d = (GetPedDrawableVariation(ped, composant) + sens) % n
+    SetPedComponentVariation(ped, composant, d, 0, 0)
+end
+
+local function menu()
+    if not autorise() then
+        lib.notify({ description = 'Reserve aux forces de l\'ordre en service', type = 'error' })
+        return
+    end
+    local options = {}
+    for _, t in ipairs(Config.Tenues) do
+        if autorise(t) then
+            options[#options + 1] = { title = t.label, icon = 'shirt', onSelect = function() appliquer(t) menu() end }
+        end
+    end
+    if enTenue then
+        options[#options + 1] = { title = 'Couvre-chef : aucun', icon = 'xmark', onSelect = function() couvreChef(-1) menu() end }
+        options[#options + 1] = { title = 'Couvre-chef 1 (casque / calot)', icon = 'helmet-safety', onSelect = function() couvreChef(0) menu() end }
+        options[#options + 1] = { title = 'Couvre-chef 2', icon = 'hat-cowboy', onSelect = function() couvreChef(1) menu() end }
+        options[#options + 1] = { title = 'Variante du haut', icon = 'repeat', onSelect = function() variante(11, 1) variante(3, 1) menu() end }
+        options[#options + 1] = { title = 'Variante du bas', icon = 'repeat', onSelect = function() variante(4, 1) menu() end }
+        options[#options + 1] = { title = 'Variante equipement', icon = 'repeat', onSelect = function() variante(9, 1) variante(8, 1) menu() end }
+        options[#options + 1] = { title = 'Reprendre ma tenue civile', icon = 'user', onSelect = remettreCivil }
+    end
+    if #options == 0 then
+        lib.notify({ description = 'Aucune tenue disponible pour ton metier', type = 'inform' })
+        return
+    end
+    lib.registerContext({ id = 'pt_tenues_ordre', title = 'Vestiaire', options = options })
+    lib.showContext('pt_tenues_ordre')
+end
+
+RegisterCommand('tenue', menu, false)
+TriggerEvent('chat:addSuggestion', '/tenue', 'Vestiaire des forces de l\'ordre (en service)')
+exports('OuvrirVestiaire', menu)
+RegisterNetEvent('pt-tenues-ordre:client:ouvrir', menu)
+
+-- Fin de service ou changement de metier : on remet la tenue civile
+RegisterNetEvent('QBCore:Client:SetDuty', function(service) if not service then remettreCivil() end end)
+RegisterNetEvent('QBCore:Client:OnJobUpdate', function(job) if not job.onduty or not Config.Metiers[job.name] then remettreCivil() end end)

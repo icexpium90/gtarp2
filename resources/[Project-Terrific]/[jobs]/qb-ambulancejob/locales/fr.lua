@@ -6,11 +6,11 @@ local Translations = {
         no_player = 'Aucun joueur proche',
         no_firstaid = 'Vous avez besoin d\'un kit de premier secours',
         no_bandage = 'Vous avez besoin d\'un bandage',
-        beds_taken = 'Les lits sont tous occupés...',
-        possessions_taken = 'Tout vos objets ont été saisis...',
+        beds_taken = 'Tous les lits des urgences sont occupés...',
+        possessions_taken = 'Vos affaires ont été placées au vestiaire de l\'hôpital (perdues)...',
         not_enough_money = 'Vous n\'avez pas assez d\'argent sur vous...',
         cant_help = 'Vous ne pouvez pas aider cette personne...',
-        not_ems = 'Vous n\'êtes pas EMS',
+        not_ems = 'Réservé au SAMU et aux sapeurs-pompiers',
         not_online = 'Le joueur n\'est pas connecté'
     },
     success = {
@@ -21,33 +21,33 @@ local Translations = {
         being_helped = 'Quelqu\'un vous aide...'
     },
     info = {
-        civ_died = 'Civil décédé',
-        civ_down = 'Civil blessé',
-        civ_call = 'Appel Civil',
-        self_death = 'Eux-Même ou un PNJ',
+        civ_died = 'Victime décédée',
+        civ_down = 'Victime au sol, détresse vitale',
+        civ_call = 'Appel au 15',
+        self_death = 'Elle-même ou un PNJ',
         wep_unknown = 'Inconnu',
-        respawn_txt = 'RÉAPPARAITRE DANS: ~r~%{deathtime}~s~ SECONDES',
-        respawn_revive = 'MAINTENEZ [~r~E~s~] POUR %{holdtime} SECONDES POUR RÉAPPARAITRE PO $~r~%{cost}~s~',
-        bleed_out = 'VOUS ALLEZ VOUS VIDER DE VOTRE SANG DANS: ~r~%{time}~s~ SECONDES',
-        bleed_out_help = 'VOUS ALLEZ VOUS VIDER DE VOTRE SANG DANS: ~r~%{time}~s~ SECONDES, VOUS POUVEZ ÊTRE AIDÉ',
-        request_help = 'APPUYEZ SUR [~r~G~s~] POUR DEMANDER DE L\'AIDE',
-        help_requested = 'LES EMS ONT ÉTÉ NOTIFIÉ',
-        amb_plate = 'AMBU', -- Should only be 4 characters long due to the last 4 being a random 4 digits
-        heli_plate = 'LIFE',  -- Should only be 4 characters long due to the last 4 being a random 4 digits
-        status = 'Check Status',
+        respawn_txt = 'TRANSFERT AUX URGENCES POSSIBLE DANS : ~r~%{deathtime}~s~ SECONDES',
+        respawn_revive = 'MAINTENEZ [~r~E~s~] %{holdtime} SECONDES POUR ÊTRE TRANSPORTÉ AUX URGENCES ($~r~%{cost}~s~)',
+        bleed_out = 'HÉMORRAGIE : PERTE DE CONNAISSANCE DANS ~r~%{time}~s~ SECONDES',
+        bleed_out_help = 'HÉMORRAGIE : PERTE DE CONNAISSANCE DANS ~r~%{time}~s~ SECONDES, LES SECOURS PEUVENT VOUS PRENDRE EN CHARGE',
+        request_help = 'APPUYEZ SUR [~r~G~s~] POUR APPELER LE 15 (SAMU)',
+        help_requested = 'LE SAMU A ÉTÉ PRÉVENU (CENTRE 15)',
+        amb_plate = 'SDIS', -- Should only be 4 characters long due to the last 4 being a random 4 digits
+        heli_plate = 'SAMU',  -- Should only be 4 characters long due to the last 4 being a random 4 digits
+        status = 'Bilan de la victime',
         is_staus = 'Est %{status}',
         healthy = 'Vous êtes maintenant en parfaite santé !',
-        safe = 'Coffre de l\'hopital',
-        pb_hospital = 'Hopital de Pillbox',
-        vc_hospital = 'Hopital de Vespucci',
+        safe = 'Pharmacie de l\'hôpital',
+        pb_hospital = 'CHU de Los Santos (Pillbox)',
+        vc_hospital = 'Hôpital Necker (Vespucci)',
         pain_message = 'Votre %{limb} est %{severity}',
         many_places = 'Vous avez mal à plusieurs endroits ...',
         bleed_alert = 'Vous êtes %{bleedstate}',
-        ems_alert = 'Alerte EMS - %{text}',
+        ems_alert = 'Centre 15 - %{text}',
         mr = 'M.',
         mrs = 'Mme.',
-        dr_needed = 'Un docteur est demandé a l\'hopital de Pillbox',
-        ems_report = 'Rapport EMS',
+        dr_needed = 'Un médecin urgentiste est demandé aux urgences du CHU',
+        ems_report = 'Bilan SAMU',
         message_sent = 'Message à envoyer',
         check_health = 'Verifier la santé de quelqu\'un',
         heal_player = 'Soigner quelqu\'un',
@@ -59,8 +59,8 @@ local Translations = {
         heal_player_a = 'Soigner un joueur ou vous même (Admin Only)',
     },
     mail = {
-        sender = 'Hopital de Pillbox',
-        subject = 'Coût Hopital',
+        sender = 'CHU de Los Santos',
+        subject = 'Facture d\'hospitalisation',
         message = 'Cher(e) %{gender} %{lastname}, <br /><br />Par la présente, vous avez reçu un e-mail avec les coûts de la dernière visite à l\'hôpital.<br />Le coût final est: <strong>$%{costs}</strong><br /><br />Nous-vous souhaitons un bon rétablissement !'
     },
     states = {
@@ -74,27 +74,27 @@ local Translations = {
         big_bleed = 'Saigne enormément...',
     },
     menu = {
-        amb_vehicles = 'Véhicules ambulanciers',
+        amb_vehicles = 'Véhicules de secours (VSAV, VLM, FPT)',
         status = 'Etat de santé',
         close = '⬅ Fermer le Menu',
     },
     text = {
         pstash_button = '[E] - Coffre Personnel',
         pstash = 'Coffre personnel',
-        onduty_button = '[E] - Prendre son service',
-        offduty_button = '[E] - Quitter son service',
-        duty = 'En/Hors Service',
-        armory_button = '[E] - Armurerie',
-        armory = 'Armurerie',
-        veh_button = '[E] - Prendre / Ranger un vehicule',
-        heli_button = '[E] - Prendre / Ranger un helicoptère',
+        onduty_button = '[E] - Prendre sa garde',
+        offduty_button = '[E] - Terminer sa garde',
+        duty = 'Prise / fin de garde',
+        armory_button = '[E] - Pharmacie',
+        armory = 'Pharmacie',
+        veh_button = '[E] - Remise : prendre / ranger un véhicule de secours',
+        heli_button = '[E] - Hélismur : prendre / ranger l\'hélicoptère',
         elevator_roof = '[E] - Prendre l\'ascenseur jusqu\'au toit',
         elevator_main = '[E] - Prendre l\'ascenseur',
         bed_out = '[E] - Pour sortir du lit..',
-        call_doc = '[E] - Appeler un docteur',
+        call_doc = '[E] - Appeler un médecin',
         call = 'Appeler',
-        check_in = '[E] - S\'hospitaliser',
-        check = 'Enregistrement',
+        check_in = '[E] - Admission aux urgences',
+        check = 'Admission',
         lie_bed = '[E] - Pour s\'allonger dans un lit'
     },
     body = {
@@ -120,7 +120,7 @@ local Translations = {
         painkillers = 'Prend des anti-douleurs...',
         revive = 'Réanime la personne...',
         healing = 'Soigne les blessures...',
-        checking_in = 'S\'enregistre...',
+        checking_in = 'Admission aux urgences...',
     },
     logs = {
         death_log_title = "%{playername} (%{playerid}) est mort",
@@ -128,7 +128,8 @@ local Translations = {
     }
 }
 
-if GetConvar('qb_locale', 'en') == 'fr' then
+-- LUSO RP : EMS a la francaise, ces textes s'appliquent quelle que soit la langue du serveur (convar pt_ems_fr false pour desactiver)
+if GetConvar('qb_locale', 'en') == 'fr' or GetConvar('pt_ems_fr', 'true') == 'true' then
     Lang = Locale:new({
         phrases = Translations,
         warnOnMissing = true,

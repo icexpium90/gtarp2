@@ -161,7 +161,8 @@ function QBCore.Player.CheckPlayerData(source, PlayerData)
     PlayerData.job.name = PlayerData.job.name or 'unemployed'
     PlayerData.job.label = PlayerData.job.label or 'Civilian'
     PlayerData.job.payment = PlayerData.job.payment or 10
-    PlayerData.job.type = PlayerData.job.type or 'none'
+    -- le type (leo, ems...) suit toujours shared/jobs.lua, meme pour un personnage cree avant un changement
+    PlayerData.job.type = QBCore.Shared.Jobs[PlayerData.job.name].type or PlayerData.job.type or 'none'
     if QBCore.Shared.ForceJobDefaultDutyAtLogin or PlayerData.job.onduty == nil then
         PlayerData.job.onduty = QBCore.Shared.Jobs[PlayerData.job.name].defaultDuty
     end
@@ -169,6 +170,16 @@ function QBCore.Player.CheckPlayerData(source, PlayerData)
     PlayerData.job.grade = PlayerData.job.grade or {}
     PlayerData.job.grade.name = PlayerData.job.grade.name or 'Freelancer'
     PlayerData.job.grade.level = PlayerData.job.grade.level or 0
+    do -- libelles toujours a jour avec shared/jobs.lua (noms francais des metiers et grades)
+        local def = QBCore.Shared.Jobs[PlayerData.job.name]
+        local g = def and def.grades and def.grades[tostring(PlayerData.job.grade.level)]
+        if def then PlayerData.job.label = def.label end
+        if g then
+            PlayerData.job.grade.name = g.name
+            PlayerData.job.payment = g.payment or PlayerData.job.payment
+            PlayerData.job.isboss = g.isboss or false
+        end
+    end
     -- Gang
     if PlayerData.gang and PlayerData.gang.name and not QBCore.Shared.Gangs[PlayerData.gang.name] then PlayerData.gang = nil end
     PlayerData.gang = PlayerData.gang or {}

@@ -273,7 +273,7 @@ end
 
 
 RegisterCommand("comserv", function()
-	if PlayerJob.name == "police" or PlayerJob.name == 'sheriff' then
+	if PlayerJob.type == "leo" or PlayerJob.name == 'sheriff' then
 
 	local qbinput1 = exports['qb-input']:ShowInput({
 		header = "SEND COMMUNITY SERVICE",

@@ -13,8 +13,9 @@ Config.Ignores = { unemployed = true }
 -- Metiers qu'on ne peut pas cumuler avec certains autres (ex. police et gang de rue n'ont rien a voir ici :
 -- les gangs sont separes). Exemple : { police = { 'ambulance' } } interdit police + ambulance.
 Config.Incompatibles = {
-    police = { 'ambulance' },
-    ambulance = { 'police' },
+    police = { 'ambulance', 'gendarmerie' },
+    gendarmerie = { 'ambulance', 'police' },
+    ambulance = { 'police', 'gendarmerie' },
 }
 
 -- Changer de metier hors service uniquement (evite de quitter la police en pleine poursuite)

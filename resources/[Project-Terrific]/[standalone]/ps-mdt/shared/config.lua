@@ -29,6 +29,7 @@ Config.Fuel = "cdn-fuel"
 -- Google Docs Link
 Config.sopLink = {
     ['police'] = '',
+    ['gendarmerie'] = '',
     ['ambulance'] = '',
     ['bcso'] = '',
     ['doj'] = '',
@@ -42,6 +43,7 @@ Config.sopLink = {
 -- Google Docs Link
 Config.RosterLink = {
     ['police'] = '',
+    ['gendarmerie'] = '',
     ['ambulance'] = '',
     ['bcso'] = '',
     ['doj'] = '',
@@ -54,6 +56,7 @@ Config.RosterLink = {
 
 Config.PoliceJobs = {
     ['police'] = true,
+    ['gendarmerie'] = true,
     ['lspd'] = true,
     ['bcso'] = true,
     ['sast'] = true,
@@ -98,6 +101,9 @@ Config.LogPerms = {
 	['police'] = {
 		[4] = true,
 	},
+	['gendarmerie'] = {
+		[5] = true,
+	},
     ['bcso'] = {
 		[4] = true,
 	},
@@ -124,6 +130,9 @@ Config.RemoveIncidentPerms = {
 	},
 	['police'] = {
 		[4] = true,
+	},
+	['gendarmerie'] = {
+		[5] = true,
 	},
     ['bcso'] = {
 		[4] = true,
@@ -152,6 +161,9 @@ Config.RemoveReportPerms = {
 	['police'] = {
 		[4] = true,
 	},
+	['gendarmerie'] = {
+		[5] = true,
+	},
     ['bcso'] = {
 		[4] = true,
 	},
@@ -178,6 +190,9 @@ Config.RemoveWeaponsPerms = {
 	},
 	['police'] = {
 		[4] = true,
+	},
+	['gendarmerie'] = {
+		[5] = true,
 	},
     ['bcso'] = {
 		[4] = true,

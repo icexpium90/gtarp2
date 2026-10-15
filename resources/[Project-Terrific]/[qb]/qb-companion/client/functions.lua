@@ -316,7 +316,7 @@ end
 
 function SearchLogic(plyped, activePed)
     if not PlayerJob then return end
-    if not (PlayerJob.name == 'police') then
+    if not (PlayerJob.type == "leo") then
         QBCore.Functions.Notify('You are not allowed to do this action', "error", 1500)
         return
     end

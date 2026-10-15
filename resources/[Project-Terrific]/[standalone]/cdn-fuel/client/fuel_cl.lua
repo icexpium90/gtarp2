@@ -2131,7 +2131,7 @@ end)
 
 RegisterNetEvent('cdn-syphoning:client:callcops', function(coords)
 	local PlayerJob = QBCore.Functions.GetPlayerData().job
-	if PlayerJob.name ~= "police" or not PlayerJob.onduty then return end
+	if PlayerJob.type ~= "leo" or not PlayerJob.onduty then return end
 	local transG = 250
 	local blip = AddBlipForCoord(coords.x, coords.y, coords.z)
 	SetBlipSprite(blip, 648)

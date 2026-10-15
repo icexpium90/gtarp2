@@ -186,22 +186,13 @@ CreateThread(function()
                     end
 
                     if IsControlJustPressed(0, 47) and not emsNotified then
-                        QBCore.Functions.TriggerCallback('hhfw:docOnline', function(EMSOnline, hasEnoughMoney)
-                            if EMSOnline <= 0 and hasEnoughMoney then
-                                exports["hh_aidoc"]:sendAiDoctor()
-                                TriggerServerEvent('hospital:server:ambulanceAlert', Lang:t('info.civ_down'))
-                                emsNotified = true
-                            else
-                                if EMSOnline > 0 then
-                                    TriggerServerEvent('hospital:server:ambulanceAlert', Lang:t('info.civ_down'))
-                                    emsNotified = true
-                                elseif not hasEnoughMoney then
-                                    Notify("Not Enough Money, you will have to wait to see nancy.", "error")
-                                end	
-                            end
-                        end)
-
-                        
+                        -- Appel au 15 : pt-samu previent les secouristes de garde ou envoie le VSAV de l'IA
+                        emsNotified = true
+                        if GetResourceState('pt-samu') == 'started' then
+                            exports['pt-samu']:Appeler()
+                        else
+                            TriggerServerEvent('hospital:server:ambulanceAlert', Lang:t('info.civ_down'))
+                        end
                     end
                 end
 

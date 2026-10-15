@@ -94,28 +94,31 @@ Config.Locations = { -- Edit the various interaction points for players or creat
     }
 }
 
-Config.AuthorizedVehicles = { -- Vehicles players can use based on their ambulance job grade level
-	-- Grade 0
-	[0] = {
-		["ambulance"] = "Ambulance",
+Config.AuthorizedVehicles = { -- Vehicules de secours par grade (SAMU / sapeurs-pompiers)
+	[0] = { -- Sapeur-pompier volontaire
+		["ambulance"] = "VSAV (vehicule de secours et d'assistance aux victimes)",
+		["firetruk"] = "FPT (fourgon pompe-tonne)",
 	},
-	-- Grade 1
-	[1] = {
-		["ambulance"] = "Ambulance",
-
+	[1] = { -- Ambulancier SMUR
+		["ambulance"] = "VSAV (vehicule de secours et d'assistance aux victimes)",
+		["firetruk"] = "FPT (fourgon pompe-tonne)",
+		["lguard"] = "VLM SMUR (vehicule leger medicalise)",
 	},
-	-- Grade 2
-	[2] = {
-		["ambulance"] = "Ambulance",
+	[2] = { -- Infirmier urgentiste
+		["ambulance"] = "VSAV (vehicule de secours et d'assistance aux victimes)",
+		["firetruk"] = "FPT (fourgon pompe-tonne)",
+		["lguard"] = "VLM SMUR (vehicule leger medicalise)",
 	},
-	-- Grade 3
-	[3] = {
-		["ambulance"] = "Ambulance",
+	[3] = { -- Medecin urgentiste
+		["ambulance"] = "VSAV (vehicule de secours et d'assistance aux victimes)",
+		["firetruk"] = "FPT (fourgon pompe-tonne)",
+		["lguard"] = "VLM SMUR (vehicule leger medicalise)",
 	},
-	-- Grade 4
-	[4] = {
-		["ambulance"] = "Ambulance",
-	}
+	[4] = { -- Medecin-chef du SAMU
+		["ambulance"] = "VSAV (vehicule de secours et d'assistance aux victimes)",
+		["firetruk"] = "FPT (fourgon pompe-tonne)",
+		["lguard"] = "VLM SMUR (vehicule leger medicalise)",
+	},
 }
 
 Config.Items = { -- Items found in the ambulance shop for players with the ambulance job to purchase

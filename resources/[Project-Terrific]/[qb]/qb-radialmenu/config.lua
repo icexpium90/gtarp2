@@ -1073,8 +1073,15 @@ Config.JobInteractions = {
             shouldClose = true
         }
     },
-    ["police"] = {
+    ["police"] = { -- utilise aussi par la gendarmerie (tout metier de type "leo")
         {
+            id = 'vestiaireordre',
+            title = 'Vestiaire (tenues)',
+            icon = 'shirt',
+            type = 'client',
+            event = 'pt-tenues-ordre:client:ouvrir',
+            shouldClose = true
+        }, {
             id = 'checkvehstatus',
             title = 'Check Tune Status',
             icon = 'circle-info',

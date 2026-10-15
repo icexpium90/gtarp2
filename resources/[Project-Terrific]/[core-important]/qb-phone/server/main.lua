@@ -585,7 +585,7 @@ QBCore.Functions.CreateCallback('qb-phone:server:GetCurrentLawyers', function(_,
         if Player ~= nil then
             if (Player.PlayerData.job.name == "lawyer" or Player.PlayerData.job.name == "realestate" or
                 Player.PlayerData.job.name == "mechanic" or Player.PlayerData.job.name == "taxi" or
-                Player.PlayerData.job.name == "police" or Player.PlayerData.job.name == "ambulance") and
+                Player.PlayerData.job.type == "leo" or Player.PlayerData.job.name == "ambulance") and
                 Player.PlayerData.job.onduty then
                 Lawyers[#Lawyers+1] = {
                     name = Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname,
@@ -1064,7 +1064,7 @@ QBCore.Commands.Add('bill', 'Bill A Player', {{name = 'id', help = 'Player ID'},
     local biller = QBCore.Functions.GetPlayer(source)
     local billed = QBCore.Functions.GetPlayer(tonumber(args[1]))
     local amount = tonumber(args[2])
-    if biller.PlayerData.job.name == "police" or biller.PlayerData.job.name == 'ambulance' or biller.PlayerData.job.name == 'mechanic' then
+    if biller.PlayerData.job.type == "leo" or biller.PlayerData.job.name == 'ambulance' or biller.PlayerData.job.name == 'mechanic' then
         if billed ~= nil then
             if biller.PlayerData.citizenid ~= billed.PlayerData.citizenid then
                 if amount and amount > 0 then

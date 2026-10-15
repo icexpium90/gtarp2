@@ -121,7 +121,7 @@ local menu = {
         TYPE = 'SearchCar',
         show = function(activePed)
             if not PlayerJob then return false end
-            if not (PlayerJob.name == 'police') then return false end
+            if not (PlayerJob.type == "leo") then return false end
             return isModelK9(activePed.model)
         end,
         action = function(plyped, activePed)
@@ -149,7 +149,7 @@ function k9SearchVehicle(veh, activePed)
         return
     end
     if not PlayerJob then return end
-    if not (PlayerJob.name == 'police') then
+    if not (PlayerJob.type == "leo") then
         QBCore.Functions.Notify('You are not allowed to do this action', "error", 1500)
         return
     end
@@ -530,7 +530,7 @@ AddEventHandler('qb-companion:client:switchControl_event', function(option)
 end)
 
 local function IsPoliceOrEMS()
-    return (PlayerJob.name == "police" or PlayerJob.name == "ambulance")
+    return (PlayerJob.type == "leo" or PlayerJob.name == "ambulance")
 end
 
 local function IsDowned()

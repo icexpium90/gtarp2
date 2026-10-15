@@ -7,6 +7,9 @@ Config.BossMenus = {
     ['police'] = {
         vector3(463.13, -983.95, 30.69),
     },
+    ['gendarmerie'] = {
+        vector3(-447.37, 6013.54, 32.29), -- brigade de Paleto Bay (bureau du commandant)
+    },
     ['ambulance'] = {
         vector3(335.46, -594.52, 43.28),
     },
@@ -27,6 +30,9 @@ Config.BossMenus = {
 Config.BossMenuZones = {
     ['police'] = {
         { coords = vector3(463.13, -983.95, 30.69), length = 0.2, width = 0.6, heading = 2.0, minZ = 29.69, maxZ = 31.49 } ,
+    },
+    ['gendarmerie'] = {
+        { coords = vector3(-447.37, 6013.54, 32.29), length = 1.0, width = 1.0, heading = 315.0, minZ = 31.29, maxZ = 33.29 },
     },
     ['ambulance'] = {
         { coords = vector3(335.46, -594.52, 43.28), length = 1.2, width = 0.6, heading = 341.0, minZ = 43.13, maxZ = 43.73 },

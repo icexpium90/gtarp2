@@ -24,9 +24,11 @@ Config.Locations = {
         [1] = vector4(448.15, -1017.4, 22.96, 19.96),
         [2] = vector4(448.15, -1017.4, 22.96, 19.96),
         [3] = vector4(448.15, -1017.4, 22.96, 19.96),
+        [4] = vector4(-475.34, 6030.94, 31.34, 225.0), -- brigade de Gendarmerie de Paleto Bay
     },
     ["stash"] = {
         [1] = vector3(461.76, -995.85, 29.79),
+        [2] = vector3(-439.21, 6009.80, 31.72), -- Paleto
     },
     ["impound"] = {
         [1] = vector4(476.48, -1022.25, 28.06, 277.7), -- should be hidden now due to garage + radial
@@ -38,6 +40,7 @@ Config.Locations = {
     },
     ["armory"] = {
         [1] = vector3(482.55, -995.21, 29.89),
+        [2] = vector3(-437.66, 5988.50, 31.72), -- Paleto
     },
     ["trash"] = {
         [1] = vector3(446.88, -997.0, 29.79),
@@ -52,9 +55,9 @@ Config.Locations = {
         [4] = vector3(472.86, -996.48, 26.27), -- evidence room
     },
     ["stations"] = {
-        [1] = {label = "Mission Row PD", coords = vector4(428.23, -984.28, 29.76, 3.5)},
+        [1] = {label = "Commissariat central (Police Nationale)", coords = vector4(428.23, -984.28, 29.76, 3.5)},
         [2] = {label = "Prison", coords = vector4(1845.903, 2585.873, 45.672, 272.249)},
-        [3] = {label = "Blaine County Sheriff Office", coords = vector4(-451.55, 6014.25, 31.716, 223.81)},
+        [3] = {label = "Brigade de Gendarmerie de Paleto Bay", coords = vector4(-451.55, 6014.25, 31.716, 223.81)},
     },
 }
 
@@ -102,68 +105,89 @@ Config.SecurityCameras = {
     },
 }
 
-Config.AuthorizedVehicles = {
-	-- Grade 0
+-- Vehicules de service par metier puis par grade (vehicules francais : resource [vehicules]/pt-vehicules-france)
+Config.AuthorizedVehiclesParMetier = {
+    police = {
 	[0] = {
-		["police"] = "Police Car 1",
-		["police2"] = "Police Car 2",
-		["police3"] = "Police Car 3",
-		["police4"] = "Police Car 4",
-		["policeb"] = "Police Car 5",
-		["policet"] = "Police Car 6",
-		["sheriff"] = "Sheriff Car 1",
-		["sheriff2"] = "Sheriff Car 2",
+		["police"] = "Peugeot de patrouille (Police Nationale)",
+		["police2"] = "Renault Megane RS (Police Municipale)",
+		["police4"] = "Renault Megane RS banalisee",
+		["policeb"] = "Moto de police",
+		["policet"] = "Fourgon de police",
 	},
-	-- Grade 1
 	[1] = {
-		["police"] = "Police Car 1",
-		["police2"] = "Police Car 2",
-		["police3"] = "Police Car 3",
-		["police4"] = "Police Car 4",
-		["policeb"] = "Police Car 5",
-		["policet"] = "Police Car 6",
-		["sheriff"] = "Sheriff Car 1",
-		["sheriff2"] = "Sheriff Car 2",
-
+		["police"] = "Peugeot de patrouille (Police Nationale)",
+		["police2"] = "Renault Megane RS (Police Municipale)",
+		["police4"] = "Renault Megane RS banalisee",
+		["policeb"] = "Moto de police",
+		["policet"] = "Fourgon de police",
 	},
-	-- Grade 2
 	[2] = {
-		["police"] = "Police Car 1",
-		["police2"] = "Police Car 2",
-		["police3"] = "Police Car 3",
-		["police4"] = "Police Car 4",
-		["policeb"] = "Police Car 5",
-		["policet"] = "Police Car 6",
-		["sheriff"] = "Sheriff Car 1",
-		["sheriff2"] = "Sheriff Car 2",
-		["polamggtr"] = "AMG GT R Interceptor",
+		["police"] = "Peugeot de patrouille (Police Nationale)",
+		["police2"] = "Renault Megane RS (Police Municipale)",
+		["police4"] = "Renault Megane RS banalisee",
+		["policeb"] = "Moto de police",
+		["policet"] = "Fourgon de police",
+		["polamggtr"] = "Mercedes AMG GT R (intervention rapide)",
 	},
-	-- Grade 3
 	[3] = {
-		["police"] = "Police Car 1",
-		["police2"] = "Police Car 2",
-		["police3"] = "Police Car 3",
-		["police4"] = "Police Car 4",
-		["policeb"] = "Police Car 5",
-		["policet"] = "Police Car 6",
-		["sheriff"] = "Sheriff Car 1",
-		["sheriff2"] = "Sheriff Car 2",
-		["polamggtr"] = "AMG GT R Interceptor",
+		["police"] = "Peugeot de patrouille (Police Nationale)",
+		["police2"] = "Renault Megane RS (Police Municipale)",
+		["police4"] = "Renault Megane RS banalisee",
+		["policeb"] = "Moto de police",
+		["policet"] = "Fourgon de police",
+		["polamggtr"] = "Mercedes AMG GT R (intervention rapide)",
 	},
-	-- Grade 4
 	[4] = {
-		["police"] = "Police Car 1",
-		["police2"] = "Police Car 2",
-		["police3"] = "Police Car 3",
-		["police4"] = "Police Car 4",
-		["policeb"] = "Police Car 5",
-		["policet"] = "Police Car 6",
-		["sheriff"] = "Sheriff Car 1",
-		["sheriff2"] = "Sheriff Car 2",
-		["polamggtr"] = "AMG GT R Interceptor",
+		["police"] = "Peugeot de patrouille (Police Nationale)",
+		["police2"] = "Renault Megane RS (Police Municipale)",
+		["police4"] = "Renault Megane RS banalisee",
+		["policeb"] = "Moto de police",
+		["policet"] = "Fourgon de police",
+		["polamggtr"] = "Mercedes AMG GT R (intervention rapide)",
 		["s63w222"] = "Mercedes S63 AMG (banalisee, commandement)",
-	}
+	},
+    },
+    gendarmerie = {
+	[0] = {
+		["sheriff"] = "Renault Megane RS Gendarmerie",
+		["expertgn"] = "Peugeot Expert Gendarmerie (fourgon)",
+		["policeb"] = "Moto de la Gendarmerie",
+	},
+	[1] = {
+		["sheriff"] = "Renault Megane RS Gendarmerie",
+		["expertgn"] = "Peugeot Expert Gendarmerie (fourgon)",
+		["policeb"] = "Moto de la Gendarmerie",
+	},
+	[2] = {
+		["sheriff"] = "Renault Megane RS Gendarmerie",
+		["expertgn"] = "Peugeot Expert Gendarmerie (fourgon)",
+		["policeb"] = "Moto de la Gendarmerie",
+		["police3"] = "BMW Serie 5 Gendarmerie (BRI)",
+	},
+	[3] = {
+		["sheriff"] = "Renault Megane RS Gendarmerie",
+		["expertgn"] = "Peugeot Expert Gendarmerie (fourgon)",
+		["policeb"] = "Moto de la Gendarmerie",
+		["police3"] = "BMW Serie 5 Gendarmerie (BRI)",
+	},
+	[4] = {
+		["sheriff"] = "Renault Megane RS Gendarmerie",
+		["expertgn"] = "Peugeot Expert Gendarmerie (fourgon)",
+		["policeb"] = "Moto de la Gendarmerie",
+		["police3"] = "BMW Serie 5 Gendarmerie (BRI)",
+	},
+	[5] = {
+		["sheriff"] = "Renault Megane RS Gendarmerie",
+		["expertgn"] = "Peugeot Expert Gendarmerie (fourgon)",
+		["policeb"] = "Moto de la Gendarmerie",
+		["police3"] = "BMW Serie 5 Gendarmerie (BRI)",
+		["s63w222"] = "Mercedes S63 AMG (banalisee, commandement)",
+	},
+    },
 }
+-- Ancien format (un seul tableau par grade) garde pour les autres scripts : vehicules de la Police Nationale
+Config.AuthorizedVehicles = Config.AuthorizedVehiclesParMetier.police
 
 Config.WhitelistedVehicles = {}
 

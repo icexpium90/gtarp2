@@ -45,7 +45,7 @@ local player_id = data.id
 local kamu = data.kamu
 	local src = source
 	local xPlayer = QBCore.Functions.GetPlayer(src)
-	if xPlayer.PlayerData.job.name == "police" then
+	if xPlayer.PlayerData.job.type == "leo" then
 		local tPlayer = QBCore.Functions.GetPlayer(tonumber(player_id))
 		if tPlayer then
 			local count = tonumber(kamu)
@@ -60,7 +60,7 @@ end)
 
 QBCore.Commands.Add("endcomserv", "", {{name="id", help="Player ID"}}, true, function(source, args) -- name, help, arguments, argsrequired,  end sonuna persmission
 	local xPlayer = QBCore.Functions.GetPlayer(source)
-	if xPlayer.PlayerData.job.name == "police" then
+	if xPlayer.PlayerData.job.type == "leo" then
 		local tPlayer = QBCore.Functions.GetPlayer(tonumber(args[1]))
 		if tPlayer then
 			tPlayer.Functions.SetMetaData("communityservice", 0)

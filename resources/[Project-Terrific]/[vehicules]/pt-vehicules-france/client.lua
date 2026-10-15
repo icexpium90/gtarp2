@@ -1,0 +1,12 @@
+-- Noms affiches en jeu pour les vehicules remplaces / ajoutes
+CreateThread(function()
+    AddTextEntry('POLICE2', 'Renault Megane RS Police Municipale')
+    AddTextEntry('POLICE3', 'BMW Serie 5 Gendarmerie BRI')
+    AddTextEntry('POLICE4', 'Renault Megane RS banalisee')
+    AddTextEntry('SHERIFF', 'Renault Megane RS Gendarmerie')
+    AddTextEntry('EXPERTGN', 'Peugeot Expert Gendarmerie')
+    -- Secours a la francaise (modeles du jeu renommes)
+    AddTextEntry('AMBULAN', 'VSAV Sapeurs-pompiers')
+    AddTextEntry('FIRETRUK', 'FPT Sapeurs-pompiers')
+    AddTextEntry('LGUARD', 'VLM SMUR')
+end)

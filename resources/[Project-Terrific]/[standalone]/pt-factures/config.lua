@@ -5,7 +5,7 @@ Config = {}
 --   max        : montant maximum d'une facture
 Config.Metiers = {
     mechanic  = { label = 'Mecanicien / LS Customs', commission = 0.10, max = 500000 },
-    ambulance = { label = 'Services medicaux (EMS)', commission = 0.10, max = 50000 },
+    ambulance = { label = 'SAMU / Sapeurs-pompiers', commission = 0.10, max = 50000 },
     taxi      = { label = 'Taxi', commission = 0.20, max = 10000 },
     tow       = { label = 'Depanneuse', commission = 0.20, max = 20000 },
     cardealer = { label = 'Concession automobile', commission = 0.05, max = 5000000 },

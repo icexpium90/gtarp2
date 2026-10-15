@@ -414,7 +414,7 @@ end)
 --new panic button 
 local PressedPanicButton = false
 RegisterNetEvent("ps-dispatch:client:TriggerPanicButton", function()
-	if (PlayerData.job.name == "police" or PlayerData.job.type == "leo") or (PlayerData.job.name == "ambulance") then 
+	if (PlayerData.job.type == "leo") or (PlayerData.job.name == "ambulance") then 
 		if not PressedPanicButton then 
 			QBCore.Functions.Progressbar("panic_button", "Pressing Panic Button...", 5000, false, true, {
 				disableMovement = false,
@@ -426,7 +426,7 @@ RegisterNetEvent("ps-dispatch:client:TriggerPanicButton", function()
 				PlayerData = QBCore.Functions.GetPlayerData()
 				QBCore.Functions.TriggerCallback("ps-dispatch:server:PressPanicButton", function(HasItem)
 					if HasItem then 
-						if (PlayerData.job.name == "police" or PlayerData.job.type == "leo") then
+						if (PlayerData.job.type == "leo") then
 							TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 7.0, "panicbutton", 7.0)
 							exports['ps-dispatch']:OfficerDown2()
 							PressedPanicButton = false
