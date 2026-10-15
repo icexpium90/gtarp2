@@ -16,6 +16,15 @@ return {
         },
     },
 
+    -- Atelier de modification (LS Customs prive, F6 > Placer les points) selon le prix d'achat du bien :
+    --   disponibleAPartirDe : prix minimum du bien pour pouvoir placer un atelier (0 = tous les biens)
+    --   gratuitAPartirDe    : a partir de ce prix, toutes les modifications et reparations a l'atelier sont gratuites
+    --                         (en dessous, elles sont payees comme dans un LS Customs ; false = jamais gratuit)
+    atelier = {
+        disponibleAPartirDe = 0,
+        gratuitAPartirDe = 2000000,
+    },
+
     -- Agence immobiliere (metier realestate) : voir LISEZMOI.md
     agence = {
         job = 'realestate',

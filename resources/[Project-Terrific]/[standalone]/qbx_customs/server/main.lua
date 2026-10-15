@@ -30,8 +30,16 @@ local function removeMoney(source, amount)
     return false
 end
 
+-- Project Terrific : atelier prive d'un bien immobilier de luxe (qbx_properties) = modifications gratuites
+local function atelierGratuit(source)
+    if GetResourceState('qbx_properties') ~= 'started' then return false end
+    local ok, gratuit = pcall(function() return exports.qbx_properties:AtelierGratuit(source) end)
+    return ok and gratuit == true
+end
+
 -- Won't charge money for mods if the player's job is in the list
 lib.callback.register('qbx_customs:server:pay', function(source, mod, level)
+    if atelierGratuit(source) then return true end
     local zone = lib.callback.await('qbx_customs:client:zone', source)
 
     for i, v in ipairs(sharedConfig.zones) do
@@ -50,6 +58,7 @@ end)
 
 -- Won't charge money for repairs if the player's job is in the list
 lib.callback.register('qbx_customs:server:repair', function(source, bodyHealth)
+    if atelierGratuit(source) then return true end
     local zone = lib.callback.await('qbx_customs:client:zone', source)
 
     for i, v in ipairs(sharedConfig.zones) do

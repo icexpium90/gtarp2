@@ -123,7 +123,10 @@ le lit, les ascenseurs et le garage fonctionnent sur place, et le propriétaire 
 **Atelier de modification** (F6 > Placer les points > Atelier de modification) : une voiture fantôme montre
 l'emplacement (comme une place de parking). Au volant, arrêtez-vous sur le marqueur orange et appuyez sur **E** : le menu
 LS Customs complet s'ouvre (réparation, moteur / freins / turbo, bodykits et pièces de carrosserie, peinture, jantes,
-néons, vitres, extras), payé comme dans un LS Customs. Un seul atelier par bien (à replacer pour le déplacer), utilisable par
+néons, vitres, extras).
+**Gratuit dans les biens de 2 000 000 $ et plus** (prix d'achat du bien) ; en dessous, payé comme dans un LS Customs.
+Réglages : `qbx_properties/config/server.lua` > `atelier` (`gratuitAPartirDe`, et `disponibleAPartirDe` pour réserver
+l'atelier aux biens au-dessus d'un certain prix). Les prix restent affichés dans le menu, mais rien n'est débité. Un seul atelier par bien (à replacer pour le déplacer), utilisable par
 le propriétaire et les détenteurs de clés. Prévu pour les biens MLO où l'on entre en voiture (garage de villa, Mancave).
 
 **Ascenseurs** (F6 > Garage et ascenseurs > Créer un ascenseur) :

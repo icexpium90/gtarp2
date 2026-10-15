@@ -118,10 +118,16 @@ RegisterNetEvent('qbx_properties:server:setInteraction', function(kind, taille, 
     if not propertyId then return end
     if kind ~= 'stash' and kind ~= 'clothing' and kind ~= 'logout' and kind ~= 'exit' and kind ~= 'safe' and kind ~= 'atelier' then return end
     local player = Bridge.GetPlayer(src)
-    local property = MySQL.single.await('SELECT owner, coords, interior, interact_options, stash_options FROM properties WHERE id = ?', {propertyId})
+    local property = MySQL.single.await('SELECT owner, price, coords, interior, interact_options, stash_options FROM properties WHERE id = ?', {propertyId})
     if not property or not player then return end
     if player.PlayerData.citizenid ~= property.owner and not Bridge.IsRealtor(src) then
         return Bridge.Notify(src, locale('notify.no_access'), 'error')
+    end
+    if kind == 'atelier' then
+        local mini = (config.atelier or {}).disponibleAPartirDe or 0
+        if (tonumber(property.price) or 0) < mini then
+            return Bridge.Notify(src, ('Atelier reserve aux biens de plus de $%s.'):format(mini), 'error')
+        end
     end
     local ped = GetPlayerPed(src)
     local pos, heading = positionChoisie(src, pos)
@@ -184,6 +190,22 @@ RegisterNetEvent('qbx_properties:server:setInteraction', function(kind, taille, 
 end)
 
 BuildPropertyInteractions = buildInteractions
+
+-- Atelier gratuit : appele par qbx_customs avant de faire payer une modification ou une reparation.
+-- Vrai si le joueur est sur l'atelier d'un bien auquel il a acces et dont le prix atteint config.atelier.gratuitAPartirDe.
+exports('AtelierGratuit', function(src)
+    local seuil = (config.atelier or {}).gratuitAPartirDe
+    if not seuil then return false end
+    local propertyId = ProprieteActive(src)
+    if not propertyId then return false end
+    local property = MySQL.single.await('SELECT price, coords, interior, interact_options, stash_options FROM properties WHERE id = ?', { propertyId })
+    if not property or (tonumber(property.price) or 0) < seuil then return false end
+    local pos = GetEntityCoords(GetPlayerPed(src))
+    for _, it in ipairs((buildInteractions(property))) do
+        if it.type == 'atelier' and #(pos - it.coords) < 8.0 then return true end
+    end
+    return false
+end)
 
 ---@param playerSource integer
 local function exitProperty(playerSource, isLogout)
