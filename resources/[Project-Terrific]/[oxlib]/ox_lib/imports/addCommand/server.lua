@@ -18,7 +18,8 @@ SetTimeout(1000, function()
     TriggerClientEvent('chat:addSuggestions', -1, registeredCommands)
 end)
 
-AddEventHandler('playerJoining', function(source)
+-- 'source' global = nouvel id du joueur (le parametre de playerJoining est l'ancien id temporaire)
+AddEventHandler('playerJoining', function()
     TriggerClientEvent('chat:addSuggestions', source, registeredCommands)
 end)
 

@@ -64,16 +64,16 @@ function Bridge.SocietyDeposit(montant, raison)
     Bridge.logger.log({ message = ('Agence : +$%d (%s)'):format(montant, raison or '') })
 end
 
--- ox_lib 3.6 n'a pas lib.triggerClientEvent
-if not lib.triggerClientEvent then
-    function lib.triggerClientEvent(eventName, targets, ...)
-        if type(targets) == 'table' then
-            for _, id in pairs(targets) do TriggerClientEvent(eventName, id, ...) end
-        else
-            TriggerClientEvent(eventName, targets, ...)
-        end
+-- ox_lib 3.6 n'a pas lib.triggerClientEvent. Attention : "lib.triggerClientEvent" n'est jamais nil (ox_lib renvoie un appel
+-- vers un export inexistant -> "No such export triggerClientEvent"), on le definit donc toujours ici.
+rawset(lib, 'triggerClientEvent', function(eventName, targets, ...)
+    if targets == nil then return end
+    if type(targets) == 'table' then
+        for _, id in pairs(targets) do TriggerClientEvent(eventName, id, ...) end
+    else
+        TriggerClientEvent(eventName, targets, ...)
     end
-end
+end)
 
 -- journal simple (remplace le logger de qbx_core). Activer avec : set qbx_properties:logs 1
 Bridge.logger = {
