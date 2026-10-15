@@ -697,6 +697,7 @@ local function sendGarages(src)
 end
 
 function SendGaragesToAll()
+    if OublierDomicile then OublierDomicile() end
     if RafraichirMLO then RafraichirMLO() end
     -- les icones "biens possedes" de chaque joueur sont a jour apres tout changement de proprietaire ou de cles
     TriggerClientEvent('qbx_properties:client:rafraichirBlips', -1)

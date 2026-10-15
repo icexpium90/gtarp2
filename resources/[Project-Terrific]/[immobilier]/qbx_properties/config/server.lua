@@ -25,6 +25,18 @@ return {
         gratuitAPartirDe = 2000000,
     },
 
+    -- Domicile = le bien avec garage le plus cher que le joueur possede (voir server/domicile.lua)
+    --   tousLesVehicules : le garage du domicile donne acces a TOUS les vehicules ranges du joueur, ou qu'ils soient
+    --                      (garage classique : liste complete ; garage physique MLO : ils viennent se garer sur les places libres)
+    --   retourAuto       : un vehicule sorti revient tout seul au domicile si le joueur se deconnecte ou crashe,
+    --                      au redemarrage du serveur, ou si le vehicule a disparu / est detruit et abandonne
+    --   delaiAbandon     : secondes avant de rapatrier un vehicule detruit sans personne a bord ou disparu
+    domicile = {
+        tousLesVehicules = true,
+        retourAuto = true,
+        delaiAbandon = 120,
+    },
+
     -- Agence immobiliere (metier realestate) : voir LISEZMOI.md
     agence = {
         job = 'realestate',

@@ -192,6 +192,10 @@ end
 
 local function apparaitre(bien, garageNom)
     local liste = MySQL.query.await('SELECT plate, vehicle, hash, mods, fuel, engine, body FROM player_vehicles WHERE garage = ? AND state = 1', { garageNom }) or {}
+    -- domicile : les vehicules du proprietaire ranges ailleurs viennent se garer sur les places libres (server/domicile.lua)
+    if VehiculesAFaireVenir then
+        for _, v in ipairs(VehiculesAFaireVenir(bien, garageNom)) do liste[#liste + 1] = v end
+    end
     gares[bien.id] = gares[bien.id] or {}
     local actuels = gares[bien.id]
     -- places deja prises par un vehicule gare present
@@ -219,6 +223,9 @@ local function apparaitre(bien, garageNom)
                     }, true)
                     actuels[v.plate] = { entity = veh, place = place }
                     prises[place] = v.plate
+                    if v.aDeplacer then
+                        MySQL.update.await('UPDATE player_vehicles SET garage = ? WHERE plate = ? AND state = 1', { garageNom, v.plate })
+                    end
                 end
             end
         end

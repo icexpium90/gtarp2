@@ -28,6 +28,7 @@ server_scripts {
     'server/realtor.lua',
     'server/agence.lua',
     'server/garage.lua',
+    'server/domicile.lua',
 }
 
 files {

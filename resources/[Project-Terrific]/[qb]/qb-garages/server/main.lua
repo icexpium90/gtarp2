@@ -1,6 +1,18 @@
 local QBCore = exports['qb-core']:GetCoreObject()
 local OutsideVehicles = {}
 
+-- LUSO RP : garage du domicile (qbx_properties) = tous les vehicules ranges du joueur, ou qu'ils soient
+local function tousAuDomicile(cid, garage)
+    if GetResourceState('qbx_properties') ~= 'started' then return false end
+    local ok, oui = pcall(function() return exports['qbx_properties']:TousVehiculesAuDomicile(cid, garage) end)
+    return ok and oui == true
+end
+local AIR_EAU = { helicopters = true, planes = true, boats = true }
+local function deRoute(v)
+    local d = QBCore.Shared.Vehicles[v.vehicle]
+    return v.garage == nil or not (d and AIR_EAU[d.category])
+end
+
 QBCore.Functions.CreateCallback("qb-garage:server:GetGarageVehicles", function(source, cb, garage, type, category)
     local src = source
     local pData = QBCore.Functions.GetPlayer(src)
@@ -48,6 +60,17 @@ QBCore.Functions.CreateCallback("qb-garage:server:GetGarageVehicles", function(s
         if not Config["SharedGarages"] and type ~= "house" then
             shared = " AND citizenid = '"..pData.PlayerData.citizenid.."'"
         end
+        if type == "house" and tousAuDomicile(pData.PlayerData.citizenid, garage) then
+            -- domicile : vehicules ranges dans ce garage (cles partagees) + tous mes vehicules ranges ailleurs
+            MySQL.query('SELECT * FROM player_vehicles WHERE state = 1 AND (garage = ? OR citizenid = ?)', {garage, pData.PlayerData.citizenid}, function(result)
+                local liste = {}
+                for _, v in ipairs(result or {}) do
+                    if v.garage == garage or deRoute(v) then liste[#liste + 1] = v end
+                end
+                cb(liste[1] and liste or nil)
+            end)
+            return
+        end
         MySQL.query('SELECT * FROM player_vehicles WHERE garage = ? AND state = ?'..shared, {garage, 1}, function(result)
             if result[1] then
                 cb(result)
@@ -92,6 +115,12 @@ QBCore.Functions.CreateCallback("qb-garage:server:validateGarageVehicle", functi
         local shared = ''
         if not Config["SharedGarages"] and type ~= "house" then
             shared = " AND citizenid = '"..pData.PlayerData.citizenid.."'"
+        end
+        if type == "house" and tousAuDomicile(pData.PlayerData.citizenid, garage) then
+            MySQL.query('SELECT 1 FROM player_vehicles WHERE state = 1 AND plate = ? AND (garage = ? OR citizenid = ?)', {plate, garage, pData.PlayerData.citizenid}, function(result)
+                cb(result and result[1] ~= nil)
+            end)
+            return
         end
         MySQL.query('SELECT * FROM player_vehicles WHERE garage = ? AND state = ? AND plate = ?'..shared, {garage, 1, plate}, function(result)
             if result[1] then
