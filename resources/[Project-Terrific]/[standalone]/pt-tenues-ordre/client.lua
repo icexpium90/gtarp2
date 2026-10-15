@@ -82,6 +82,35 @@ TriggerEvent('chat:addSuggestion', '/tenue', 'Vestiaire des forces de l\'ordre (
 exports('OuvrirVestiaire', menu)
 RegisterNetEvent('pt-tenues-ordre:client:ouvrir', menu)
 
--- Fin de service ou changement de metier : on remet la tenue civile
-RegisterNetEvent('QBCore:Client:SetDuty', function(service) if not service then remettreCivil() end end)
-RegisterNetEvent('QBCore:Client:OnJobUpdate', function(job) if not job.onduty or not Config.Metiers[job.name] then remettreCivil() end end)
+-- Tenue automatique a la prise de service
+local function tenueAuto()
+    local pd = QBCore.Functions.GetPlayerData()
+    local job = pd.job
+    if not job or not job.onduty then return end
+    local def = Config.TenueAuto[job.name]
+    if not def then return end
+    if pd.metadata and (pd.metadata.isdead or pd.metadata.inlaststand) then return end
+    local femme = pd.charinfo and tonumber(pd.charinfo.gender) == 1
+    local modele = femme and def.femme or (not femme and def.homme)
+    if not modele then return end
+    if GetEntityModel(PlayerPedId()) == joaat(modele) then return end
+    appliquer({ modele = modele })
+    lib.notify({ description = 'Tenue de service mise. /tenue pour en changer.', type = 'inform' })
+end
+
+-- Prise / fin de service, changement de metier
+RegisterNetEvent('QBCore:Client:SetDuty', function(service)
+    if service then SetTimeout(500, tenueAuto) else remettreCivil() end
+end)
+RegisterNetEvent('QBCore:Client:OnJobUpdate', function(job)
+    if not job.onduty or not Config.Metiers[job.name] then
+        remettreCivil()
+    else
+        SetTimeout(500, tenueAuto)
+    end
+end)
+-- Connexion : on attend que l'apparence du personnage soit chargee
+RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
+    if not Config.TenueAutoALaConnexion then return end
+    SetTimeout(8000, tenueAuto)
+end)

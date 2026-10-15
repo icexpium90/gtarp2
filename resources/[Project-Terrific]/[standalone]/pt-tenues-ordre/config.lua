@@ -10,3 +10,12 @@ Config.Tenues = {
     { label = 'Gendarme (femme)',                 modele = 's_f_y_sheriff_01', metiers = { gendarmerie = true } },
     { label = 'Sapeur-pompier, tenue de feu (SDIS 51)', modele = 's_m_y_fireman_01', metiers = { ambulance = true } },
 }
+
+-- Tenue mise automatiquement a la prise de service (et a la connexion si le metier commence en service).
+-- homme / femme : modele du ped selon le sexe du personnage ; absent = le joueur garde ses vetements.
+-- Le vestiaire (/tenue) reste disponible pour changer de tenue.
+Config.TenueAuto = {
+    gendarmerie = { homme = 's_m_m_chemsec_01', femme = 's_f_y_sheriff_01' },
+    ambulance   = { homme = 's_m_y_fireman_01' },
+}
+Config.TenueAutoALaConnexion = true
