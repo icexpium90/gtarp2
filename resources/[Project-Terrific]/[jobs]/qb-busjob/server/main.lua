@@ -22,9 +22,9 @@ RegisterNetEvent('qb-busjob:server:NpcPay', function()
             if randomAmount == r1 or randomAmount == r2 then Payment = Payment + math.random(10, 20) end
             Player.Functions.AddMoney('cash', Payment)
         else
-            DropPlayer(src, 'Attempting To Exploit')
+            print(('^3[qb-busjob] action suspecte de %s refusee (pas de kick)^7'):format(GetPlayerName(src)))
         end
     else
-        DropPlayer(src, 'Attempting To Exploit')
+        print(('^3[qb-busjob] action suspecte de %s refusee (pas de kick)^7'):format(GetPlayerName(src)))
     end
 end)

@@ -317,19 +317,16 @@ end
 QBCore.Functions.GetCoreVersion = GetCoreVersion
 exports('GetCoreVersion', GetCoreVersion)
 
+-- LUSO RP : plus de bannissement automatique (faux positifs) : alerte console, log et admins en ligne, sans ban ni kick
 local function ExploitBan(playerId, origin)
-    local name = GetPlayerName(playerId)
-    MySQL.insert('INSERT INTO bans (name, license, discord, ip, reason, expire, bannedby) VALUES (?, ?, ?, ?, ?, ?, ?)', {
-        name,
-        QBCore.Functions.GetIdentifier(playerId, 'license'),
-        QBCore.Functions.GetIdentifier(playerId, 'discord'),
-        QBCore.Functions.GetIdentifier(playerId, 'ip'),
-        origin,
-        2147483647,
-        'Anti Cheat'
-    })
-    DropPlayer(playerId, Lang:t('info.exploit_banned', {discord = QBCore.Config.Server.Discord}))
-    TriggerEvent("qb-log:server:CreateLog", "anticheat", "Anti-Cheat", "red", name .. " has been banned for exploiting " .. origin, true)
+    local name = GetPlayerName(playerId) or tostring(playerId)
+    print(('^3[qb-core] action suspecte de %s : %s (refusee, pas de ban)^7'):format(name, tostring(origin)))
+    TriggerEvent("qb-log:server:CreateLog", "anticheat", "Anti-Cheat", "orange", name .. " : action suspecte " .. tostring(origin), false)
+    for _, sid in pairs(QBCore.Functions.GetPlayers()) do
+        if QBCore.Functions.HasPermission(sid, 'admin') and sid ~= playerId then
+            TriggerClientEvent('QBCore:Notify', sid, ('[Anti-triche] %s : %s'):format(name, tostring(origin)), 'error', 10000)
+        end
+    end
 end
 
 exports('ExploitBan', ExploitBan)
