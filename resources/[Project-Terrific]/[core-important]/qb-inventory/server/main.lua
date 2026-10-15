@@ -2209,7 +2209,19 @@ QBCore.Commands.Add("giveitem", "Give An Item (Admin Only)", {{name="id", help="
 				if AddItem(id, itemData["name"], amount, false, info) then
 					QBCore.Functions.Notify(source, "You Have Given " ..GetPlayerName(id).." "..amount.." "..itemData["name"].. "", "success")
 				else
-					QBCore.Functions.Notify(source, "Can\'t give item!", "error")
+					-- LUSO RP : dire pourquoi (inventaire plein ou trop lourd)
+					local libres = 0
+					for i = 1, Config.MaxInventorySlots do
+						if Player.PlayerData.items[i] == nil then libres = libres + 1 end
+					end
+					local poids = GetTotalWeight(Player.PlayerData.items) + (itemData["weight"] or 0) * amount
+					if poids > Config.MaxInventoryWeight then
+						QBCore.Functions.Notify(source, ("Impossible : inventaire trop lourd (%.1f / %.1f kg)"):format(poids / 1000, Config.MaxInventoryWeight / 1000), "error")
+					elseif libres == 0 then
+						QBCore.Functions.Notify(source, ("Impossible : les %d emplacements de l'inventaire sont pleins"):format(Config.MaxInventorySlots), "error")
+					else
+						QBCore.Functions.Notify(source, "Can\'t give item!", "error")
+					end
 				end
 			else
 				QBCore.Functions.Notify(source, "Item Does Not Exist", "error")
