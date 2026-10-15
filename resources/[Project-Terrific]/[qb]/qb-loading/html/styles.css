@@ -1,6 +1,6 @@
 /* Customize style for dialog menus and carousels here */
 
-.brand-logo { width: 14%!important; }
+.brand-logo { width: 13%!important; max-width: 220px; filter: drop-shadow(0 0 12px rgba(0,0,0,0.8)); }
 .text-detailbutton { color: rgb(103, 108, 111)!important; }
 .bg-bgbutton { background: rgb(103, 108, 111)!important; }
 .text-togglecolor { color: rgb(220 20 60)!important; }
