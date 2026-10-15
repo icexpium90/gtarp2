@@ -115,6 +115,9 @@ def analyser_ressource(res, jeu_de_base, global_yft=frozenset()):
             if typ not in manifest_txt:
                 err.append("fxmanifest.lua : data_file '%s' manquant pour %s" % (typ, cle))
     for cle in ('vehicles.meta', 'handling.meta', 'carvariations.meta'):
+        if cle == 'handling.meta' and cle not in metas:
+            # pas d'erreur si la voiture reutilise un handling du jeu (verifie plus bas, modele par modele)
+            continue
         if cle not in metas:
             err.append('%s absent' % cle)
     if 'carcols.meta' not in metas:

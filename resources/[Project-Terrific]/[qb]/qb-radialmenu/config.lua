@@ -948,6 +948,14 @@ Config.VehicleExtras = {
 Config.JobInteractions = {
     ["ambulance"] = {
         {
+            id = 'vestiairesecours',
+            title = 'Vestiaire (tenues)',
+            icon = 'shirt',
+            type = 'client',
+            event = 'pt-tenues-ordre:client:ouvrir',
+            shouldClose = true
+        },
+        {
             id = 'facturer',
             title = 'Facturer un client',
             icon = 'file-invoice-dollar',

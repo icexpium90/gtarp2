@@ -214,6 +214,9 @@ def importer(src, nom_res, ids, hand, fichiers, modeles, log):
         notes.append('handling.meta : balise <handlingId> corrigee en <handlingName>')
     # handling
     for h in sorted(set(re.findall(r'<handlingId>([^<]+)</handlingId>', veh))):
+        defini_ici = re.search(r'<handlingName>%s</handlingName>' % re.escape(h), hd, re.I)
+        if not defini_ici:
+            continue  # handling du jeu reutilise tel quel (pas de handling.meta pour lui) : ne pas renommer
         if h.upper() in HANDLING_JEU or h.upper() in hand:
             modele = re.search(r'<modelName>([^<]+)</modelName>(?:(?!<modelName>).)*?<handlingId>%s</handlingId>' % re.escape(h), veh, re.S)
             neuf = (modele.group(1) if modele else principal).upper()

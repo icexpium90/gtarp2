@@ -106,21 +106,25 @@ Config.AuthorizedVehicles = { -- Vehicules de secours par grade (SAMU / sapeurs-
 		["ambulance"] = "VSAV (vehicule de secours et d'assistance aux victimes)",
 		["firetruk"] = "FPT (fourgon pompe-tonne)",
 		["lguard"] = "VLM SMUR (vehicule leger medicalise)",
+		["megane4sp"] = "Renault Megane Estate sapeurs-pompiers (VL chef de garde)",
 	},
 	[2] = { -- Infirmier urgentiste
 		["ambulance"] = "VSAV (vehicule de secours et d'assistance aux victimes)",
 		["firetruk"] = "FPT (fourgon pompe-tonne)",
 		["lguard"] = "VLM SMUR (vehicule leger medicalise)",
+		["megane4sp"] = "Renault Megane Estate sapeurs-pompiers (VL chef de garde)",
 	},
 	[3] = { -- Medecin urgentiste
 		["ambulance"] = "VSAV (vehicule de secours et d'assistance aux victimes)",
 		["firetruk"] = "FPT (fourgon pompe-tonne)",
 		["lguard"] = "VLM SMUR (vehicule leger medicalise)",
+		["megane4sp"] = "Renault Megane Estate sapeurs-pompiers (VL chef de garde)",
 	},
 	[4] = { -- Medecin-chef du SAMU
 		["ambulance"] = "VSAV (vehicule de secours et d'assistance aux victimes)",
 		["firetruk"] = "FPT (fourgon pompe-tonne)",
 		["lguard"] = "VLM SMUR (vehicule leger medicalise)",
+		["megane4sp"] = "Renault Megane Estate sapeurs-pompiers (VL chef de garde)",
 	},
 }
 
