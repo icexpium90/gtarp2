@@ -58,6 +58,7 @@ Config.Locations = {
         [1] = {label = "Commissariat central (Police Nationale)", coords = vector4(428.23, -984.28, 29.76, 3.5)},
         [2] = {label = "Prison", coords = vector4(1845.903, 2585.873, 45.672, 272.249)},
         [3] = {label = "Brigade de Gendarmerie de Paleto Bay", coords = vector4(-451.55, 6014.25, 31.716, 223.81)},
+        [4] = {label = "Commissariat de quartier (Police Nationale)", coords = vector4(-286.0, -1060.0, 26.0, 0.0)}, -- MLO pt-carte-commissariat-pn
     },
 }
 

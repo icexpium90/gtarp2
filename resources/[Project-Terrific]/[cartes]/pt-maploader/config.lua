@@ -10,6 +10,15 @@ Config.ToucheTeleport = 38          -- E
 -- eau : fichier water.xml de remplacement charge au demarrage (necessaire si la carte cree un lac).
 Config.Cartes = {
     {
+        -- Caserne des sapeurs-pompiers (Caserne SDIS 45 de ZE45_GaminG) a El Burro Heights : vehicules et pompiers de decor.
+        nom = 'caserne_sdis',
+        label = 'Caserne des sapeurs-pompiers (El Burro Heights)',
+        actif = true,
+        fichier = 'cartes/caserne_sdis.lua',
+        vehicules = true,
+        pnj = true,
+    },
+    {
         nom = 'mafia_mansion',
         label = 'Domaine de la Cosa Nostra (Tongva Hills)',
         actif = true,

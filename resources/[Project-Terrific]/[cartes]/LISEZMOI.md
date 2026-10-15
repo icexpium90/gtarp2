@@ -18,6 +18,8 @@ Pour en retirer une, déplacez son dossier hors de `[cartes]` ou ajoutez `stop n
 | pt-carte-ikon-cayo | Cayo Perico | portails et clôtures retirés, véhicules placés comme en ligne | île ouverte |
 | pt-carte-mancave | La Mesa, entrepôt (entrée ≈ 806, -894) | **MLO** : showroom auto, garage VIP, mezzanine avec bar, cave à vin et billard, 3 portes sectionnelles automatiques | bien à vendre (qbx_properties), concession, QG |
 | pt-carte-lively | plusieurs régions | Lively World Expansion : végétation et objets ajoutés (LOD optimisés, 3 Mo) | ambiance |
+| pt-carte-gendarmerie-paleto | Paleto Bay, ancien bureau du shérif (≈ -449, 6013) | **MLO** Skotaz Modding : brigade de Gendarmerie complète (accueil, bureaux, cellules), abords refaits | Gendarmerie (prise de service, garage, menu patron) |
+| pt-carte-commissariat-pn | sud de Pillbox Hill (≈ -290, -1060) | **MLO** NyRoYe : commissariat (accueil, bureaux, cellules, vestiaires, héliport). Le `server.lua` d'origine était une porte dérobée : il a été supprimé | Police Nationale |
 | pt-carte-palmiers | Los Santos et Blaine County | 3 469 palmiers et plantes du jeu ajoutés | ambiance |
 | pt-maploader : ultra_festival | plage de Vespucci (≈ -1331, -1311) | Ultra Music Festival : grande scène, écrans, enceintes, lasers, 55 danseurs (≈ 1 200 objets) | **événement : éteint par défaut**, `/festival on` |
 | pt-maploader : mafia_mansion | Tongva Hills, domaine viticole (≈ -1899, 2044) | 23 voitures et 43 gardes de décor | QG de la Cosa Nostra |
@@ -127,3 +129,9 @@ téléporteurs (E).
   Families, lafa2k pour la villa, mixtro pour le QG sous-marin, bsnk pour Malibu Mansion, ikON pour ikON Projects,
   VisualParadox pour CityLights, Larcius / JRod pour les forêts, Larcius / le__AK pour GTA V Remastered,
   tonilopez_6 pour la Mancave, Gidoxy pour Ultra Music Festival, l'équipe Lively World Expansion). Gardez les crédits et respectez leurs conditions.
+
+## Caserne des sapeurs-pompiers (pt-maploader)
+
+La caserne SDIS 45 (ZE45_GaminG, El Burro Heights ≈ 1176, -1470) est une carte Map Editor chargée par `pt-maploader`
+(`cartes/caserne_sdis.lua`) : objets, véhicules et pompiers de décor. Le SAMU / pompiers y a une prise de garde et un
+garage. L'auteur demande qu'on lui écrive avant d'utiliser sa caserne sur FiveM (Discord ZE45_GaminG).
