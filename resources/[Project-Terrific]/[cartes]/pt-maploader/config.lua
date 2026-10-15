@@ -29,6 +29,17 @@ Config.Cartes = {
         pnj = false,
     },
     {
+        -- Ultra Music Festival (Gidoxy) : grande scene, ecrans, enceintes, lasers et danseurs sur la plage de Vespucci.
+        -- Environ 1 200 objets et 55 pnj : mettre actif = false entre deux evenements pour liberer la plage
+        -- (et retirer aussi la ressource pt-carte-ultra : lasers et projecteurs allumes).
+        nom = 'ultra_festival',
+        label = 'Ultra Music Festival (plage de Vespucci)',
+        actif = true,
+        fichier = 'cartes/ultra_festival.lua',
+        vehicules = false,
+        pnj = true,
+    },
+    {
         -- Entrees des interieurs ikON Projects (pt-carte-ikon) : bureaux, club souterrain, LSIA VIP, garage MOD...
         -- Les appartements de Vespucci Beach sont geres par l'immobilier (qbx_properties), pas ici.
         nom = 'ikon_teleporteurs',

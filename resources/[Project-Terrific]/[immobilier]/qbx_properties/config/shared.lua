@@ -140,6 +140,7 @@ return {
     -- Les positions sont celles de la zone : c'est l'agent qui choisit la porte et le point d'arrivee interieur.
     lieux = {
         { label = 'Malibu Mansion (Chumash)', zone = vec3(-3223.1, 793.0, 8.0), prix = 6500000, type = 'Villa', ressource = 'pt-carte-malibu' },
+        { label = 'Mancave : showroom auto et salon VIP (La Mesa)', zone = vec3(806.0, -894.4, 24.6), prix = 3200000, type = 'Entrepot', ressource = 'pt-carte-mancave' },
         { label = 'Appartement Vespucci Beach (ikON)', zone = vec3(-1384.76, -975.91, 8.95), prix = 450000, type = 'Appartement',
           ressource = 'pt-carte-ikon', interieur = vec4(-1394.83, -1005.51, 24.76, 129.1) },
         { label = 'Villa moderne (Tongva Hills)', zone = vec3(-2653.6, 1320.5, 144.3), prix = 2500000, type = 'Villa', ressource = 'pt-carte-villa-moderne' },

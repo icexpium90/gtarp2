@@ -16,6 +16,10 @@ Pour en retirer une, déplacez son dossier hors de `[cartes]` ou ajoutez `stop n
 | pt-carte-citylights | toute la carte | 4 421 éclairages LED de rues et d'autoroutes (version LOD bas, sans réglage du jeu) | ambiance de nuit |
 | pt-carte-ikon | toute la carte | ikON Projects 3.08 : une quarantaine de MLO et retouches de bâtiments (voir plus bas) | entreprises, QG, lieux publics |
 | pt-carte-ikon-cayo | Cayo Perico | portails et clôtures retirés, véhicules placés comme en ligne | île ouverte |
+| pt-carte-mancave | La Mesa, entrepôt (entrée ≈ 806, -894) | **MLO** : showroom auto, garage VIP, mezzanine avec bar, cave à vin et billard, 3 portes sectionnelles automatiques | bien à vendre (qbx_properties), concession, QG |
+| pt-carte-lively | plusieurs régions | Lively World Expansion : végétation et objets ajoutés (LOD optimisés, 3 Mo) | ambiance |
+| pt-carte-palmiers | Los Santos et Blaine County | 3 469 palmiers et plantes du jeu ajoutés | ambiance |
+| pt-carte-ultra + pt-maploader : ultra_festival | plage de Vespucci (≈ -1331, -1311) | Ultra Music Festival : grande scène, écrans, enceintes, lasers, 55 danseurs (≈ 1 200 objets) | événement, concert |
 | pt-maploader : mafia_mansion | Tongva Hills, domaine viticole (≈ -1899, 2044) | 23 voitures et 43 gardes de décor | QG de la Cosa Nostra |
 | pt-maploader : underwater_hq | lac de Vinewood Hills (≈ -1041, 1045) | QG sous-marin + yacht-club, 2 042 objets, 8 téléporteurs | **désactivé par défaut** |
 
@@ -49,6 +53,29 @@ shader modifié (les arbres ajoutés n'apparaissent simplement pas dans les refl
 L'auteur prévient que, avec les cartes du mode en ligne (toujours chargées sur FiveM), le jeu peut atteindre ses limites
 d'objets : activez-les après un essai à plusieurs joueurs, en décommentant `ensure [cartes-lourdes]` dans
 `projectterrific.cfg`. En cas de plantage au chargement, recommentez la ligne.
+
+## GTA V Remastered ([cartes-lourdes], désactivé par défaut)
+
+`pt-carte-remastered` : 13 400 objets ajoutés par Larcius (3 400 palmiers, 5 000 arbres, buissons, cactus, mobilier
+urbain), version 5.6 « Legacy », sans les modèles de reflets (même raison que les forêts). Il utilise les textures LOD
+de `pt-carte-forets-commun` et il est prévu pour aller avec les forêts (aucun doublon d'objets entre les deux).
+47 Mo de plus à télécharger. Il démarre avec `ensure [cartes-lourdes]`, comme les forêts.
+Si les palmiers semblent doublés quelque part avec `pt-carte-palmiers` ou `pt-carte-lively`, ajoutez
+`stop pt-carte-palmiers` (ou `stop pt-carte-lively`).
+
+## Mancave (pt-carte-mancave)
+
+Les portes de garage s'ouvrent seules à l'approche. Le mod remplace les fichiers de cet entrepôt (bâtiment, collisions,
+occlusion) : la collision du quartier `id2_15` était aussi modifiée par ikON (bureau Maibatsu, accessible par
+téléporteur) ; c'est celle de la Mancave qui est gardée pour pouvoir entrer en voiture. Si quelque chose bloque dans le
+bureau Maibatsu, prévenez-moi. Mise en vente : `/immo` > Lieux MLO disponibles > Mancave.
+
+## Ultra Music Festival
+
+Les objets de la scène sont créés par pt-maploader (`ultra_festival` dans `config.lua`), les lasers et projecteurs
+allumés par `pt-carte-ultra` (qui remplace les modèles `prop_spot_01` et `prop_spot_clamp_02` du jeu : ces projecteurs
+sont donc aussi allumés ailleurs sur la carte). Hors événement : `actif = false` pour `ultra_festival` et
+`stop pt-carte-ultra`.
 
 ## Brancher les QG de gangs
 
@@ -89,9 +116,10 @@ téléporteurs (E).
   de Grove Street jusqu'à Davis). Ils datent d'avant la build 3889 : si un élément récent de Rockstar manque dans le
   secteur, supprimez le dossier `stream/remplacements` (le décor Families reste, avec quelques chevauchements possibles).
 - Poids à télécharger par les joueurs à la première connexion : environ 250 Mo pour `[cartes]` (dont ikON 122 Mo et
-  Malibu 96 Mo), 60 Mo de plus pour les forêts.
+  Malibu 96 Mo), 60 Mo de plus pour les forêts et 47 Mo pour GTA V Remastered.
 - La piscine du Malibu Mansion est décorative : l'auteur conseille un mod d'eau « nageable partout » qui remplace l'eau
   du jeu, non inclus.
 - Ces cartes viennent de gta5-mods (auteurs : Patoche pour Ballas, Vagos et l'immeuble HLM, zaforr / Sarbatore pour
   Families, lafa2k pour la villa, mixtro pour le QG sous-marin, bsnk pour Malibu Mansion, ikON pour ikON Projects,
-  VisualParadox pour CityLights, Larcius / JRod pour les forêts). Gardez les crédits et respectez leurs conditions.
+  VisualParadox pour CityLights, Larcius / JRod pour les forêts, Larcius / le__AK pour GTA V Remastered,
+  tonilopez_6 pour la Mancave, Gidoxy pour Ultra Music Festival, l'équipe Lively World Expansion). Gardez les crédits et respectez leurs conditions.
