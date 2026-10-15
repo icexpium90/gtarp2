@@ -7,15 +7,13 @@ $adresse  = lusorp_adresse($cfg);
 $connexion = lusorp_lien_connexion($cfg);
 $annee    = date('Y');
 
-// Galerie : assets/img/galerie/1.jpg, 2.jpg, 3.jpg (ou .png / .webp) si présentes
+require __DIR__ . '/../app/images.php';
+$fond = lusorp_image('assets/img/fond');
+
+// Galerie : images envoyees depuis /admin (assets/img/galerie/1, 2, 3)
 function image_galerie(int $n): ?string
 {
-    foreach (['webp', 'jpg', 'jpeg', 'png'] as $ext) {
-        if (is_file(__DIR__ . "/assets/img/galerie/$n.$ext")) {
-            return "assets/img/galerie/$n.$ext";
-        }
-    }
-    return null;
+    return lusorp_image("assets/img/galerie/$n");
 }
 
 $activites = [
@@ -71,10 +69,13 @@ function icone(string $nom): string
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css?v=1">
+    <link rel="stylesheet" href="assets/css/style.css?v=2">
 </head>
 <body>
 <div class="fond" aria-hidden="true"></div>
+<?php if ($fond): ?>
+    <div class="banniere" aria-hidden="true" style="background-image: url('<?= e($fond) ?>')"></div>
+<?php endif; ?>
 
 <header class="nav" id="haut">
     <a class="marque" href="#accueil">

@@ -19,13 +19,15 @@ Chez le registrar de `luostatis.fr`, créer un enregistrement **A** : `rp` → I
 
 ```bash
 sudo apt update
-sudo apt install -y apache2 php libapache2-mod-php certbot python3-certbot-apache
+sudo apt install -y apache2 php libapache2-mod-php php-gd certbot python3-certbot-apache
 sudo a2enmod headers expires deflate rewrite
 
 # copier le dossier lusorp-site sur le VPS (WinSCP / FileZilla), puis :
 sudo mkdir -p /var/www/lusorp
 sudo cp -r lusorp-site/app lusorp-site/public /var/www/lusorp/
 sudo chown -R www-data:www-data /var/www/lusorp
+# dossiers ou le site ecrit : donnees de l'admin et photos envoyees depuis /admin
+sudo chmod -R u+rwX,g+rwX /var/www/lusorp/app/donnees /var/www/lusorp/public/assets/img
 
 sudo cp lusorp-site/apache/rp.luostatis.fr.conf /etc/apache2/sites-available/
 sudo a2ensite rp.luostatis.fr
@@ -47,13 +49,21 @@ Le statut est demandé au serveur FiveM (`http://IP:30120/dynamic.json`) par le 
 30 secondes en cache : les visiteurs ne contactent jamais directement le serveur de jeu. Si le site est sur le même VPS
 que FiveM, rien d'autre à faire.
 
-## 4. Galerie
+## 4. Administration des photos : rp.luostatis.fr/admin
 
-Déposer des captures d'écran dans `public/assets/img/galerie/` nommées `1.jpg`, `2.jpg`, `3.jpg`
-(ou `.png` / `.webp`). La n°1 sert aussi d'image à la section « La ville ». Sans image, un cadre aux couleurs du logo
-s'affiche à la place.
+Change la **photo de fond** de l'accueil et les **3 photos de la galerie** (JPG, PNG ou WEBP, 10 Mo maximum).
+
+1. Première visite sur `https://rp.luostatis.fr/admin` : la page demande un **code d'installation**. Il est créé à ce
+   moment-là sur le serveur, dans `/var/www/lusorp/app/donnees/code_installation.txt` :
+   `sudo cat /var/www/lusorp/app/donnees/code_installation.txt` (ou l'ouvrir avec WinSCP / FileZilla).
+2. Saisir ce code et choisir un mot de passe (10 caractères minimum). Le code est ensuite supprimé.
+3. Connexions suivantes : mot de passe seul. 5 erreurs = blocage 15 minutes pour cette adresse IP.
+
+Mot de passe oublié : supprimer `app/donnees/admin.json` sur le serveur, puis recommencer l'étape 1.
+Les images sont ré-encodées à l'envoi (données cachées retirées). Sans photo, la galerie affiche un cadre aux couleurs du logo.
 
 ## 5. Mise à jour
 
-Remplacer les fichiers de `public/` (et `app/statut.php`), garder votre `app/config.php`.
+Remplacer les fichiers de `public/` et `app/` sauf `app/config.php` et le dossier `app/donnees/` (mot de passe admin).
+Les photos envoyées depuis /admin sont dans `public/assets/img/` : ne pas les écraser.
 Après une modification du CSS ou du JS, augmenter le `?v=1` correspondant dans `index.php` pour vider le cache des navigateurs.
