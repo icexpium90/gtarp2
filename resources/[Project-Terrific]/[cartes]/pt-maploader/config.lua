@@ -30,11 +30,12 @@ Config.Cartes = {
     },
     {
         -- Ultra Music Festival (Gidoxy) : grande scene, ecrans, enceintes, lasers et danseurs sur la plage de Vespucci.
-        -- Environ 1 200 objets et 55 pnj : mettre actif = false entre deux evenements pour liberer la plage
-        -- (et retirer aussi la ressource pt-carte-ultra : lasers et projecteurs allumes).
+        -- Environ 1 200 objets et 55 pnj. Evenement : invisible tant qu'un admin ne l'allume pas
+        -- (/festival on, /festival off, ou /evenement ultra_festival on|off).
         nom = 'ultra_festival',
         label = 'Ultra Music Festival (plage de Vespucci)',
         actif = true,
+        evenement = true,
         fichier = 'cartes/ultra_festival.lua',
         vehicules = false,
         pnj = true,

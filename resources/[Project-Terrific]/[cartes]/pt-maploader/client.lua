@@ -117,15 +117,24 @@ local function mettreAJour(carte, pos)
     end
 end
 
-local function toutSupprimer()
-    for _, carte in ipairs(cartes) do
-        for _, typ in ipairs(TYPES) do
-            for i, ent in pairs(carte.ents[typ]) do
-                supprimer(ent)
-                carte.ents[typ][i] = nil
-            end
+local function viderCarte(carte)
+    for _, typ in ipairs(TYPES) do
+        for i, ent in pairs(carte.ents[typ]) do
+            supprimer(ent)
+            carte.ents[typ][i] = nil
         end
     end
+end
+
+local function toutSupprimer()
+    for _, carte in ipairs(cartes) do
+        viderCarte(carte)
+    end
+end
+
+-- Cartes d'evenement : affichees seulement quand un admin les allume (/evenement), etat partage par le serveur
+local function evenementAllume(carte)
+    return not carte.evenement or GlobalState['pt_evenement_' .. carte.nom] == true
 end
 
 CreateThread(function()
@@ -153,11 +162,17 @@ CreateThread(function()
     while true do
         local pos = GetEntityCoords(PlayerPedId())
         for _, carte in ipairs(cartes) do
-            local c = carte.data.centre
-            local dx, dy = c.x - pos.x, c.y - pos.y
-            local loin = carte.data.rayon + Config.DistanceApparition + 100.0
-            if dx * dx + dy * dy < loin * loin or next(carte.ents.objets) or next(carte.ents.vehicules) or next(carte.ents.pnj) then
-                mettreAJour(carte, pos)
+            if not evenementAllume(carte) then
+                if next(carte.ents.objets) or next(carte.ents.vehicules) or next(carte.ents.pnj) then
+                    viderCarte(carte)
+                end
+            else
+                local c = carte.data.centre
+                local dx, dy = c.x - pos.x, c.y - pos.y
+                local loin = carte.data.rayon + Config.DistanceApparition + 100.0
+                if dx * dx + dy * dy < loin * loin or next(carte.ents.objets) or next(carte.ents.vehicules) or next(carte.ents.pnj) then
+                    mettreAJour(carte, pos)
+                end
             end
         end
         Wait(1500)
@@ -172,7 +187,7 @@ CreateThread(function()
         local pos = GetEntityCoords(ped)
         local vehicule = GetVehiclePedIsIn(ped, false)
         for _, carte in ipairs(cartes) do
-            for _, m in ipairs(carte.data.marqueurs or {}) do
+            for _, m in ipairs(evenementAllume(carte) and carte.data.marqueurs or {}) do
                 local dist = #(pos - vector3(m.p[1], m.p[2], m.p[3]))
                 if dist < 25.0 then
                     attente = 0

@@ -19,7 +19,7 @@ Pour en retirer une, déplacez son dossier hors de `[cartes]` ou ajoutez `stop n
 | pt-carte-mancave | La Mesa, entrepôt (entrée ≈ 806, -894) | **MLO** : showroom auto, garage VIP, mezzanine avec bar, cave à vin et billard, 3 portes sectionnelles automatiques | bien à vendre (qbx_properties), concession, QG |
 | pt-carte-lively | plusieurs régions | Lively World Expansion : végétation et objets ajoutés (LOD optimisés, 3 Mo) | ambiance |
 | pt-carte-palmiers | Los Santos et Blaine County | 3 469 palmiers et plantes du jeu ajoutés | ambiance |
-| pt-carte-ultra + pt-maploader : ultra_festival | plage de Vespucci (≈ -1331, -1311) | Ultra Music Festival : grande scène, écrans, enceintes, lasers, 55 danseurs (≈ 1 200 objets) | événement, concert |
+| pt-maploader : ultra_festival | plage de Vespucci (≈ -1331, -1311) | Ultra Music Festival : grande scène, écrans, enceintes, lasers, 55 danseurs (≈ 1 200 objets) | **événement : éteint par défaut**, `/festival on` |
 | pt-maploader : mafia_mansion | Tongva Hills, domaine viticole (≈ -1899, 2044) | 23 voitures et 43 gardes de décor | QG de la Cosa Nostra |
 | pt-maploader : underwater_hq | lac de Vinewood Hills (≈ -1041, 1045) | QG sous-marin + yacht-club, 2 042 objets, 8 téléporteurs | **désactivé par défaut** |
 
@@ -70,12 +70,16 @@ occlusion) : la collision du quartier `id2_15` était aussi modifiée par ikON (
 téléporteur) ; c'est celle de la Mancave qui est gardée pour pouvoir entrer en voiture. Si quelque chose bloque dans le
 bureau Maibatsu, prévenez-moi. Mise en vente : `/immo` > Lieux MLO disponibles > Mancave.
 
-## Ultra Music Festival
+## Ultra Music Festival (événement)
 
-Les objets de la scène sont créés par pt-maploader (`ultra_festival` dans `config.lua`), les lasers et projecteurs
-allumés par `pt-carte-ultra` (qui remplace les modèles `prop_spot_01` et `prop_spot_clamp_02` du jeu : ces projecteurs
-sont donc aussi allumés ailleurs sur la carte). Hors événement : `actif = false` pour `ultra_festival` et
-`stop pt-carte-ultra`.
+Éteint par défaut : rien sur la plage tant qu'un admin ne l'allume pas. Pour tous les joueurs en même temps :
+- `/festival on` : la scène, les écrans, les lasers et les danseurs apparaissent ;
+- `/festival off` : tout disparaît (`/festival` seul bascule) ;
+- `/evenement` : liste des cartes d'événement et leur état.
+
+L'état est gardé après un redémarrage du serveur : pensez à l'éteindre à la fin. Les projecteurs « allumés » du pack
+(qui remplaçaient des modèles du jeu partout sur la carte) ne sont pas repris.
+Pour transformer une autre carte en événement : `evenement = true` dans son entrée de `pt-maploader/config.lua`.
 
 ## Brancher les QG de gangs
 
