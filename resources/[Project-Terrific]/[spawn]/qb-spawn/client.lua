@@ -9,6 +9,7 @@ local choosingSpawn = false
 local Houses = {}
 local cam = nil
 local cam2 = nil
+BiensSpawn = {} -- [qbx_<id>] = coordonnees de la porte (biens qbx_properties)
 
 -- Functions
 
@@ -56,8 +57,9 @@ RegisterNetEvent('qb-spawn:client:setupSpawns', function(cData, new, apps)
                 for i = 1, (#houses), 1 do
                     myHouses[#myHouses+1] = {
                         house = houses[i].house,
-                        label = Houses[houses[i].house].adress,
+                        label = houses[i].label or (Houses[houses[i].house] and Houses[houses[i].house].adress) or houses[i].house,
                     }
+                    if houses[i].coords then BiensSpawn[houses[i].house] = houses[i].coords end
                 end
             end
 
@@ -118,7 +120,12 @@ RegisterNUICallback('setCam', function(data, cb)
             SetCam(PlayerData.position)
         end)
     elseif type == "house" then
-        SetCam(Houses[location].coords.enter)
+        if BiensSpawn[location] then
+            local c = BiensSpawn[location]
+            SetCam(vector3(c.x, c.y, c.z))
+        else
+            SetCam(Houses[location].coords.enter)
+        end
     elseif type == "normal" then
         SetCam(QB.Spawns[location].coords)
     elseif type == "appartment" then
@@ -179,7 +186,10 @@ RegisterNUICallback('spawnplayer', function(data, cb)
             FreezeEntityPosition(ped, false)
         end)
 
-        if insideMeta.house ~= nil then
+        if PlayerData.metadata.currentPropertyId then
+            -- deconnecte a l'interieur d'un bien qbx_properties : on y revient
+            TriggerServerEvent('qbx_properties:server:enterProperty', { id = PlayerData.metadata.currentPropertyId, isSpawn = true })
+        elseif insideMeta.house ~= nil then
             local houseId = insideMeta.house
             TriggerEvent('qb-houses:client:LastLocationHouse', houseId)
         elseif insideMeta.apartment.apartmentType ~= nil or insideMeta.apartment.apartmentId ~= nil then
@@ -190,6 +200,18 @@ RegisterNUICallback('spawnplayer', function(data, cb)
         TriggerServerEvent('QBCore:Server:OnPlayerLoaded')
         TriggerEvent('QBCore:Client:OnPlayerLoaded')
 
+        PostSpawnPlayer()
+    elseif type == "house" and BiensSpawn[location] then
+        -- bien qbx_properties : apparition a la porte puis entree directe dans le bien
+        local c = BiensSpawn[location]
+        PreSpawnPlayer()
+        SetEntityCoords(ped, c.x, c.y, c.z)
+        TriggerServerEvent('QBCore:Server:OnPlayerLoaded')
+        TriggerEvent('QBCore:Client:OnPlayerLoaded')
+        TriggerServerEvent('qb-houses:server:SetInsideMeta', 0, false)
+        TriggerServerEvent('qb-apartments:server:SetInsideMeta', 0, 0, false)
+        Wait(500)
+        TriggerServerEvent('qbx_properties:server:enterProperty', { id = tonumber((location:gsub('qbx_', ''))), isSpawn = true })
         PostSpawnPlayer()
     elseif type == "house" then
         PreSpawnPlayer()
