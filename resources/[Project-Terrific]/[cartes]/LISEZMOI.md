@@ -129,9 +129,3 @@ téléporteurs (E).
   Families, lafa2k pour la villa, mixtro pour le QG sous-marin, bsnk pour Malibu Mansion, ikON pour ikON Projects,
   VisualParadox pour CityLights, Larcius / JRod pour les forêts, Larcius / le__AK pour GTA V Remastered,
   tonilopez_6 pour la Mancave, Gidoxy pour Ultra Music Festival, l'équipe Lively World Expansion). Gardez les crédits et respectez leurs conditions.
-
-## Caserne des sapeurs-pompiers (pt-maploader)
-
-La caserne SDIS 45 (ZE45_GaminG, El Burro Heights ≈ 1176, -1470) est une carte Map Editor chargée par `pt-maploader`
-(`cartes/caserne_sdis.lua`) : objets, véhicules et pompiers de décor. Le SAMU / pompiers y a une prise de garde et un
-garage. L'auteur demande qu'on lui écrive avant d'utiliser sa caserne sur FiveM (Discord ZE45_GaminG).

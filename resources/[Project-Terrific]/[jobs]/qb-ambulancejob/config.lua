@@ -45,13 +45,11 @@ Config.Locations = { -- Edit the various interaction points for players or creat
         [1] = vector3(307.36, -597.23, 43.28), -- PILLBOX -- 3rd eye
         [2] = vector3(-817.88, -1238.88, 7.34), -- VICEROY
         [3] = vector3(-254.88, 6324.5, 32.58),
-        [4] = vector3(1158.20, -1461.90, 34.84), -- caserne des sapeurs-pompiers (El Burro)
     },
     ["vehicle"] = {
         [1] = vector4(337.07, -579.08, 28.57, 341.39), -- PILLBOX -- 3rd eye
         [2] = vector4(-827.11, -1218.8, 6.7, 320.28), -- VICEROY -- 3rd eye
         [3] = vector4(-234.28, 6329.16, 32.15, 223.5),
-        [4] = vector4(1157.41, -1467.28, 34.11, 90.0), -- caserne des sapeurs-pompiers (El Burro)
     },
     ["helicopter"] = {
         [1] = vector4(351.58, -587.45, 74.16, 160.5), -- PILLBOX
@@ -93,7 +91,6 @@ Config.Locations = { -- Edit the various interaction points for players or creat
     ["stations"] = {
         [1] = {label = Lang:t('info.pb_hospital'), coords = vector4(304.27, -600.33, 43.28, 272.249)},
         [2] = {label = Lang:t('info.vc_hospital'), coords = vector4(-813.28, -1230.96, 7.34, 49.94)},
-        [3] = {label = 'Caserne des sapeurs-pompiers', coords = vector4(1176.43, -1469.75, 35.0, 90.0)},
     }
 }
 
