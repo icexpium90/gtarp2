@@ -49,12 +49,35 @@ local function variante(composant, sens)
     SetPedComponentVariation(ped, composant, d, 0, 0)
 end
 
+-- tenues de service enregistrees par le chef (vestiaire du metier, illenium-appearance)
+local function tenuesDuMetier()
+    if GetResourceState('illenium-appearance') ~= 'started' then return {} end
+    local genre = GetEntityModel(PlayerPedId()) == joaat('mp_f_freemode_01') and 'Female' or 'Male'
+    return lib.callback.await('illenium-appearance:server:getManagementOutfits', false, 'Job', genre) or {}
+end
+
+local function mettreTenueDuMetier(t)
+    TriggerEvent('illenium-appearance:client:changeOutfit', {
+        type = 'Job', name = t.name, model = t.model, components = t.components, props = t.props, disableSave = true,
+    })
+    enTenue = true
+end
+
 local function menu()
     if not autorise() then
         lib.notify({ description = 'Reserve aux forces de l\'ordre en service', type = 'error' })
         return
     end
     local options = {}
+    for _, t in ipairs(tenuesDuMetier()) do
+        options[#options + 1] = { title = t.name or 'Tenue', description = 'Tenue de service du metier', icon = 'user-tie',
+            onSelect = function()
+                if enTenue and GetEntityModel(PlayerPedId()) ~= joaat('mp_m_freemode_01') and GetEntityModel(PlayerPedId()) ~= joaat('mp_f_freemode_01') then
+                    remettreCivil() Wait(1500)
+                end
+                mettreTenueDuMetier(t)
+            end }
+    end
     for _, t in ipairs(Config.Tenues) do
         if autorise(t) then
             options[#options + 1] = { title = t.label, icon = 'shirt', onSelect = function() appliquer(t) menu() end }
@@ -90,6 +113,19 @@ local function tenueAuto()
     local def = Config.TenueAuto[job.name]
     if not def then return end
     if pd.metadata and (pd.metadata.isdead or pd.metadata.inlaststand) then return end
+    if enTenue then return end
+    if def.tenueDuMetier then
+        local liste = tenuesDuMetier()
+        if #liste > 0 then
+            local choix = liste[1]
+            for _, t in ipairs(liste) do
+                if (t.name or ''):lower():find('^service') then choix = t break end
+            end
+            mettreTenueDuMetier(choix)
+            lib.notify({ description = ('Tenue de service mise (%s). /tenue pour en changer.'):format(choix.name or ''), type = 'inform' })
+            return
+        end
+    end
     local femme = pd.charinfo and tonumber(pd.charinfo.gender) == 1
     local modele = femme and def.femme or (not femme and def.homme)
     if not modele then return end

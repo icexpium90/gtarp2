@@ -14,8 +14,12 @@ Config.Tenues = {
 -- Tenue mise automatiquement a la prise de service (et a la connexion si le metier commence en service).
 -- homme / femme : modele du ped selon le sexe du personnage ; absent = le joueur garde ses vetements.
 -- Le vestiaire (/tenue) reste disponible pour changer de tenue.
+-- tenueDuMetier : d'abord la tenue de service enregistree par le chef dans le vestiaire du metier (illenium-appearance,
+-- tenues EUP francaises de pt-eup-france). Celle dont le nom commence par "Service" est prise en priorite, sinon la premiere.
+-- Sans tenue enregistree pour le metier, le ped (homme / femme) est utilise s'il est defini.
 Config.TenueAuto = {
-    gendarmerie = { homme = 's_m_m_chemsec_01', femme = 's_f_y_sheriff_01' },
-    ambulance   = { homme = 's_m_y_fireman_01' },
+    police      = { tenueDuMetier = true },
+    gendarmerie = { tenueDuMetier = true, homme = 's_m_m_chemsec_01', femme = 's_f_y_sheriff_01' },
+    ambulance   = { tenueDuMetier = true, homme = 's_m_y_fireman_01' },
 }
 Config.TenueAutoALaConnexion = true
