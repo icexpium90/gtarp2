@@ -802,8 +802,10 @@ local function spectacle(c, e)
         end
     end
 
-    ---------------------------------------------------------------- lance-flammes (sub-bass, growls, drops)
-    if not calme and Config.Lumieres.flammes then
+    ---------------------------------------------------------------- lance-flammes (sub-bass, growls, drops + automatique)
+    local cfgF = Config.Lumieres.flammes
+    if not calme and cfgF then
+        local chaque = cfgF.toutesLesMesures or 0
         if m.drop then
             unefois(dernierFlamme, c.id, 'drop' .. m.n, function() lanceFlammes(c) end)
         elseif fort and sub >= 0.85 and m.n % 4 == 0 and m.phase < 0.15 then
@@ -811,6 +813,9 @@ local function spectacle(c, e)
         elseif growlFort and growl >= 0.85 and m.phaseCroche < 0.2 and m.croche % 4 == 0 then
             local cote = (m.croche // 4) % 2
             unefois(dernierFlamme, c.id, 'growl' .. m.croche, function() lanceFlammes(c, function(i) return i % 2 == cote end) end)
+        elseif chaque > 0 and m.energie >= 0.6 and m.n % (chaque * 4) == 0 and m.phase < 0.15 then
+            -- automatique : sur le 1er temps toutes les X mesures, des que la musique est forte
+            unefois(dernierFlamme, c.id, 'auto' .. m.n, function() lanceFlammes(c) end)
         end
     end
 
