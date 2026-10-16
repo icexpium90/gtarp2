@@ -233,3 +233,19 @@ function updateVolumeSounds() {
         }
     }
 }
+// LUSO RP : position reelle de lecture (YouTube / MP3) envoyee au jeu 4 fois par seconde,
+// pour caler les effets (pt-dj) sur ce que le joueur entend vraiment.
+setInterval(function () {
+    for (const name in soundList) {
+        const sound = soundList[name];
+        if (!sound || !sound.isPlaying || !sound.isPlaying()) continue;
+        let t = null;
+        try {
+            if (sound.isAudioYoutubePlayer()) t = sound.yPlayer.getCurrentTime();
+            else if (sound.audioPlayer) t = sound.audioPlayer.seek();
+        } catch (e) { t = null; }
+        if (typeof t === 'number' && isFinite(t)) {
+            $.post('https://xsound/data_status', JSON.stringify({ type: "realTime", id: name, time: t }));
+        }
+    }
+}, 250);

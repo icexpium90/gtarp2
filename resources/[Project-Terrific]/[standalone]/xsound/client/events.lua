@@ -21,6 +21,11 @@ RegisterNUICallback("data_status", function(data, cb)
             soundInfo[data.id].hasMaxTime = true
             soundInfo[data.id].maxDuration = data.time
         end
+        -- LUSO RP : position reelle de lecture (voir html/scripts/listener.js)
+        if data.type == "realTime" then
+            soundInfo[data.id].realTime = tonumber(data.time)
+            soundInfo[data.id].realTimeAt = GetGameTimer()
+        end
     end
 
     if cb then

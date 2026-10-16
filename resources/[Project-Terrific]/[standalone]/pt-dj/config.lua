@@ -28,12 +28,23 @@ Config.Lumieres = {
     jetsDevant = 6,
     co2 = {
         effets = {                    -- premier effet disponible dans le jeu
-            { dict = 'core', nom = 'exp_sht_extinguisher', echelle = 2.5 },
-            { dict = 'core', nom = 'ent_sht_steam', echelle = 3.0 },
+            { dict = 'core', nom = 'exp_sht_extinguisher', echelle = 3.4 },
+            { dict = 'core', nom = 'ent_sht_steam', echelle = 3.8 },
         },
-        rotation = vec3(90.0, 0.0, 0.0), -- oriente le jet vers le ciel
-        duree = 1400,                 -- duree d'un jet (ms)
+        angleTir = 55.0,              -- angle au-dessus de l'horizontale, vers le public (90 = droit vers le ciel)
+        duree = 1500,                 -- duree d'un jet (ms)
     },
+    -- lance-flammes au pied de la scene (entre les jets de CO2) : sub-bass, drops, growls
+    flammes = {
+        nombre = 4,
+        effets = {
+            { dict = 'core', nom = 'ent_sht_flame', echelle = 2.2 },
+            { dict = 'core', nom = 'exp_grd_petrol_pump_post', echelle = 1.0 },
+        },
+        rotation = vec3(90.0, 0.0, 0.0), -- vers le ciel
+        duree = 900,
+    },
+    -- couleurs : changent quand l'harmonie du morceau change (analyse), sinon toutes les 8 mesures
 }
 
 -- Cabines DJ

@@ -65,7 +65,7 @@ local analyses = {}
 local function analyserMorceau(id, e)
     local deja = analyses[e.url]
     if deja then
-        e.bpm, e.ancre, e.analyse, e.coups, e.energie = deja.bpm, deja.ancre, 'ok', deja.coups, deja.energie
+        e.bpm, e.ancre, e.analyse, e.coups, e.energie, e.bandes, e.couleurs = deja.bpm, deja.ancre, 'ok', deja.coups, deja.energie, deja.bandes, deja.couleurs
         return
     end
     e.analyse = 'encours'
@@ -75,7 +75,7 @@ local function analyserMorceau(id, e)
     PerformHttpRequest((Config.AnalyseAdresse or 'http://127.0.0.1:30125') .. '/analyse?url=' .. encode, function(code, corps)
         local ok, r = pcall(json.decode, corps or '')
         if code == 200 and ok and type(r) == 'table' and r.bpm then
-            TriggerEvent('pt-dj:analyseFaite', id, v, r.bpm, r.ancre, r.confiance, nil, r.coups, r.energie)
+            TriggerEvent('pt-dj:analyseFaite', id, v, r.bpm, r.ancre, r.confiance, nil, r.coups, r.energie, r.bandes, r.couleurs)
         else
             local raison = (ok and type(r) == 'table' and r.erreur) or (code == 0 and 'service d\'analyse injoignable (tools/dj-analyse lance ?)') or ('code ' .. tostring(code))
             TriggerEvent('pt-dj:analyseFaite', id, v, nil, nil, 0, raison)
@@ -90,7 +90,7 @@ local function lancer(id, url, garder)
     if not garder then e.file = e.file or {} end
     local r = reglagesDe(id)
     e.bpm, e.ancre, e.lumieres, e.fumeeAuto = r.bpm, 0, r.lumieres, r.fumeeAuto
-    e.bpmManuel, e.coups, e.energie = nil, nil, nil
+    e.bpmManuel, e.coups, e.energie, e.bandes, e.couleurs = nil, nil, nil, nil, nil
     if Config.AnalyseTempo ~= false then analyserMorceau(id, e) end
     etats[id] = e
     publier(id)
@@ -184,7 +184,7 @@ RegisterNetEvent('pt-dj:server:commande', function(id, action, valeur)
         e.bpm = r.bpm
         e.ancre = type(valeur) == 'table' and tonumber(valeur[2]) or e.ancre or 0
         e.bpmManuel = true
-        e.coups, e.energie = nil, nil
+        e.coups, e.energie, e.bandes, e.couleurs = nil, nil, nil, nil
     elseif action == 'reanalyser' then
         analyses[e.url] = nil
         e.bpmManuel = nil
@@ -214,33 +214,36 @@ RegisterNetEvent('pt-dj:server:duree', function(id, v, duree)
 end)
 
 -- resultat de l'analyse (analyse.js)
-AddEventHandler('pt-dj:analyseFaite', function(id, v, bpm, ancre, confiance, erreur, coups, energie)
+AddEventHandler('pt-dj:analyseFaite', function(id, v, bpm, ancre, confiance, erreur, coups, energie, bandes, couleurs)
     local e = etats[id]
     bpm, ancre = tonumber(bpm), tonumber(ancre)
     if type(coups) ~= 'string' then coups = nil end
     if type(energie) ~= 'string' then energie = nil end
+    if type(bandes) ~= 'table' then bandes = nil end
+    if type(couleurs) ~= 'string' then couleurs = nil end
     if bpm and e and e.url and e.v == v then
-        analyses[e.url] = { bpm = bpm, ancre = ancre, coups = coups, energie = energie }
+        analyses[e.url] = { bpm = bpm, ancre = ancre, coups = coups, energie = energie, bandes = bandes, couleurs = couleurs }
     end
     if not e or e.v ~= v then return end
     if not bpm then
         e.analyse = 'echec'
         print(('^3[pt-dj] analyse du tempo impossible (%s) : %s^7'):format(tostring(erreur), tostring(e.url)))
     elseif not e.bpmManuel then
-        e.bpm, e.ancre, e.analyse, e.coups, e.energie = bpm, ancre or 0, 'ok', coups, energie
+        e.bpm, e.ancre, e.analyse, e.coups, e.energie, e.bandes, e.couleurs = bpm, ancre or 0, 'ok', coups, energie, bandes, couleurs
     end
     publier(id)
 end)
 
 -- jets de CO2 a la demande du DJ
-RegisterNetEvent('pt-dj:server:co2', function(id)
+RegisterNetEvent('pt-dj:server:co2', function(id, genre)
     local src = source
     local c = verifier(src, id)
     if not c then return end
-    local cle = id .. 'co2'
+    genre = genre == 'flammes' and 'flammes' or 'co2'
+    local cle = id .. genre
     if dernierEffet[cle] and os.time() - dernierEffet[cle] < 2 then return end
     dernierEffet[cle] = os.time()
-    TriggerClientEvent('pt-dj:client:co2', -1, id)
+    TriggerClientEvent('pt-dj:client:co2', -1, id, genre)
 end)
 
 RegisterNetEvent('pt-dj:server:effet', function(id, effet)

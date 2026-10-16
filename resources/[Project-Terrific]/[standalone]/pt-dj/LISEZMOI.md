@@ -80,3 +80,23 @@ Au-dessus de chaque scene, une rampe calculee automatiquement (ou positions donn
 
 Reglages dans `Config.Lumieres` : nombre de lyres et de strobos, largeur et hauteur de la rampe, faisceaux visibles,
 effet et orientation des jets de CO2.
+
+## Reaction par instrument (analyse v2)
+
+Le service d'analyse decoupe le son par instrument, a chaque croche : kick, sub-bass, basse, accords (mid), lead,
+growl, charley. Le spectacle s'en sert :
+- **kick** : eclats des lyres, strobos, lasers qui claquent, jets de CO2 alternes sur les gros kicks ;
+- **sub-bass** : lueur au sol qui pulse, lance-flammes sur les gros subs ;
+- **basse** : ouverture de l'eventail de lasers ;
+- **accords** : nappe de lumiere des lyres ; **les couleurs changent quand l'accord change** (au plus une fois par
+  mesure), sinon toutes les 8 mesures ;
+- **lead** : lasers qui montent, lyres vers le ciel, feux d'artifice sur les grosses leads ;
+- **growl** : lasers vert / rouge en saccades depuis toute la rampe, lyres erratiques qui scintillent, flammes ;
+- **charley** : etincelles des strobos.
+Figures des lyres : 7 motifs (eventail, croisement, cercles, ballyhoo, vague, rideau, convergence) qui tournent
+toutes les 2 mesures. CO2 incline vers le public (`co2.angleTir`), lance-flammes (`Config.Lumieres.flammes`),
+boutons « Jets de CO2 » et « Lance-flammes » dans le menu du DJ.
+
+Synchronisation : le spectacle suit la position reelle du lecteur de chaque joueur (xsound modifie : position lue
+4 fois par seconde et lissee), donc il est cale sur ce que chacun entend, a quelques millisecondes pres.
+Apres la mise a jour, relancer l'analyse des morceaux deja joues (les anciens resultats n'ont pas les instruments).

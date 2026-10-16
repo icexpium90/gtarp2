@@ -69,6 +69,15 @@ end
 
 exports('getTimeStamp', getTimeStamp)
 
+-- LUSO RP : position reelle de lecture en secondes (precise), et moment (GetGameTimer) ou elle a ete mesuree
+function getRealTimeStamp(name_)
+    local s = soundInfo[name_]
+    if not s or not s.realTime then return nil, nil end
+    return s.realTime, s.realTimeAt
+end
+
+exports('getRealTimeStamp', getRealTimeStamp)
+
 function getMaxDuration(name_)
     return soundInfo[name_].maxDuration or -1
 end

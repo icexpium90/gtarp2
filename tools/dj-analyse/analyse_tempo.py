@@ -145,11 +145,82 @@ def profil(pcm, env, bpm, ancre):
     return ''.join(map(str, coups)), ''.join(map(str, energie))
 
 
+def bandes(pcm, bpm, ancre):
+    """Analyse par instrument, a chaque croche : kick, sub, bass, mid (accords), lead, growl, high (charley),
+    et couleurs : numero d'accord par temps (change quand l'harmonie change), pour changer les couleurs au bon moment."""
+    nfft = 1024
+    n = (len(pcm) - nfft) // HOP
+    if n <= 10:
+        return {}, ''
+    fen = np.hanning(nfft)
+    freqs = np.fft.rfftfreq(nfft, 1 / SR)
+    spec = np.empty((n, len(freqs)), dtype=np.float32)
+    for i0 in range(0, n, 2048):                       # par blocs (memoire)
+        i1 = min(n, i0 + 2048)
+        idx = (np.arange(i0, i1) * HOP)[:, None] + np.arange(nfft)[None, :]
+        spec[i0:i1] = np.abs(np.fft.rfft(pcm[idx] * fen, axis=1))
+    def bande(f0, f1):
+        sel = (freqs >= f0) & (freqs < f1)
+        return spec[:, sel]
+    energie = lambda b: np.log1p(b.sum(axis=1))
+    flux = lambda b: np.maximum(0, np.diff(np.log1p(b), axis=0, prepend=np.log1p(b[:1]))).sum(axis=1)
+    sub = energie(bande(20, 60))
+    bass = energie(bande(60, 250))
+    kick = flux(bande(40, 130))
+    mid_b = bande(250, 2000)
+    mid = energie(mid_b)
+    lead_b = bande(2000, 5000)
+    lead = energie(lead_b) * (lead_b.max(axis=1) / (lead_b.mean(axis=1) + 1e-9)) ** 0.5   # tonal : pics marques
+    high = flux(bande(4500, 5500))
+    growl_b = bande(250, 3000)
+    growl = flux(growl_b) * np.log1p(growl_b.sum(axis=1))                                  # gros son medium qui bouge vite
+    periode = 60 / bpm
+    t0 = ancre - LATENCE
+    croches = np.arange(t0, n / FPS, periode / 2)
+    def par_croche(x, mode):
+        out = []
+        for t in croches:
+            if mode == 'max':   # attaque : seulement le debut de la croche (~70 ms)
+                f0, f1 = max(0, int(round(t * FPS)) - 1), min(n, int(round(t * FPS)) + 3)
+            else:
+                f0, f1 = max(0, int(t * FPS) - 1), min(n, int((t + periode / 2) * FPS))
+            seg = x[f0:f1]
+            out.append((seg.max() if mode == 'max' else seg.mean()) if len(seg) else 0.0)
+        out = np.array(out)
+        bas, haut = np.quantile(out, 0.2), np.quantile(out, 0.97)
+        return ''.join(map(str, np.clip(np.round(9 * (out - bas) / max(1e-9, haut - bas)), 0, 9).astype(int)))
+    res = {
+        'kick': par_croche(kick, 'max'), 'sub': par_croche(sub, 'mean'), 'bass': par_croche(bass, 'mean'),
+        'mid': par_croche(mid, 'mean'), 'lead': par_croche(lead, 'mean'), 'growl': par_croche(growl, 'mean'),
+        'high': par_croche(high, 'max'),
+    }
+    # harmonie : chroma (12 notes) par temps, nouvelle couleur quand l'accord change nettement (au plus une par mesure)
+    sel = (freqs >= 100) & (freqs < 2000)
+    notes = np.round(12 * np.log2(freqs[sel] / 440.0)).astype(int) % 12
+    chroma_trames = np.zeros((n, 12), dtype=np.float32)
+    for k in range(12):
+        chroma_trames[:, k] = spec[:, sel][:, notes == k].sum(axis=1)
+    couleurs, num, precedent, derniere_mesure = [], 0, None, -99
+    for i, t in enumerate(np.arange(t0, n / FPS, periode)):
+        f0, f1 = max(0, int(t * FPS)), min(n, int((t + 2 * periode) * FPS))
+        v = chroma_trames[f0:f1].mean(axis=0) if f1 > f0 else np.zeros(12)
+        v = v / (np.linalg.norm(v) + 1e-9)
+        if precedent is not None and float(np.dot(v, precedent)) < 0.82 and i // 4 != derniere_mesure and i % 2 == 0:
+            num += 1
+            derniere_mesure = i // 4
+        if precedent is None or i % 2 == 0:
+            precedent = v
+        couleurs.append(str(num % 10))
+    return res, ''.join(couleurs)
+
+
 def analyser(url):
     pcm = decoder(url)
     env = enveloppe(pcm)
     r = tempo(env[:int(DUREE_TEMPO * FPS)])
     r['coups'], r['energie'] = profil(pcm, env, r['bpm'], r['ancre'])
+    r['bandes'], r['couleurs'] = bandes(pcm, r['bpm'], r['ancre'])
+    r['version'] = 2
     return r
 
 
@@ -185,11 +256,11 @@ class Gestionnaire(BaseHTTPRequestHandler):
         url = (urllib.parse.parse_qs(u.query).get('url') or [''])[0]
         if not url.startswith(('http://', 'https://')):
             return self.repondre(400, {'erreur': 'lien invalide'})
-        if url in CACHE:
+        if url in CACHE and CACHE[url].get('version') == 2:
             return self.repondre(200, CACHE[url])
         try:
             with verrou:
-                r = CACHE.get(url) or analyser(url)
+                r = CACHE.get(url) if (CACHE.get(url) or {}).get('version') == 2 else analyser(url)
             CACHE[url] = r
             try:
                 with open(CACHE_FICHIER, 'w') as f:
