@@ -36,11 +36,14 @@ def est_youtube(url):
 def decoder(url):
     ff = ['nice', '-n', '15', 'ffmpeg', '-hide_banner', '-loglevel', 'error']
     if est_youtube(url):
-        yt = subprocess.Popen(['nice', '-n', '15', 'yt-dlp', '-q', '--no-playlist', '-f', 'bestaudio', '-o', '-', url],
-                              stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        yt = subprocess.Popen(['nice', '-n', '15', 'yt-dlp', '-q', '--no-warnings', '--no-playlist', '-f', 'bestaudio/best',
+                               '-o', '-', url], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         p = subprocess.run(ff + ['-i', 'pipe:0', '-t', str(DUREE_MAX), '-ac', '1', '-ar', str(SR), '-f', 's16le', 'pipe:1'],
                            stdin=yt.stdout, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=150)
         yt.kill()
+        erreur_yt = (yt.stderr.read() or b'').decode('utf-8', 'replace').strip().splitlines()
+        if len(p.stdout) < SR * 2 * 10 and erreur_yt:
+            raise RuntimeError('yt-dlp : ' + ' | '.join(erreur_yt[-3:])[:400])
     else:
         p = subprocess.run(ff + ['-i', url, '-t', str(DUREE_MAX), '-ac', '1', '-ar', str(SR), '-f', 's16le', 'pipe:1'],
                            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=150)

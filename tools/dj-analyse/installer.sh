@@ -6,6 +6,10 @@ apt-get update -qq
 apt-get install -y -qq ffmpeg python3 python3-numpy curl
 curl -sL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
 chmod a+rx /usr/local/bin/yt-dlp
+# yt-dlp a besoin d'un moteur JavaScript (Deno) pour lire YouTube depuis fin 2025
+apt-get install -y -qq unzip
+curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh -s -- -y >/dev/null
+deno --version | head -1
 UTIL="${SUDO_USER:-$(whoami)}"
 cat > /etc/systemd/system/pt-dj-analyse.service <<UNIT
 [Unit]
