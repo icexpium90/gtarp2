@@ -176,10 +176,16 @@ ouvrirMenu = function(c)
         },
     }
     options[#options + 1] = {
-        title = ('Tempo : %s BPM - taper le tempo'):format(e and e.bpm or Config.BpmDefaut), icon = 'drum',
-        description = 'Appuyez sur E au rythme de la musique (8 fois) : lumieres, lasers et fumee se calent dessus',
+        title = ('Tempo : %s BPM %s'):format(e and math.floor((e.bpm or Config.BpmDefaut) + 0.5) or Config.BpmDefaut,
+            not e and '' or e.bpmManuel and '(manuel)' or e.analyse == 'ok' and '(analyse)' or e.analyse == 'encours' and '(analyse en cours...)'
+            or e.analyse == 'echec' and '(analyse impossible)' or ''), icon = 'drum',
+        description = 'Taper le tempo a la main : appuyez 8 fois sur E au rythme (remplace l\'analyse pour ce morceau)',
         disabled = not (e and e.url),
         onSelect = function() TaperTempo(c) end,
+    }
+    options[#options + 1] = {
+        title = 'Relancer l\'analyse du tempo', icon = 'wave-square', disabled = not (e and e.url) or (e and e.analyse == 'encours'),
+        onSelect = function() TriggerServerEvent('pt-dj:server:commande', c.id, 'reanalyser') Wait(300) ouvrirMenu(c) end,
     }
     options[#options + 1] = {
         title = 'Regler le tempo a la main', icon = 'gauge', disabled = not (e and e.url),

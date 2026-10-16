@@ -3,7 +3,9 @@ Config = {}
 Config.Touche = 38                -- E
 Config.DelaiEffets = 4            -- secondes minimum entre deux effets sur une meme cabine
 Config.VolumeDefaut = 60          -- en %
-Config.BpmDefaut = 128            -- tempo par defaut du jeu de lumieres (le DJ le cale avec le tap tempo)
+Config.BpmDefaut = 128            -- tempo utilise en attendant l'analyse (ou si elle echoue)
+-- Analyse automatique du tempo de chaque morceau par le serveur (ffmpeg, + yt-dlp pour YouTube : voir LISEZMOI.md)
+Config.AnalyseTempo = true
 
 -- Jeu de lumieres synchronise sur le tempo (projecteurs, lasers, stroboscope, fumee automatique).
 -- Chaque cabine peut definir : projecteurs = { vec3(...), ... } (sinon : au-dessus des machines a fumee),

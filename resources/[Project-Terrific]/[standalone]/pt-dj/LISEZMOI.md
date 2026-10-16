@@ -42,9 +42,23 @@ Quand de la musique joue, chaque scene a son spectacle : projecteurs de couleur 
 chaque temps, eventail de lasers qui tourne, stroboscope sur la derniere mesure de chaque phrase, lasers du decor qui
 clignotent, fumee automatique toutes les 8 mesures.
 
-Le jeu ne peut pas analyser le son : le DJ donne le tempo. Menu de la table de mixage :
-- **Taper le tempo** : appuyer 8 fois sur E au rythme de la musique (cale aussi les temps forts) ;
-- **Regler le tempo a la main** : BPM (128 par defaut, typique de l'EDM) ;
+**Analyse automatique du tempo** : a chaque morceau lance, le serveur decode les 2 premieres minutes (ffmpeg, et yt-dlp
+pour YouTube), calcule le tempo et la position des temps forts, et le spectacle se cale dessus pour tout le monde
+(quelques secondes apres le debut du morceau ; 128 BPM en attendant). Un morceau deja analyse n'est pas re-analyse.
+
+Installation sur le VPS (une seule fois) :
+```bash
+sudo apt install -y ffmpeg
+sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
+sudo chmod a+rx /usr/local/bin/yt-dlp
+```
+Sans ffmpeg / yt-dlp, l'analyse echoue proprement (message dans la console) et le DJ cale le tempo a la main.
+YouTube bloque parfois les serveurs (« confirm you're not a bot ») : dans ce cas, utiliser des liens MP3 ou le tap tempo.
+
+Menu de la table de mixage :
+- **Tempo** : affiche le tempo et sa source (analyse, manuel) ; cliquer = taper le tempo (8 fois E) ;
+- **Relancer l'analyse du tempo** ;
+- **Regler le tempo a la main** : BPM ;
 - **Jeu de lumieres** et **Fumee automatique** : allumer / eteindre.
 
 Reglages (couleurs, distance, frequence de la fumee) : `Config.Lumieres` dans `config.lua`. Positions optionnelles par

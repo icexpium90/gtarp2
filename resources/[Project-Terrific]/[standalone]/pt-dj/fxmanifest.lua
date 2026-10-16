@@ -11,7 +11,10 @@ shared_scripts {
     'config.lua',
 }
 client_script 'client.lua'
-server_script 'server.lua'
+server_scripts {
+    'server.lua',
+    'analyse.js',
+}
 
 dependencies {
     'qb-core',

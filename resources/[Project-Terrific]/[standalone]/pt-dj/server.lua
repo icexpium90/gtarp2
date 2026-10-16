@@ -60,6 +60,18 @@ local function urlValide(url)
     return type(url) == 'string' and #url < 400 and url:match('^https?://') ~= nil
 end
 
+-- analyse du tempo (analyse.js) : resultat garde par lien pour ne pas re-analyser un morceau deja joue
+local analyses = {}
+local function analyserMorceau(id, e)
+    local deja = analyses[e.url]
+    if deja then
+        e.bpm, e.ancre, e.analyse = deja.bpm, deja.ancre, 'ok'
+        return
+    end
+    e.analyse = 'encours'
+    TriggerEvent('pt-dj:analyser', id, e.v, e.url)
+end
+
 local function lancer(id, url, garder)
     local e = etats[id] or { volume = Config.VolumeDefaut, boucle = false, file = {}, v = 0 }
     e.url, e.debut, e.decalage, e.pause, e.duree = url, maintenant(), 0, false, nil
@@ -67,6 +79,8 @@ local function lancer(id, url, garder)
     if not garder then e.file = e.file or {} end
     local r = reglagesDe(id)
     e.bpm, e.ancre, e.lumieres, e.fumeeAuto = r.bpm, 0, r.lumieres, r.fumeeAuto
+    e.bpmManuel = nil
+    if Config.AnalyseTempo ~= false then analyserMorceau(id, e) end
     etats[id] = e
     publier(id)
 end
@@ -158,6 +172,11 @@ RegisterNetEvent('pt-dj:server:commande', function(id, action, valeur)
         r.bpm = math.floor(bpm * 10 + 0.5) / 10
         e.bpm = r.bpm
         e.ancre = type(valeur) == 'table' and tonumber(valeur[2]) or e.ancre or 0
+        e.bpmManuel = true
+    elseif action == 'reanalyser' then
+        analyses[e.url] = nil
+        e.bpmManuel = nil
+        analyserMorceau(id, e)
     elseif action == 'lumieres' then
         local r = reglagesDe(id)
         r.lumieres = not r.lumieres
@@ -180,6 +199,21 @@ RegisterNetEvent('pt-dj:server:duree', function(id, v, duree)
         e.duree = duree
         publier(id)
     end
+end)
+
+-- resultat de l'analyse (analyse.js)
+AddEventHandler('pt-dj:analyseFaite', function(id, v, bpm, ancre, confiance, erreur)
+    local e = etats[id]
+    bpm, ancre = tonumber(bpm), tonumber(ancre)
+    if bpm and e and e.url then analyses[e.url] = analyses[e.url] or (e.v == v and { bpm = bpm, ancre = ancre } or nil) end
+    if not e or e.v ~= v then return end
+    if not bpm then
+        e.analyse = 'echec'
+        print(('^3[pt-dj] analyse du tempo impossible (%s) : %s^7'):format(tostring(erreur), tostring(e.url)))
+    elseif not e.bpmManuel then
+        e.bpm, e.ancre, e.analyse = bpm, ancre or 0, 'ok'
+    end
+    publier(id)
 end)
 
 RegisterNetEvent('pt-dj:server:effet', function(id, effet)
