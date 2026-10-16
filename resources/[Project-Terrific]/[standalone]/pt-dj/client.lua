@@ -428,13 +428,14 @@ local function scene(c)
         return liste
     end
     -- pyrotechnie (CO2, flammes) : posee SUR la scene, au bord avant, et tiree vers le ciel
-    local function ligneScene(nb, decale)
+    local function ligneScene(nb, decale, reglage)
         local liste = {}
         local lw = w * 0.9
-        local z = c.son.z + (L.pyroHauteur or -1.0)
+        reglage = reglage or {}
+        local z = c.son.z + (reglage.hauteur or L.pyroHauteur or -1.0)
         for i = 1, nb do
             local x = nb > 1 and (-lw / 2 + lw * (i - 1 + (decale or 0)) / (nb - 1 + (decale and 1 or 0))) or 0.0
-            local p = c.son + avant * (L.pyroAvant or 3.0) + cote * x
+            local p = c.son + avant * (reglage.avant or L.pyroAvant or 3.0) + cote * x
             liste[i] = vec3(p.x, p.y, z)
         end
         return liste
@@ -451,8 +452,8 @@ local function scene(c)
             vec3(0, 0, 0) + c.son + avant * 5.0 + cote * (-w / 2) + vec3(0.0, 0.0, sol - c.son.z + 0.5),
             vec3(0, 0, 0) + c.son + avant * 5.0 + cote * (w / 2) + vec3(0.0, 0.0, sol - c.son.z + 0.5),
         },
-        co2 = c.co2 or ligneScene(L.jetsDevant or 6),
-        flammes = c.flammes or ligneScene((L.flammes and L.flammes.nombre) or 4, 0.5),
+        co2 = c.co2 or ligneScene(L.jetsDevant or 6, nil, L.co2),
+        flammes = c.flammes or ligneScene((L.flammes and L.flammes.nombre) or 4, 0.5, L.flammes),
         sol = sol, cap = cap,
         avant = avant, cote = cote, centreRampe = centreRampe,
         public = c.public or (c.son + avant * 25.0 + vec3(0.0, 0.0, -3.0)),
@@ -472,7 +473,11 @@ local function tir(cle, cfg, points, rotation, quels)
                 if chargerDict(ef.dict) then
                     UseParticleFxAsset(ef.dict)
                     h = StartParticleFxLoopedAtCoord(ef.nom, p.x, p.y, p.z, rotation.x, rotation.y, rotation.z, ef.echelle or 2.0, false, false, false, false)
-                    if h and h ~= 0 then effetsTrouves[cle] = ef break end
+                    if h and h ~= 0 then
+                        effetsTrouves[cle] = ef
+                        if cfg.couleur then SetParticleFxLoopedColour(h, cfg.couleur[1], cfg.couleur[2], cfg.couleur[3], false) end
+                        break
+                    end
                 end
             end
             if h and h ~= 0 then boucles[#boucles + 1] = h end

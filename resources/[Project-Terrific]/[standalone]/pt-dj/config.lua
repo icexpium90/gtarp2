@@ -34,7 +34,10 @@ Config.Lumieres = {
             { dict = 'core', nom = 'exp_sht_extinguisher', echelle = 3.4 },
             { dict = 'core', nom = 'ent_sht_steam', echelle = 3.8 },
         },
-        angleTir = 90.0,              -- 90 = droit vers le ciel (55 = incline vers le public) ; /testpyro co2 pour verifier
+        angleTir = -90.0,             -- droit vers le ciel (retourne de 180 degres) ; /testpyro co2 pour verifier
+        couleur = { 1.0, 1.0, 1.0 },  -- blanc
+        avant = 1.5,                  -- distance (m) devant la cabine : au bord de la scene
+        hauteur = -1.0,               -- hauteur (m) par rapport au son de la cabine
         duree = 1500,                 -- duree d'un jet (ms)
     },
     -- lance-flammes au pied de la scene (entre les jets de CO2) : sub-bass, drops, growls
@@ -45,6 +48,8 @@ Config.Lumieres = {
             { dict = 'core', nom = 'exp_grd_petrol_pump_post', echelle = 1.0 },
         },
         rotation = vec3(0.0, 0.0, 0.0), -- vers le ciel ; si ce n'est pas le cas : /testpyro flammes
+        avant = 1.5,                  -- au bord de la scene
+        hauteur = -1.6,               -- plus pres du sol
         duree = 900,
     },
     -- couleurs : changent quand l'harmonie du morceau change (analyse), sinon toutes les 8 mesures
