@@ -205,6 +205,10 @@ ouvrirMenu = function(c)
         disabled = not (e and e.url and c.effets and c.effets.fumee),
         onSelect = function() TriggerServerEvent('pt-dj:server:commande', c.id, 'fumeeauto') Wait(300) ouvrirMenu(c) end,
     }
+    options[#options + 1] = {
+        title = 'Effet : Jets de CO2', icon = 'wind',
+        onSelect = function() TriggerServerEvent('pt-dj:server:co2', c.id) ouvrirMenu(c) end,
+    }
     for cle, ef in pairs(Config.Effets) do
         if c.effets and c.effets[cle] then
             options[#options + 1] = {
@@ -353,6 +357,7 @@ end
 
 local function scene(c)
     if scenes[c.id] then return scenes[c.id] end
+    local L = Config.Lumieres
     local ef = c.effets or {}
     local devant = (ef.confettis and #ef.confettis > 0) and moyenne(ef.confettis) or (c.son + vec3(0.0, 8.0, 0.0))
     local avant = devant - c.son
@@ -360,21 +365,62 @@ local function scene(c)
     local l = #avant
     avant = l > 0.1 and (avant / l) or vec3(0.0, 1.0, 0.0)
     local cote = vec3(-avant.y, avant.x, 0.0)
-    local projecteurs = c.projecteurs
-    if not projecteurs then
-        projecteurs = {}
-        for _, p in ipairs(ef.fumee or {}) do projecteurs[#projecteurs + 1] = p + vec3(0.0, 0.0, 9.0) end
-        if #projecteurs == 0 then
-            for i = -2, 2 do projecteurs[#projecteurs + 1] = c.son + cote * (i * 5.0) + vec3(0.0, 0.0, 7.0) end
+    local centreRampe = c.son + avant * 2.0 + vec3(0.0, 0.0, L.hauteurRampe or 9.0)
+    local function rampe(nb, dz)
+        local liste = {}
+        local w = L.largeurRampe or 34.0
+        for i = 1, nb do
+            local x = nb > 1 and (-w / 2 + w * (i - 1) / (nb - 1)) or 0.0
+            liste[i] = centreRampe + cote * x + vec3(0.0, 0.0, dz)
+        end
+        return liste
+    end
+    local co2 = c.co2
+    if not co2 then
+        co2 = {}
+        for _, p in ipairs(ef.fumee or {}) do co2[#co2 + 1] = p end
+        if #co2 == 0 then
+            for i = -2, 2 do co2[#co2 + 1] = c.son + avant * 3.0 + cote * (i * 6.0) + vec3(0.0, 0.0, -3.0) end
         end
     end
-    local lasers = c.lasers or { c.son + vec3(0.0, 0.0, 5.0) }
     local s = {
-        projecteurs = projecteurs, lasers = lasers, avant = avant, cote = cote,
+        lyres = c.lyres or c.projecteurs or rampe(L.lyres or 16, 0.0),
+        strobos = c.strobos or rampe(L.strobos or 10, 0.8),
+        lasers = c.lasers or { c.son + vec3(0.0, 0.0, 5.0), centreRampe + cote * -10.0, centreRampe + cote * 10.0 },
+        co2 = co2,
+        avant = avant, cote = cote,
         public = c.public or (c.son + avant * 25.0 + vec3(0.0, 0.0, -3.0)),
     }
     scenes[c.id] = s
     return s
+end
+
+-- jets de CO2 (effet du jeu oriente vers le ciel, premier effet disponible)
+local effetCo2 = nil
+local function jetsCo2(c, quels)
+    local s = scene(c)
+    local cfg = Config.Lumieres.co2
+    if #(GetEntityCoords(PlayerPedId()) - c.son) > 250.0 then return end
+    local r = cfg.rotation or vec3(90.0, 0.0, 0.0)
+    local boucles = {}
+    for i, p in ipairs(s.co2) do
+        if not quels or quels(i) then
+            local h = 0
+            for _, ef in ipairs(effetCo2 and { effetCo2 } or cfg.effets) do
+                if chargerDict(ef.dict) then
+                    UseParticleFxAsset(ef.dict)
+                    h = StartParticleFxLoopedAtCoord(ef.nom, p.x, p.y, p.z, r.x, r.y, r.z, ef.echelle or 2.0, false, false, false, false)
+                    if h and h ~= 0 then effetCo2 = ef break end
+                end
+            end
+            if h and h ~= 0 then boucles[#boucles + 1] = h end
+        end
+    end
+    if #boucles > 0 then
+        SetTimeout(cfg.duree or 1400, function()
+            for _, b in ipairs(boucles) do StopParticleFxLooped(b, false) end
+        end)
+    end
 end
 
 local function couleur(n)
@@ -421,37 +467,85 @@ local function musique(c, e)
     return m
 end
 
+-- faisceau visible d'une lyre : cylindre colore et transparent de la lyre vers sa cible
+local function faisceau(p, dir, longueur, col, alpha, largeur)
+    DrawMarker(1, p.x, p.y, p.z, dir.x, dir.y, dir.z, 0.0, 0.0, 0.0, largeur, largeur, longueur,
+        col[1], col[2], col[3], alpha, false, false, 2, false, nil, nil, false)
+end
+
+local dernierCo2 = {}
+
 local function spectacle(c, e)
     local s = scene(c)
     local m = musique(c, e)
     local E = m.energie
-    local calme = E < 0.3                       -- break / intro : lumiere douce, pas de lasers
-    local fort = E >= 0.75                      -- drop / refrain
-    local c1, c2 = couleur(fort and m.n or m.mesure), couleur((fort and m.n or m.mesure) + 2)
+    local calme = E < 0.3                       -- break / intro
+    local fort = E >= 0.7                       -- drop / refrain
+    local enorme = E >= 0.88                    -- le plus fort du morceau
+    local c1, c2 = couleur(fort and m.n or m.mesure), couleur((fort and m.n or m.mesure) + 3)
+    local motif = m.mesure % 4                  -- figure des lyres, change a chaque mesure
+    local nbL = #s.lyres
 
-    -- projecteurs : intensite = energie du passage + eclat sur chaque vrai coup ; vitesse selon l'energie
-    local vitesse = 0.4 + 1.6 * E
-    for i, p in ipairs(s.projecteurs) do
-        local col = (i % 2 == 0) and c1 or c2
-        local balayage = math.sin(m.t * vitesse + i * 1.3) * (8.0 + 10.0 * E)
-        local cible = s.public + s.cote * balayage + s.avant * (math.cos(m.t * vitesse * 0.7 + i) * 6.0)
-        local dir = cible - p
-        dir = dir / #dir
-        local lumiere = (calme and 3.0 or 4.0 + 10.0 * E) + 45.0 * m.coup * (0.4 + E)
-        DrawSpotLight(p.x, p.y, p.z, dir.x, dir.y, dir.z, col[1], col[2], col[3], 70.0, lumiere, 0.0, 7.0 + 6.0 * E, 1.0)
+    -- veille de drop (montee) et drop
+    local veilleDeDrop
+    if m.analyse then
+        veilleDeDrop = ((lire(e.energie, (m.mesure + 1) * 4) or 0) / 9.0) - E >= 0.4
+    else
+        veilleDeDrop = (m.mesure % 8) == 7
     end
 
-    -- lasers : nombre de faisceaux et vitesse selon l'energie, coupes pendant les breaks, clignotent sur les coups
+    ---------------------------------------------------------------- lyres
+    local vitesse = 0.5 + 2.5 * E
+    local blinder = m.drop or (m.analyse and m.n % 4 == 0 and m.phase < 0.12 and enorme)
+    for i, p in ipairs(s.lyres) do
+        local x = nbL > 1 and ((i - 1) / (nbL - 1) * 2.0 - 1.0) or 0.0   -- -1 (gauche) .. 1 (droite)
+        local cible
+        if calme then
+            -- break : balayage lent et large, tous ensemble
+            cible = s.public + s.cote * (math.sin(m.t * 0.35) * 18.0 + x * 6.0) + s.avant * 4.0
+        elseif motif == 0 then
+            -- eventail qui s'ouvre et se ferme sur le temps
+            cible = s.public + s.cote * (x * (6.0 + 16.0 * math.abs(math.sin(m.t * vitesse * 0.5)))) + s.avant * (x * x * 6.0)
+        elseif motif == 1 then
+            -- croisement : gauche vers la droite et inversement
+            cible = s.public + s.cote * (-x * 14.0 * math.sin(m.t * vitesse * 0.6)) + s.avant * (math.cos(m.t * vitesse + i) * 5.0)
+        elseif motif == 2 then
+            -- cercles decales (chaque lyre en retard sur la voisine)
+            local a = m.t * vitesse + i * 0.45
+            cible = s.public + s.cote * (math.cos(a) * 12.0 + x * 4.0) + s.avant * (math.sin(a) * 8.0)
+        else
+            -- ballyhoo : vers le ciel et retour, rapide sur les passages forts
+            local a = m.t * vitesse * 1.3 + i * 0.9
+            cible = p + s.avant * 20.0 + s.cote * (math.sin(a) * 14.0) + vec3(0.0, 0.0, -8.0 + 14.0 * math.abs(math.sin(a * 0.5)))
+        end
+        local dir = cible - p
+        local longueur = #dir
+        dir = dir / longueur
+        -- couleur : alternee, ou en chenillard sur les passages forts
+        local col = fort and couleur(m.n + i // 2) or ((i % 2 == 0) and c1 or c2)
+        if blinder then col = { 255, 255, 255 } end
+        -- intensite : base selon l'energie + eclat sur chaque coup ; chenillard en croches sur les passages forts
+        local chenillard = fort and ((math.floor(m.temps * 2) % nbL) + 1 == i) and 1.0 or 0.0
+        local lumiere = (calme and 3.0 or 5.0 + 14.0 * E) + 55.0 * m.coup * (0.4 + E) + 40.0 * chenillard + (blinder and 90.0 or 0.0)
+        DrawSpotLight(p.x, p.y, p.z, dir.x, dir.y, dir.z, col[1], col[2], col[3], 80.0, lumiere, 0.0, 6.0 + 7.0 * E, 1.0)
+        if Config.Lumieres.faisceaux ~= false then
+            local alpha = math.floor(math.min(160, (calme and 25 or 35 + 70 * E) + 90 * m.coup + 80 * chenillard + (blinder and 120 or 0)))
+            faisceau(p, dir, math.min(longueur, 45.0), col, alpha, 0.35 + 0.35 * E)
+        end
+    end
+
+    ---------------------------------------------------------------- lasers
     if not calme then
-        local nb = math.floor(2 + 6 * E)
+        local nb = math.floor(3 + 9 * E)
         local sens = (m.mesure % 2 == 0) and 1.0 or -1.0
-        local allume = fort and (m.coup > 0.15 or m.phase < 0.5) or (m.n % 2 == 0) or m.phase < 0.5
+        local allume = fort and (m.coup > 0.12 or m.phase < 0.5) or (m.n % 2 == 0) or m.phase < 0.5
         if allume then
-            for _, o in ipairs(s.lasers) do
+            for oi, o in ipairs(s.lasers) do
                 for k = -nb, nb do
-                    local angle = k * (0.36 / math.max(1, nb / 2)) + math.sin(m.t * (0.8 + 2.0 * E) * sens) * 0.6
+                    local angle = k * (0.42 / math.max(1, nb / 2)) + math.sin(m.t * (0.8 + 2.6 * E) * sens + oi) * 0.7
                     local dirH = s.avant * math.cos(angle) + s.cote * math.sin(angle)
-                    local fin = o + dirH * 60.0 + vec3(0.0, 0.0, math.sin(m.t * 2.0 + k) * 4.0 - 2.0)
+                    local hauteur = enorme and (math.sin(m.t * 6.0 + k * 0.5) * 6.0) or (math.sin(m.t * 2.0 + k) * 4.0 - 2.0)
+                    local fin = o + dirH * 70.0 + vec3(0.0, 0.0, hauteur)
                     local col = (k % 2 == 0) and c1 or c2
                     DrawLine(o.x, o.y, o.z, fin.x, fin.y, fin.z, col[1], col[2], col[3], 255)
                 end
@@ -459,19 +553,45 @@ local function spectacle(c, e)
         end
     end
 
-    -- stroboscope : sur les gros coups pendant les passages forts, et en croches sur la mesure avant un drop
-    local veilleDeDrop = false
-    if m.analyse then
-        local suivant = lire(e.energie, (m.mesure + 1) * 4) or 0
-        veilleDeDrop = suivant / 9.0 - E >= 0.4
-    else
-        veilleDeDrop = (m.mesure % 8) == 7
-    end
-    if (fort and m.coupFort) or (veilleDeDrop and ((m.temps * 2) % 1.0) < 0.25) then
-        DrawLightWithRange(c.son.x, c.son.y, c.son.z + 6.0, 255, 255, 255, 60.0, 30.0)
+    ---------------------------------------------------------------- stroboscopes
+    local double = (m.temps * 4) % 1.0 < 0.3        -- en double-croches
+    local nbS = #s.strobos
+    for i, p in ipairs(s.strobos) do
+        local flash = false
+        if veilleDeDrop then
+            -- montee : tous en double-croches, de plus en plus vite sur la fin de la mesure
+            local vitesseMontee = (m.n % 4 == 3) and 8 or 4
+            flash = (m.temps * vitesseMontee) % 1.0 < 0.3
+        elseif enorme then
+            -- le plus fort : chenillard gauche-droite en double-croches + tous sur les gros coups
+            flash = ((math.floor(m.temps * 4) % nbS) + 1 == i and double) or m.coupFort
+        elseif fort then
+            flash = m.coupFort and (i % 2 == m.n % 2)
+        end
+        if blinder or flash then
+            DrawLightWithRange(p.x, p.y, p.z, 255, 255, 255, 40.0, blinder and 40.0 or 22.0)
+        end
     end
 
-    -- drop : confettis, feux d'artifice et fumee d'un coup (meme calcul chez tous les joueurs)
+    ---------------------------------------------------------------- jets de CO2
+    if not calme then
+        local cle
+        if m.drop then
+            cle = 'drop' .. m.n
+            if dernierCo2[c.id] ~= cle then dernierCo2[c.id] = cle CreateThread(function() jetsCo2(c) end) end
+        elseif enorme and m.n % 8 == 0 and m.phase < 0.2 then
+            -- toutes les 2 mesures au plus fort : tous les jets
+            cle = 'fort' .. m.n
+            if dernierCo2[c.id] ~= cle then dernierCo2[c.id] = cle CreateThread(function() jetsCo2(c) end) end
+        elseif fort and m.n % 4 == 2 and m.phase < 0.2 then
+            -- passages forts : un jet sur deux, en alternance
+            cle = 'alt' .. m.n
+            local pair = (m.n // 4) % 2
+            if dernierCo2[c.id] ~= cle then dernierCo2[c.id] = cle CreateThread(function() jetsCo2(c, function(i) return i % 2 == pair end) end) end
+        end
+    end
+
+    ---------------------------------------------------------------- drop : confettis, feux d'artifice, fumee
     if m.drop and dernierDrop[c.id] ~= m.n then
         dernierDrop[c.id] = m.n
         CreateThread(function()
@@ -533,5 +653,11 @@ CreateThread(function()
             end
         end
         Wait(attente)
+    end
+end)
+
+RegisterNetEvent('pt-dj:client:co2', function(id)
+    for _, x in ipairs(Config.Cabines) do
+        if x.id == id then jetsCo2(x) return end
     end
 end)

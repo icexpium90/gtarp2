@@ -221,6 +221,17 @@ AddEventHandler('pt-dj:analyseFaite', function(id, v, bpm, ancre, confiance, err
     publier(id)
 end)
 
+-- jets de CO2 a la demande du DJ
+RegisterNetEvent('pt-dj:server:co2', function(id)
+    local src = source
+    local c = verifier(src, id)
+    if not c then return end
+    local cle = id .. 'co2'
+    if dernierEffet[cle] and os.time() - dernierEffet[cle] < 2 then return end
+    dernierEffet[cle] = os.time()
+    TriggerClientEvent('pt-dj:client:co2', -1, id)
+end)
+
 RegisterNetEvent('pt-dj:server:effet', function(id, effet)
     local src = source
     local c = verifier(src, id)

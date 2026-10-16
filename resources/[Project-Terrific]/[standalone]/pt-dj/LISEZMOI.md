@@ -70,3 +70,17 @@ Menu de la table de mixage :
 
 Reglages (couleurs, distance, frequence de la fumee) : `Config.Lumieres` dans `config.lua`. Positions optionnelles par
 cabine : `projecteurs`, `lasers`, `public`.
+
+## Rampe lumiere (version « festival »)
+
+Au-dessus de chaque scene, une rampe calculee automatiquement (ou positions donnees par cabine) :
+- **16 lyres** avec faisceaux visibles dans l'air : une figure par mesure (eventail, croisement, cercles decales,
+  ballyhoo), chenillard de couleurs sur les passages forts, blinder blanc sur les drops ;
+- **10 stroboscopes** : double-croches qui accelerent pendant les montees, chenillard gauche-droite au plus fort,
+  flash sur les gros coups ;
+- **jets de CO2** au pied de la scene : tous ensemble sur les drops et toutes les 2 mesures au plus fort, en
+  alternance sur les passages forts, et a la demande du DJ (menu > Effet : Jets de CO2) ;
+- lasers (3 sources, jusqu'a 19 faisceaux chacune), confettis, feux d'artifice et fumee sur les drops.
+
+Reglages dans `Config.Lumieres` : nombre de lyres et de strobos, largeur et hauteur de la rampe, faisceaux visibles,
+effet et orientation des jets de CO2.

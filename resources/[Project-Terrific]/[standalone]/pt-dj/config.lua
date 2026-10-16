@@ -17,6 +17,21 @@ Config.Lumieres = {
         { 255, 0, 120 }, { 0, 180, 255 }, { 140, 0, 255 }, { 255, 60, 0 }, { 0, 255, 120 }, { 255, 255, 255 },
     },
     fumeeToutesLesMesures = 8,        -- fumee automatique toutes les N mesures (4 temps)
+    -- rampe (truss) au-dessus de chaque scene, calculee si la cabine ne donne pas ses positions :
+    lyres = 16,                       -- nombre de lyres (projecteurs motorises) ; positions : cabine.lyres = { vec3... }
+    strobos = 10,                     -- nombre de stroboscopes ; positions : cabine.strobos = { vec3... }
+    largeurRampe = 34.0,              -- largeur de la rampe (m)
+    hauteurRampe = 9.0,               -- hauteur de la rampe au-dessus du centre de la scene (m)
+    faisceaux = true,                 -- faisceaux visibles des lyres (cones de lumiere dans l'air)
+    -- jets de CO2 : au pied de la scene (positions des machines a fumee, ou cabine.co2 = { vec3... })
+    co2 = {
+        effets = {                    -- premier effet disponible dans le jeu
+            { dict = 'core', nom = 'exp_sht_extinguisher', echelle = 2.5 },
+            { dict = 'core', nom = 'ent_sht_steam', echelle = 3.0 },
+        },
+        rotation = vec3(90.0, 0.0, 0.0), -- oriente le jet vers le ciel
+        duree = 1400,                 -- duree d'un jet (ms)
+    },
 }
 
 -- Cabines DJ
