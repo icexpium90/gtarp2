@@ -6,6 +6,12 @@ local QBCore = exports['qb-core']:GetCoreObject()
 local etats = {}
 local autorises = {}     -- [citizenid] = true (autorisations donnees par /autoriserdj, jusqu'au redemarrage)
 local dernierEffet = {}
+-- reglages du jeu de lumieres, gardes d'un morceau a l'autre : bpm, ancre (calage du temps), lumieres, fumeeAuto
+local reglages = {}
+local function reglagesDe(id)
+    reglages[id] = reglages[id] or { bpm = Config.BpmDefaut or 128, ancre = 0, lumieres = true, fumeeAuto = true }
+    return reglages[id]
+end
 
 local function cabine(id)
     for _, c in ipairs(Config.Cabines) do
@@ -59,6 +65,8 @@ local function lancer(id, url, garder)
     e.url, e.debut, e.decalage, e.pause, e.duree = url, maintenant(), 0, false, nil
     e.v = (e.v or 0) + 1
     if not garder then e.file = e.file or {} end
+    local r = reglagesDe(id)
+    e.bpm, e.ancre, e.lumieres, e.fumeeAuto = r.bpm, 0, r.lumieres, r.fumeeAuto
     etats[id] = e
     publier(id)
 end
@@ -142,6 +150,22 @@ RegisterNetEvent('pt-dj:server:commande', function(id, action, valeur)
         return suivant(id)
     elseif action == 'viderfile' then
         e.file = {}
+    elseif action == 'bpm' then
+        -- valeur = { bpm, ancre } : ancre = position (s) d'un temps fort dans le morceau, donnee par le tap tempo
+        local bpm = tonumber(type(valeur) == 'table' and valeur[1] or valeur)
+        if not bpm or bpm < 60 or bpm > 200 then return end
+        local r = reglagesDe(id)
+        r.bpm = math.floor(bpm * 10 + 0.5) / 10
+        e.bpm = r.bpm
+        e.ancre = type(valeur) == 'table' and tonumber(valeur[2]) or e.ancre or 0
+    elseif action == 'lumieres' then
+        local r = reglagesDe(id)
+        r.lumieres = not r.lumieres
+        e.lumieres = r.lumieres
+    elseif action == 'fumeeauto' then
+        local r = reglagesDe(id)
+        r.fumeeAuto = not r.fumeeAuto
+        e.fumeeAuto = r.fumeeAuto
     else
         return
     end

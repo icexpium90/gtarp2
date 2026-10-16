@@ -3,6 +3,19 @@ Config = {}
 Config.Touche = 38                -- E
 Config.DelaiEffets = 4            -- secondes minimum entre deux effets sur une meme cabine
 Config.VolumeDefaut = 60          -- en %
+Config.BpmDefaut = 128            -- tempo par defaut du jeu de lumieres (le DJ le cale avec le tap tempo)
+
+-- Jeu de lumieres synchronise sur le tempo (projecteurs, lasers, stroboscope, fumee automatique).
+-- Chaque cabine peut definir : projecteurs = { vec3(...), ... } (sinon : au-dessus des machines a fumee),
+-- lasers = { vec3(...), ... } (sinon : au-dessus du centre de la scene), public = vec3(...) (centre de la foule,
+-- sinon devant la scene, du cote des canons a confettis).
+Config.Lumieres = {
+    distance = 150.0,                 -- distance a laquelle on voit le spectacle
+    couleurs = {
+        { 255, 0, 120 }, { 0, 180, 255 }, { 140, 0, 255 }, { 255, 60, 0 }, { 0, 255, 120 }, { 255, 255, 255 },
+    },
+    fumeeToutesLesMesures = 8,        -- fumee automatique toutes les N mesures (4 temps)
+}
 
 -- Cabines DJ
 --   coords     : la table de mixage (le DJ se place devant et appuie sur E)
@@ -64,7 +77,8 @@ Config.Cabines = {
 
 -- Effets de particules du jeu (dictionnaire, nom, en boucle ?, duree en ms pour les boucles, echelle)
 Config.Effets = {
-    fumee = { label = 'Fumee', dict = 'scr_ba_club', nom = 'scr_ba_club_smoke_machine', boucle = true, duree = 8000, echelle = 3.0 },
+    fumee = { label = 'Fumee', dict = 'core', nom = 'exp_grd_bzgas_smoke', boucle = true, duree = 9000, echelle = 1.6,
+              secours = { dict = 'scr_ba_club', nom = 'scr_ba_club_smoke_machine', echelle = 3.0 } },
     confettis = { label = 'Canons a confettis', dict = 'scr_xs_celebration', nom = 'scr_xs_confetti_burst', boucle = false, echelle = 2.0 },
     feux = { label = 'Feux d\'artifice', dict = 'scr_indep_fireworks', nom = 'scr_indep_firework_starburst', boucle = false, echelle = 2.0 },
 }

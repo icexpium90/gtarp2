@@ -35,3 +35,17 @@ Les joueurs qui arrivent en cours de morceau l'entendent à partir du bon moment
 - Chaque joueur peut couper toute la musique pour lui avec `/streamermode` (commande de xsound, utile en stream pour
   les droits d'auteur).
 - Une vidéo YouTube dont l'intégration est bloquée par son auteur ne se lance pas : prendre un autre lien.
+
+## Jeu de lumieres sur le tempo
+
+Quand de la musique joue, chaque scene a son spectacle : projecteurs de couleur qui balayent le public et frappent sur
+chaque temps, eventail de lasers qui tourne, stroboscope sur la derniere mesure de chaque phrase, lasers du decor qui
+clignotent, fumee automatique toutes les 8 mesures.
+
+Le jeu ne peut pas analyser le son : le DJ donne le tempo. Menu de la table de mixage :
+- **Taper le tempo** : appuyer 8 fois sur E au rythme de la musique (cale aussi les temps forts) ;
+- **Regler le tempo a la main** : BPM (128 par defaut, typique de l'EDM) ;
+- **Jeu de lumieres** et **Fumee automatique** : allumer / eteindre.
+
+Reglages (couleurs, distance, frequence de la fumee) : `Config.Lumieres` dans `config.lua`. Positions optionnelles par
+cabine : `projecteurs`, `lasers`, `public`.

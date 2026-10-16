@@ -101,6 +101,7 @@ end)
 -- Menu de la table de mixage
 
 local ouvrirMenu
+local tempsPrecis
 
 local function demanderLien(titre)
     local r = lib.inputDialog(titre, {
@@ -174,6 +175,30 @@ ouvrirMenu = function(c)
             onSelect = function() TriggerServerEvent('pt-dj:server:commande', c.id, 'stop') end,
         },
     }
+    options[#options + 1] = {
+        title = ('Tempo : %s BPM - taper le tempo'):format(e and e.bpm or Config.BpmDefaut), icon = 'drum',
+        description = 'Appuyez sur E au rythme de la musique (8 fois) : lumieres, lasers et fumee se calent dessus',
+        disabled = not (e and e.url),
+        onSelect = function() TaperTempo(c) end,
+    }
+    options[#options + 1] = {
+        title = 'Regler le tempo a la main', icon = 'gauge', disabled = not (e and e.url),
+        onSelect = function()
+            local r = lib.inputDialog('Tempo', { { type = 'number', label = 'BPM (60 a 200)', default = e and e.bpm or Config.BpmDefaut, min = 60, max = 200 } })
+            if r and r[1] then TriggerServerEvent('pt-dj:server:commande', c.id, 'bpm', r[1]) end
+            Wait(300) ouvrirMenu(c)
+        end,
+    }
+    options[#options + 1] = {
+        title = (e and e.lumieres == false) and 'Jeu de lumieres : eteint' or 'Jeu de lumieres : allume', icon = 'lightbulb',
+        disabled = not (e and e.url),
+        onSelect = function() TriggerServerEvent('pt-dj:server:commande', c.id, 'lumieres') Wait(300) ouvrirMenu(c) end,
+    }
+    options[#options + 1] = {
+        title = (e and e.fumeeAuto == false) and 'Fumee automatique : non' or 'Fumee automatique : oui', icon = 'cloud',
+        disabled = not (e and e.url and c.effets and c.effets.fumee),
+        onSelect = function() TriggerServerEvent('pt-dj:server:commande', c.id, 'fumeeauto') Wait(300) ouvrirMenu(c) end,
+    }
     for cle, ef in pairs(Config.Effets) do
         if c.effets and c.effets[cle] then
             options[#options + 1] = {
@@ -231,19 +256,27 @@ local function chargerDict(dict)
     return true
 end
 
-RegisterNetEvent('pt-dj:client:effet', function(id, cle)
-    local c
-    for _, x in ipairs(Config.Cabines) do if x.id == id then c = x end end
+local function demarrerBoucle(ef, p)
+    UseParticleFxAsset(ef.dict)
+    return StartParticleFxLoopedAtCoord(ef.nom, p.x, p.y, p.z, 0.0, 0.0, 0.0, ef.echelle or 1.0, false, false, false, false)
+end
+
+function JouerEffet(c, cle)
     local ef = Config.Effets[cle]
     if not c or not ef or not c.effets or not c.effets[cle] then return end
     if #(GetEntityCoords(PlayerPedId()) - c.son) > 300.0 then return end
     if not chargerDict(ef.dict) then return end
     local boucles = {}
     for _, p in ipairs(c.effets[cle]) do
-        UseParticleFxAsset(ef.dict)
         if ef.boucle then
-            boucles[#boucles + 1] = StartParticleFxLoopedAtCoord(ef.nom, p.x, p.y, p.z, 0.0, 0.0, 0.0, ef.echelle or 1.0, false, false, false, false)
+            local h = demarrerBoucle(ef, p)
+            -- effet indisponible sur cette version du jeu : effet de secours
+            if (not h or h == 0) and ef.secours and chargerDict(ef.secours.dict) then
+                h = demarrerBoucle(ef.secours, p)
+            end
+            if h and h ~= 0 then boucles[#boucles + 1] = h end
         else
+            UseParticleFxAsset(ef.dict)
             StartParticleFxNonLoopedAtCoord(ef.nom, p.x, p.y, p.z, 0.0, 0.0, 0.0, ef.echelle or 1.0, false, false, false)
         end
     end
@@ -252,9 +285,192 @@ RegisterNetEvent('pt-dj:client:effet', function(id, cle)
             for _, b in ipairs(boucles) do StopParticleFxLooped(b, false) end
         end)
     end
+end
+
+RegisterNetEvent('pt-dj:client:effet', function(id, cle)
+    for _, x in ipairs(Config.Cabines) do
+        if x.id == id then JouerEffet(x, cle) return end
+    end
 end)
 
 AddEventHandler('onResourceStop', function(nom)
     if nom ~= GetCurrentResourceName() then return end
     for _, c in ipairs(Config.Cabines) do arreter(c.id) end
+end)
+
+-- ---------------------------------------------------------------------------------------------------------------
+-- Jeu de lumieres synchronise sur le tempo du DJ (projecteurs, lasers, stroboscope, fumee automatique).
+-- Le jeu ne peut pas « ecouter » le son : le DJ donne le tempo (tap tempo ou BPM) et chaque joueur calcule les temps
+-- a partir de l'heure du serveur, donc tout le monde voit les memes flashs au meme moment.
+
+local repere = { s = 0, gt = 0 }
+tempsPrecis = function(e)
+    if e.pause then return e.decalage end
+    local s = heureServeur()
+    if s ~= repere.s then repere.s, repere.gt = s, GetGameTimer() end
+    return e.decalage + (s - e.debut) + math.min(GetGameTimer() - repere.gt, 999) / 1000.0
+end
+
+function TaperTempo(c)
+    local e = etat(c.id)
+    if not e or not e.url then return end
+    lib.showTextUI('[E] au rythme de la musique (8 fois)  -  [Retour] annuler', { position = 'top-center', icon = 'drum' })
+    local taps, limite = {}, GetGameTimer() + 15000
+    while #taps < 8 and GetGameTimer() < limite do
+        if IsControlJustPressed(0, 38) then taps[#taps + 1] = { gt = GetGameTimer(), t = tempsPrecis(etat(c.id) or e) } end
+        if IsControlJustPressed(0, 177) then break end
+        Wait(0)
+    end
+    lib.hideTextUI()
+    if #taps < 4 then
+        TriggerEvent('QBCore:Notify', 'Tempo non pris (il faut au moins 4 appuis).', 'error')
+        return ouvrirMenu(c)
+    end
+    local intervalle = (taps[#taps].gt - taps[1].gt) / (#taps - 1) / 1000.0
+    local bpm = 60.0 / intervalle
+    while bpm < 70 do bpm = bpm * 2 end
+    while bpm > 190 do bpm = bpm / 2 end
+    local periode = 60.0 / bpm
+    TriggerServerEvent('pt-dj:server:commande', c.id, 'bpm', { bpm, taps[#taps].t % periode })
+    TriggerEvent('QBCore:Notify', ('Tempo cale : %d BPM'):format(math.floor(bpm + 0.5)), 'success')
+    Wait(300)
+    ouvrirMenu(c)
+end
+
+-- geometrie d'une scene (calculee une fois) : projecteurs, lasers, centre du public
+local scenes = {}
+local function moyenne(points)
+    local x, y, z = 0.0, 0.0, 0.0
+    for _, p in ipairs(points) do x, y, z = x + p.x, y + p.y, z + p.z end
+    return vec3(x / #points, y / #points, z / #points)
+end
+
+local function scene(c)
+    if scenes[c.id] then return scenes[c.id] end
+    local ef = c.effets or {}
+    local devant = (ef.confettis and #ef.confettis > 0) and moyenne(ef.confettis) or (c.son + vec3(0.0, 8.0, 0.0))
+    local avant = devant - c.son
+    avant = vec3(avant.x, avant.y, 0.0)
+    local l = #avant
+    avant = l > 0.1 and (avant / l) or vec3(0.0, 1.0, 0.0)
+    local cote = vec3(-avant.y, avant.x, 0.0)
+    local projecteurs = c.projecteurs
+    if not projecteurs then
+        projecteurs = {}
+        for _, p in ipairs(ef.fumee or {}) do projecteurs[#projecteurs + 1] = p + vec3(0.0, 0.0, 9.0) end
+        if #projecteurs == 0 then
+            for i = -2, 2 do projecteurs[#projecteurs + 1] = c.son + cote * (i * 5.0) + vec3(0.0, 0.0, 7.0) end
+        end
+    end
+    local lasers = c.lasers or { c.son + vec3(0.0, 0.0, 5.0) }
+    local s = {
+        projecteurs = projecteurs, lasers = lasers, avant = avant, cote = cote,
+        public = c.public or (c.son + avant * 25.0 + vec3(0.0, 0.0, -3.0)),
+    }
+    scenes[c.id] = s
+    return s
+end
+
+local function couleur(n)
+    local liste = Config.Lumieres.couleurs
+    return liste[(n % #liste) + 1]
+end
+
+local dernierTempsFumee = {}
+
+local function spectacle(c, e)
+    local s = scene(c)
+    local bpm = e.bpm or Config.BpmDefaut
+    local t = tempsPrecis(e) - (e.ancre or 0)
+    local temps = t * bpm / 60.0
+    local n = math.floor(temps)               -- numero du temps
+    local phase = temps - n                   -- 0 au temps, 1 juste avant le suivant
+    local mesure = n // 4
+    local punch = (1.0 - phase) ^ 2           -- eclat sur chaque temps
+    local c1, c2 = couleur(mesure), couleur(mesure + 2)
+    local montee = (mesure % 8) == 7          -- derniere mesure de la phrase : stroboscope
+
+    -- projecteurs : balayent le public, changent de couleur a chaque mesure, frappent sur chaque temps
+    for i, p in ipairs(s.projecteurs) do
+        local col = (i % 2 == 0) and c1 or c2
+        local balayage = math.sin(t * 0.9 + i * 1.3) * 14.0
+        local cible = s.public + s.cote * balayage + s.avant * (math.cos(t * 0.6 + i) * 6.0)
+        local dir = cible - p
+        dir = dir / #dir
+        DrawSpotLight(p.x, p.y, p.z, dir.x, dir.y, dir.z, col[1], col[2], col[3], 70.0, 6.0 + 40.0 * punch, 0.0, 9.0, 1.0)
+    end
+
+    -- lasers : eventail de faisceaux qui tourne, change de sens a chaque mesure
+    local sens = (mesure % 2 == 0) and 1.0 or -1.0
+    local allume = (n % 2 == 0) or phase < 0.5
+    if allume then
+        for _, o in ipairs(s.lasers) do
+            for k = -4, 4 do
+                local angle = k * 0.18 + math.sin(t * 1.4 * sens) * 0.6
+                local dirH = s.avant * math.cos(angle) + s.cote * math.sin(angle)
+                local fin = o + dirH * 60.0 + vec3(0.0, 0.0, math.sin(t * 2.0 + k) * 4.0 - 2.0)
+                local col = (k % 2 == 0) and c1 or c2
+                DrawLine(o.x, o.y, o.z, fin.x, fin.y, fin.z, col[1], col[2], col[3], 255)
+            end
+        end
+    end
+
+    -- stroboscope sur la derniere mesure de chaque phrase (8 mesures), en croches
+    if montee and ((temps * 2) % 1.0) < 0.25 then
+        DrawLightWithRange(c.son.x, c.son.y, c.son.z + 6.0, 255, 255, 255, 60.0, 25.0)
+    end
+
+    -- fumee automatique au debut de chaque groupe de N mesures (meme calcul chez tous les joueurs)
+    if e.fumeeAuto ~= false and c.effets and c.effets.fumee then
+        local groupe = mesure // (Config.Lumieres.fumeeToutesLesMesures or 8)
+        if mesure % (Config.Lumieres.fumeeToutesLesMesures or 8) == 0 and dernierTempsFumee[c.id] ~= groupe then
+            dernierTempsFumee[c.id] = groupe
+            CreateThread(function() JouerEffet(c, 'fumee') end)
+        end
+    end
+end
+
+-- les lasers du decor (pt-maploader) clignotent sur le tempo
+local LASER_DECOR = 1429741918
+local laserDecor = {}
+CreateThread(function()
+    while true do
+        local pos = GetEntityCoords(PlayerPedId())
+        local liste = {}
+        for _, o in ipairs(GetGamePool('CObject')) do
+            if GetEntityModel(o) == LASER_DECOR and #(GetEntityCoords(o) - pos) < 200.0 then liste[#liste + 1] = o end
+        end
+        laserDecor = liste
+        Wait(3000)
+    end
+end)
+
+CreateThread(function()
+    while true do
+        local attente = 500
+        local pos = GetEntityCoords(PlayerPedId())
+        local actif = false
+        for _, c in ipairs(Config.Cabines) do
+            local e = etat(c.id)
+            if e and e.url and not e.pause and e.lumieres ~= false and evenementAllume(c)
+                and #(pos - c.son) < (Config.Lumieres.distance or 150.0) then
+                attente = 0
+                actif = true
+                spectacle(c, e)
+                -- lasers du decor : visibles sur la premiere moitie de chaque temps
+                local bpm = e.bpm or Config.BpmDefaut
+                local temps = (tempsPrecis(e) - (e.ancre or 0)) * bpm / 60.0
+                local visible = (temps % 1.0) < 0.5
+                for _, o in ipairs(laserDecor) do
+                    if #(GetEntityCoords(o) - c.son) < 150.0 then SetEntityVisible(o, visible, false) end
+                end
+            end
+        end
+        if not actif then
+            for _, o in ipairs(laserDecor) do
+                if DoesEntityExist(o) and not IsEntityVisible(o) then SetEntityVisible(o, true, false) end
+            end
+        end
+        Wait(attente)
+    end
 end)
