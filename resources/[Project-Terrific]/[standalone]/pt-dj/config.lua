@@ -6,6 +6,7 @@ Config.VolumeDefaut = 60          -- en %
 Config.BpmDefaut = 128            -- tempo utilise en attendant l'analyse (ou si elle echoue)
 -- Analyse automatique du tempo de chaque morceau par le serveur (ffmpeg, + yt-dlp pour YouTube : voir LISEZMOI.md)
 Config.AnalyseTempo = true
+Config.TexteEcrans = 'LUSO RP'     -- texte affiche sur les panneaux LED (/ecranled pour les placer)
 Config.AnalyseAdresse = 'http://127.0.0.1:30125'   -- service tools/dj-analyse (meme machine que le serveur)
 
 -- Jeu de lumieres synchronise sur le tempo (projecteurs, lasers, stroboscope, fumee automatique).

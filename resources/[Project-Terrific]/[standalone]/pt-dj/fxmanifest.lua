@@ -11,6 +11,11 @@ shared_scripts {
     'config.lua',
 }
 client_script 'client.lua'
+
+files {
+    'html/led.html',
+    'html/led.js',
+}
 server_script 'server.lua'
 
 dependencies {

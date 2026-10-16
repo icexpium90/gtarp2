@@ -296,3 +296,49 @@ end
 
 RegisterCommand('autoriserdj', function(src, args) commandeAcces(src, args, true) end, false)
 RegisterCommand('retirerdj', function(src, args) commandeAcces(src, args, false) end, false)
+
+---------------------------------------------------------------- panneaux LED (ecrans places par les admins)
+-- /ecranled ajouter [largeur] [hauteur] : vise le panneau existant (le motif s'affiche par-dessus)
+-- /ecranled retirer : retire l'ecran le plus proche ; /ecranled liste
+local ecrans = json.decode(GetResourceKvpString('pt_dj_ecrans') or '[]') or {}
+local function publierEcrans()
+    SetResourceKvp('pt_dj_ecrans', json.encode(ecrans))
+    GlobalState.pt_dj_ecrans = ecrans
+end
+GlobalState.pt_dj_ecrans = ecrans
+
+RegisterCommand('ecranled', function(src, args)
+    if src == 0 or not estAdmin(src) then return end
+    local action = args[1] or ''
+    if action == 'ajouter' then
+        TriggerClientEvent('pt-dj:client:viserEcran', src, tonumber(args[2]) or 8.0, tonumber(args[3]) or 4.5)
+    elseif action == 'retirer' then
+        local pos = GetEntityCoords(GetPlayerPed(src))
+        local idx, dmin = nil, 25.0
+        for i, e in ipairs(ecrans) do
+            local d = #(pos - vector3(e.x, e.y, e.z))
+            if d < dmin then idx, dmin = i, d end
+        end
+        if not idx then return notifier(src, 'Aucun ecran a moins de 25 m.', 'error') end
+        table.remove(ecrans, idx)
+        publierEcrans()
+        notifier(src, 'Ecran retire.', 'success')
+    elseif action == 'liste' then
+        notifier(src, ('%d ecran(s) LED place(s).'):format(#ecrans))
+    else
+        notifier(src, '/ecranled ajouter [largeur] [hauteur] | retirer | liste')
+    end
+end, false)
+
+RegisterNetEvent('pt-dj:server:ecranAjouter', function(d)
+    local src = source
+    if not estAdmin(src) or type(d) ~= 'table' then return end
+    local x, y, z = tonumber(d.x), tonumber(d.y), tonumber(d.z)
+    local nx, ny, nz = tonumber(d.nx), tonumber(d.ny), tonumber(d.nz)
+    if not (x and y and z and nx and ny and nz) then return end
+    if #(GetEntityCoords(GetPlayerPed(src)) - vector3(x, y, z)) > 80.0 then return end
+    ecrans[#ecrans + 1] = { x = x, y = y, z = z, nx = nx, ny = ny, nz = nz,
+        w = math.max(0.5, math.min(40.0, tonumber(d.w) or 8.0)), h = math.max(0.5, math.min(25.0, tonumber(d.h) or 4.5)) }
+    publierEcrans()
+    notifier(src, ('Ecran LED ajoute (%d au total).'):format(#ecrans), 'success')
+end)

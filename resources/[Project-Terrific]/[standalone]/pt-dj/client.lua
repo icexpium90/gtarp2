@@ -796,3 +796,129 @@ RegisterNetEvent('pt-dj:client:co2', function(id, genre)
         end
     end
 end)
+
+-- ---------------------------------------------------------------------------------------------------------------
+-- Panneaux LED : une page web (html/led.html) dessine les motifs ; elle est rendue dans une texture du jeu (DUI)
+-- et affichee par-dessus les panneaux existants, aux positions placees par les admins (/ecranled).
+
+local dui, duiPret = nil, false
+local TXD, TXN = 'pt_dj_led', 'ecran'
+local dernierMorceau, dernierEnvoiTemps = nil, 0
+
+local function creerDui()
+    if dui then return end
+    dui = CreateDui(('https://cfx-nui-%s/html/led.html'):format(GetCurrentResourceName()), 1024, 576)
+    local txd = CreateRuntimeTxd(TXD)
+    CreateRuntimeTextureFromDuiHandle(txd, TXN, GetDuiHandle(dui))
+    duiPret = true
+end
+
+local function detruireDui()
+    if dui then DestroyDui(dui) end
+    dui, duiPret, dernierMorceau = nil, false, nil
+end
+
+local function envoyer(msg)
+    if dui then SendDuiMessage(dui, json.encode(msg)) end
+end
+
+-- coins d'un ecran (vertical, face a sa normale), legerement decolle du panneau
+local function coins(ec)
+    local n = vec3(ec.nx, ec.ny, ec.nz)
+    local p = vec3(ec.x, ec.y, ec.z) + n * 0.05
+    local r = vec3(-n.y, n.x, 0.0)
+    local lr = #r
+    r = lr > 0.01 and (r / lr) or vec3(1.0, 0.0, 0.0)
+    local u = vec3(n.y * r.z - n.z * r.y, n.z * r.x - n.x * r.z, n.x * r.y - n.y * r.x)
+    local lu = #u
+    u = lu > 0.01 and (u / lu) or vec3(0.0, 0.0, 1.0)
+    local hw, hh = ec.w / 2, ec.h / 2
+    return p - r * hw + u * hh, p + r * hw + u * hh, p - r * hw - u * hh, p + r * hw - u * hh
+end
+
+local function tri(a, b, c, ua, va, ub, vb, uc, vc)
+    DrawTexturedPoly(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z, 255, 255, 255, 255, TXD, TXN,
+        ua, va, 1.0, ub, vb, 1.0, uc, vc, 1.0)
+end
+
+local function dessinerEcran(ec)
+    local hg, hd, bg, bd = coins(ec)
+    tri(hg, bg, hd, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0)
+    tri(hd, bg, bd, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0)
+    -- face arriere (au cas ou le jeu masque une face selon le sens de dessin)
+    tri(hg, hd, bg, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0)
+    tri(hd, bd, bg, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0)
+end
+
+-- la cabine la plus proche dont l'evenement est allume pilote les ecrans
+local function cabineProche(pos)
+    local meilleure, dmin = nil, 250.0
+    for _, c in ipairs(Config.Cabines) do
+        local d = #(pos - c.son)
+        if evenementAllume(c) and d < dmin then meilleure, dmin = c, d end
+    end
+    return meilleure
+end
+
+CreateThread(function()
+    while true do
+        local ecrans = GlobalState.pt_dj_ecrans or {}
+        local pos = GetEntityCoords(PlayerPedId())
+        local proches = {}
+        for _, ec in ipairs(ecrans) do
+            if #(pos - vec3(ec.x, ec.y, ec.z)) < 200.0 then proches[#proches + 1] = ec end
+        end
+        local c = #proches > 0 and cabineProche(pos) or nil
+        if not c then
+            if dui then detruireDui() end
+            Wait(1000)
+        else
+            if not dui then creerDui() Wait(500) end
+            local e = etat(c.id)
+            -- nouveau morceau ou analyse arrivee : on envoie tout le profil a la page
+            local cle = e and e.url and (tostring(e.v) .. ':' .. tostring(e.analyse) .. ':' .. tostring(e.bpm) .. ':' .. tostring(e.ancre)) or 'rien'
+            if cle ~= dernierMorceau then
+                dernierMorceau = cle
+                if e and e.url then
+                    envoyer({ type = 'morceau', bpm = e.bpm or Config.BpmDefaut, ancre = e.ancre or 0, energie = e.energie,
+                        coups = e.coups, bandes = e.bandes, couleurs = e.couleurs, palette = Config.Lumieres.couleurs,
+                        texte = Config.TexteEcrans or 'LUSO RP' })
+                else
+                    envoyer({ type = 'arret' })
+                end
+            end
+            -- position de lecture 10 fois par seconde (la page extrapole entre deux)
+            if GetGameTimer() - dernierEnvoiTemps > 100 then
+                dernierEnvoiTemps = GetGameTimer()
+                if e and e.url then
+                    envoyer({ type = 'temps', t = tempsAudio(c, e), joue = not e.pause and e.lumieres ~= false })
+                end
+            end
+            if duiPret then
+                for _, ec in ipairs(proches) do dessinerEcran(ec) end
+            end
+            Wait(0)
+        end
+    end
+end)
+
+-- /ecranled ajouter : vise le panneau, l'ecran se colle a la surface visee
+RegisterNetEvent('pt-dj:client:viserEcran', function(w, h)
+    local cam = GetGameplayCamCoord()
+    local rot = GetGameplayCamRot(2)
+    local rx, rz = math.rad(rot.x), math.rad(rot.z)
+    local dir = vec3(-math.sin(rz) * math.abs(math.cos(rx)), math.cos(rz) * math.abs(math.cos(rx)), math.sin(rx))
+    local fin = cam + dir * 80.0
+    local ray = StartExpensiveSynchronousShapeTestLosProbe(cam.x, cam.y, cam.z, fin.x, fin.y, fin.z, 1 + 16, PlayerPedId(), 7)
+    local _, touche, point, normale = GetShapeTestResult(ray)
+    if touche ~= 1 then
+        TriggerEvent('QBCore:Notify', 'Vise la surface du panneau LED (a moins de 80 m).', 'error')
+        return
+    end
+    TriggerServerEvent('pt-dj:server:ecranAjouter', { x = point.x, y = point.y, z = point.z,
+        nx = normale.x, ny = normale.y, nz = normale.z, w = w, h = h })
+end)
+
+AddEventHandler('onResourceStop', function(nom)
+    if nom == GetCurrentResourceName() then detruireDui() end
+end)

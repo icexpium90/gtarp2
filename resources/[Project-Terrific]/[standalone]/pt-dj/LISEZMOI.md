@@ -100,3 +100,12 @@ boutons « Jets de CO2 » et « Lance-flammes » dans le menu du DJ.
 Synchronisation : le spectacle suit la position reelle du lecteur de chaque joueur (xsound modifie : position lue
 4 fois par seconde et lissee), donc il est cale sur ce que chacun entend, a quelques millisecondes pres.
 Apres la mise a jour, relancer l'analyse des morceaux deja joues (les anciens resultats n'ont pas les instruments).
+
+## Panneaux LED
+
+Des motifs animes (spectre, vagues, chevrons, tunnel, damier, cercles, logo « LUSO RP » avec glitch sur les growls)
+s'affichent par-dessus les panneaux LED existants, cales sur la musique comme les lumieres.
+- `/ecranled ajouter [largeur] [hauteur]` (admin) : vise la surface du panneau et tape la commande ; l'ecran se colle
+  dessus (taille en metres, 8 x 4,5 par defaut). Recommencer pour chaque panneau.
+- `/ecranled retirer` : retire l'ecran le plus proche ; `/ecranled liste`.
+- Les ecrans sont gardes apres un redemarrage. Sans musique, ils affichent le logo. Texte : `Config.TexteEcrans`.
