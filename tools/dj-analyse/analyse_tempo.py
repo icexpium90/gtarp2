@@ -24,7 +24,10 @@ SR, HOP, WIN = 11025, 256, 512
 DUREE_MAX, DUREE_TEMPO = 480, 120
 LATENCE = WIN / SR
 FPS = SR / HOP
-CACHE_FICHIER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cache_tempo.json')
+ICI = os.path.dirname(os.path.abspath(__file__))
+CACHE_FICHIER = os.path.join(ICI, 'cache_tempo.json')
+# cookies d'un compte YouTube (format Netscape) : evite le blocage « Sign in to confirm you're not a bot »
+COOKIES = os.path.join(ICI, 'cookies.txt')
 verrou = threading.Lock()          # une analyse a la fois (ne pas surcharger la machine du serveur)
 
 
@@ -36,8 +39,10 @@ def est_youtube(url):
 def decoder(url):
     ff = ['nice', '-n', '15', 'ffmpeg', '-hide_banner', '-loglevel', 'error']
     if est_youtube(url):
-        yt = subprocess.Popen(['nice', '-n', '15', 'yt-dlp', '-q', '--no-warnings', '--no-playlist', '-f', 'bestaudio/best',
-                               '-o', '-', url], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        cmd = ['nice', '-n', '15', 'yt-dlp', '-q', '--no-warnings', '--no-playlist', '-f', 'bestaudio/best']
+        if os.path.isfile(COOKIES):
+            cmd += ['--cookies', COOKIES]
+        yt = subprocess.Popen(cmd + ['-o', '-', url], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         p = subprocess.run(ff + ['-i', 'pipe:0', '-t', str(DUREE_MAX), '-ac', '1', '-ar', str(SR), '-f', 's16le', 'pipe:1'],
                            stdin=yt.stdout, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=150)
         yt.kill()
