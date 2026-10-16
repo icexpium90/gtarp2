@@ -27,7 +27,17 @@ FPS = SR / HOP
 ICI = os.path.dirname(os.path.abspath(__file__))
 CACHE_FICHIER = os.path.join(ICI, 'cache_tempo.json')
 # cookies d'un compte YouTube (format Netscape) : evite le blocage « Sign in to confirm you're not a bot »
-COOKIES = os.path.join(ICI, 'cookies.txt')
+COOKIES = os.environ.get('PT_DJ_COOKIES') or os.path.join(ICI, 'cookies.txt')
+
+
+def lien_propre(url):
+    # liens YouTube : on garde seulement la video (pas la playlist / radio / suivi)
+    if est_youtube(url):
+        u = urllib.parse.urlparse(url)
+        v = urllib.parse.parse_qs(u.query).get('v')
+        if v:
+            return 'https://www.youtube.com/watch?v=' + v[0]
+    return url
 verrou = threading.Lock()          # une analyse a la fois (ne pas surcharger la machine du serveur)
 
 
@@ -48,7 +58,8 @@ def decoder(url):
         yt.kill()
         erreur_yt = (yt.stderr.read() or b'').decode('utf-8', 'replace').strip().splitlines()
         if len(p.stdout) < SR * 2 * 10 and erreur_yt:
-            raise RuntimeError('yt-dlp : ' + ' | '.join(erreur_yt[-3:])[:400])
+            raise RuntimeError(('yt-dlp (cookies %s) : ' % ('utilises' if os.path.isfile(COOKIES) else 'ABSENTS : ' + COOKIES))
+                               + ' | '.join(erreur_yt[-3:])[:400])
     else:
         p = subprocess.run(ff + ['-i', url, '-t', str(DUREE_MAX), '-ac', '1', '-ar', str(SR), '-f', 's16le', 'pipe:1'],
                            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=150)
@@ -215,7 +226,7 @@ def bandes(pcm, bpm, ancre):
 
 
 def analyser(url):
-    pcm = decoder(url)
+    pcm = decoder(lien_propre(url))
     env = enveloppe(pcm)
     r = tempo(env[:int(DUREE_TEMPO * FPS)])
     r['coups'], r['energie'] = profil(pcm, env, r['bpm'], r['ancre'])
@@ -280,4 +291,5 @@ if __name__ == '__main__':
         sys.exit(0)
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 30125
     print('[analyse] service pt-dj sur 127.0.0.1:%d' % port, flush=True)
+    print('[analyse] cookies YouTube : %s (%s)' % ('trouves' if os.path.isfile(COOKIES) else 'ABSENTS', COOKIES), flush=True)
     ThreadingHTTPServer(('127.0.0.1', port), Gestionnaire).serve_forever()
