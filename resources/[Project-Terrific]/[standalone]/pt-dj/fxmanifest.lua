@@ -16,6 +16,8 @@ files {
     'html/led.html',
     'html/led.js',
     'musique/*.mp3',
+    'musique/*.MP3',
+    'musique/*.Mp3',
 }
 server_script 'server.lua'
 

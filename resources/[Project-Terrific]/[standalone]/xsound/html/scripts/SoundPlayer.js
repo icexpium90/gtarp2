@@ -163,6 +163,13 @@ class SoundPlayer {
                 onplay: () => {
                     isReady(this.getName());
                 },
+                // LUSO RP : remonter les erreurs de chargement (fichier absent, format illisible...)
+                onloaderror: (_, err) => {
+                    $.post('https://xsound/events', JSON.stringify({ type: "onError", id: this.getName(), erreur: "chargement " + String(err) + " : " + this.getUrlSound() }));
+                },
+                onplayerror: (_, err) => {
+                    $.post('https://xsound/events', JSON.stringify({ type: "onError", id: this.getName(), erreur: "lecture " + String(err) + " : " + this.getUrlSound() }));
+                },
             });
             $("#" + this.div_id).remove();
         } else {

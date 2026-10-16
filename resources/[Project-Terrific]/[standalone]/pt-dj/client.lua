@@ -58,6 +58,10 @@ local function synchroniser(c, pos)
         local v = e.v
         locaux[c.id] = { v = v, volume = e.volume, pause = false }
         xs:PlayUrlPos(n, adresseSon(e.url), e.volume / 100, c.son, false, {
+            onError = function(erreur)
+                lib.notify({ title = 'DJ', description = 'Musique illisible : ' .. tostring(e.url) .. ' (fichier absent du dossier musique ? fais refresh puis ensure pt-dj)', type = 'error', duration = 8000 })
+                print(('^1[pt-dj] lecture impossible %s -> %s^7'):format(tostring(e.url), tostring(erreur)))
+            end,
             onPlayStart = function()
                 local actuel = etat(c.id)
                 if not actuel or actuel.v ~= v then return end

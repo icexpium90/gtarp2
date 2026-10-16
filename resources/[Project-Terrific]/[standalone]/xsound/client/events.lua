@@ -72,6 +72,14 @@ RegisterNUICallback("events", function(data, cb)
             end
         end
     end
+    -- LUSO RP : erreur de chargement / lecture d'un MP3
+    if type == "onError" then
+        print(("^1[xsound] %s : %s^7"):format(tostring(id), tostring(data.erreur)))
+        if globalOptionsCache[id] and globalOptionsCache[id].onError then
+            globalOptionsCache[id].onError(tostring(data.erreur))
+        end
+        TriggerEvent("xSound:erreur", id, data.erreur)
+    end
     if type == "onLoading" then
         if globalOptionsCache[id] then
             if globalOptionsCache[id].onLoading then
