@@ -432,7 +432,9 @@ local function scene(c)
         local liste = {}
         local lw = w * 0.9
         reglage = reglage or {}
-        local z = c.son.z + (reglage.hauteur or L.pyroHauteur or -1.0)
+        -- hauteur comptee depuis le plancher de la scene (pieds du DJ a la table de mixage), pareil sur toutes les scenes
+        local plancher = (c.coords and c.coords.z or c.son.z) - 1.0
+        local z = plancher + (reglage.hauteur or L.pyroHauteur or 0.0)
         for i = 1, nb do
             local x = nb > 1 and (-lw / 2 + lw * (i - 1 + (decale or 0)) / (nb - 1 + (decale and 1 or 0))) or 0.0
             local p = c.son + avant * (reglage.avant or L.pyroAvant or 3.0) + cote * x

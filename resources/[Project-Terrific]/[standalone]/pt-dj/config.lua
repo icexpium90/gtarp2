@@ -28,7 +28,7 @@ Config.Lumieres = {
     -- jets de CO2 : alignes devant chaque scene (ou cabine.co2 = { vec3... }) ; jetsDevant = nombre de jets
     jetsDevant = 6,
     pyroAvant = 3.0,                  -- CO2 / flammes : distance (m) devant la cabine, sur le bord de la scene
-    pyroHauteur = -2.0,               -- hauteur (m) par rapport au son de la cabine : -1 = plancher de la scene
+    pyroHauteur = 0.0,                -- hauteur (m) au-dessus du plancher de la scene (0 = pose sur la scene)
     co2 = {
         effets = {                    -- premier effet disponible dans le jeu
             { dict = 'core', nom = 'exp_sht_extinguisher', echelle = 4 },
@@ -37,7 +37,7 @@ Config.Lumieres = {
         angleTir = -90.0,             -- droit vers le ciel (retourne de 180 degres) ; /testpyro co2 pour verifier
         couleur = { 1.0, 1.0, 1.0 },  -- blanc
         avant = 1.5,                  -- distance (m) devant la cabine : au bord de la scene
-        hauteur = -5.0,               -- hauteur (m) par rapport au son de la cabine
+        hauteur = 0.2,                -- hauteur (m) au-dessus du plancher de la scene (negatif = plus bas, sous le bord)
         duree = 2000,                 -- duree d'un jet (ms)
     },
     -- lance-flammes au pied de la scene (entre les jets de CO2) : sub-bass, drops, growls
@@ -49,7 +49,7 @@ Config.Lumieres = {
         },
         rotation = vec3(0.0, 0.0, 0.0), -- vers le ciel ; si ce n'est pas le cas : /testpyro flammes
         avant = 1.5,                  -- au bord de la scene
-        hauteur = -3.0,               -- plus pres du sol
+        hauteur = 0.0,                -- hauteur (m) au-dessus du plancher de la scene
         duree = 900,
         toutesLesMesures = 4,         -- flammes automatiques toutes les 4 mesures quand ca envoie (0 = desactive)
     },
