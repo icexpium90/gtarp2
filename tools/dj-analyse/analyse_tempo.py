@@ -30,6 +30,9 @@ CACHE_FICHIER = os.path.join(ICI, 'cache_tempo.json')
 COOKIES = os.environ.get('PT_DJ_COOKIES') or os.path.join(ICI, 'cookies.txt')
 
 
+EXTENSIONS_LOCALES = ('.mp3', '.ogg', '.wav', '.m4a', '.flac')
+
+
 def lien_propre(url):
     # liens YouTube : on garde seulement la video (pas la playlist / radio / suivi)
     if est_youtube(url):
@@ -265,14 +268,20 @@ class Gestionnaire(BaseHTTPRequestHandler):
         if u.path != '/analyse':
             return self.repondre(404, {'erreur': 'inconnu'})
         url = (urllib.parse.parse_qs(u.query).get('url') or [''])[0]
+        cle = url
         if not url.startswith(('http://', 'https://')):
-            return self.repondre(400, {'erreur': 'lien invalide'})
-        if url in CACHE and CACHE[url].get('version') == 2:
-            return self.repondre(200, CACHE[url])
+            # fichier audio local (MP3 du dossier pt-dj/musique, chemin absolu envoye par le serveur FiveM)
+            if not (os.path.isabs(url) and url.lower().endswith(EXTENSIONS_LOCALES)):
+                return self.repondre(400, {'erreur': 'lien invalide'})
+            if not os.path.isfile(url):
+                return self.repondre(404, {'erreur': 'fichier introuvable ou illisible : ' + url})
+            cle = '%s|%d' % (url, int(os.path.getmtime(url)))   # fichier remplace = nouvelle analyse
+        if cle in CACHE and CACHE[cle].get('version') == 2:
+            return self.repondre(200, CACHE[cle])
         try:
             with verrou:
-                r = CACHE.get(url) if (CACHE.get(url) or {}).get('version') == 2 else analyser(url)
-            CACHE[url] = r
+                r = CACHE.get(cle) if (CACHE.get(cle) or {}).get('version') == 2 else analyser(url)
+            CACHE[cle] = r
             try:
                 with open(CACHE_FICHIER, 'w') as f:
                     json.dump(CACHE, f)
