@@ -82,28 +82,31 @@ local function performance()
         return a.label < b.label
     end)
 
-    -- LUSO RP : kit grand angle (toujours en bas de la liste)
-    if AngleKitCompatible and AngleKitCompatible(vehicle) then
-        local angleCfg = sharedConfig.angleKit
-        local niveauActuel = NiveauAngle(vehicle)
-        options[#options + 1] = {
-            id = 'anglekit',
-            label = 'Kit grand angle (drift)',
-            description = priceLabel(sharedConfig.prices['anglekit']),
-            values = angleCfg.labels,
-            close = true,
-            defaultIndex = niveauActuel + 1,
-            set = function(index)
-                AppliquerAngle(vehicle, index - 1)
-                return niveauActuel == index - 1, ('%s installe'):format(angleCfg.labels[index])
-            end,
-            restore = function()
-                AppliquerAngle(vehicle, niveauActuel)
-            end,
-            apres = function(index)
-                TriggerServerEvent('qbx_customs:server:angleKit', NetworkGetNetworkIdFromEntity(vehicle), index - 1)
-            end,
-        }
+    -- LUSO RP : pieces speciales (kit grand angle, kit large, rolling anti-lag), toujours en bas de la liste
+    if PieceCompatible and PieceCompatible(vehicle) then
+        local pieces = sharedConfig.piecesSpeciales
+        for _, piece in ipairs(pieces.ordre) do
+            local def = pieces[piece]
+            local actuel = Entity(vehicle).state[def.etat] or 0
+            options[#options + 1] = {
+                id = piece,
+                label = def.label,
+                description = priceLabel(sharedConfig.prices[piece]),
+                values = def.labels,
+                close = true,
+                defaultIndex = actuel + 1,
+                set = function(index)
+                    AppliquerPiece(vehicle, piece, index - 1, true)
+                    return actuel == index - 1, ('%s : %s'):format(def.label, def.labels[index])
+                end,
+                restore = function()
+                    AppliquerPiece(vehicle, piece, actuel, true)
+                end,
+                apres = function(index)
+                    TriggerServerEvent('qbx_customs:server:pieceSpeciale', NetworkGetNetworkIdFromEntity(vehicle), piece, index - 1)
+                end,
+            }
+        end
     end
 
     return options
@@ -149,6 +152,7 @@ menu.onClose = function()
     for _, v in pairs(menu.options) do
         v.restore()
     end
+    if FinApercu then FinApercu(vehicle) end
     lib.showMenu(mainMenuId, mainLastIndex)
 end
 

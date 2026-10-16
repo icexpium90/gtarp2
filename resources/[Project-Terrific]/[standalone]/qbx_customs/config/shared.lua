@@ -133,14 +133,32 @@ return {
         [15] = { 0, 3000, 6000, 9000, 12000, 15000 }, -- Suspension
         [18] = 10000,                                 -- Turbo
         ['anglekit'] = { 0, 15000, 30000, 50000 },    -- Kit grand angle (origine, 1, 2, 3)
+        ['kitlarge'] = { 0, 8000, 15000, 25000 },     -- Kit large (origine, +2, +4, +6 cm)
+        ['antilag'] = { 0, 25000 },                   -- Rolling anti-lag (non, oui)
     },
 
-    -- LUSO RP : kit grand angle (drift) : augmente l'angle de braquage des roues avant, comme les kits des voitures
-    -- de drift. ajouts = degres ajoutes a l'angle d'origine du vehicule pour chaque niveau (le 1er = origine),
-    -- max = angle maximum en degres. Voitures uniquement (pas motos, velos, bateaux, avions).
-    angleKit = {
-        labels = { 'Origine', 'Kit rue (+10 deg)', 'Kit drift (+20 deg)', 'Kit competition (+30 deg)' },
-        ajouts = { 0, 10.0, 20.0, 30.0 },
-        max = 70.0,
+    -- LUSO RP : pieces speciales (Performance), gardees en base (player_vehicles) et visibles par tous.
+    -- Voitures uniquement (pas motos, velos, bateaux, avions). Le 1er niveau = origine (rien d'installe).
+    piecesSpeciales = {
+        ordre = { 'anglekit', 'kitlarge', 'antilag' },
+        -- angle de braquage des roues avant augmente, comme les kits des voitures de drift
+        anglekit = {
+            label = 'Kit grand angle (drift)', colonne = 'anglekit', etat = 'ptAngle',
+            labels = { 'Origine', 'Kit rue (+10 deg)', 'Kit drift (+20 deg)', 'Kit competition (+30 deg)' },
+            ajouts = { 0, 10.0, 20.0, 30.0 },  -- degres ajoutes a l'angle d'origine
+            max = 70.0,                        -- angle maximum
+        },
+        -- roues deportees vers l'exterieur (voie elargie, elargisseurs / entretoises)
+        kitlarge = {
+            label = 'Kit large (voie elargie)', colonne = 'kitlarge', etat = 'ptLarge',
+            labels = { 'Origine', 'Elargisseurs +2 cm', 'Kit large +4 cm', 'Kit large +6 cm' },
+            ecarts = { 0, 0.02, 0.04, 0.06 },  -- metres ajoutes de chaque cote
+        },
+        -- rolling anti-lag : petarades et flammes a l'echappement au lever de pied, turbo qui reste en pression
+        antilag = {
+            label = 'Rolling anti-lag', colonne = 'antilag', etat = 'ptAntiLag',
+            labels = { 'Non', 'Installe' },
+            regimeMin = 0.55,                  -- regime moteur minimum (0-1) pour declencher les petarades
+        },
     },
 }
