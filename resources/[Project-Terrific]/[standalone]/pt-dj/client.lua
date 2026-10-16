@@ -375,12 +375,18 @@ local function scene(c)
         end
         return liste
     end
+    -- jets de CO2 alignes devant la scene, au niveau du sol de la scene
     local co2 = c.co2
     if not co2 then
         co2 = {}
-        for _, p in ipairs(ef.fumee or {}) do co2[#co2 + 1] = p end
-        if #co2 == 0 then
-            for i = -2, 2 do co2[#co2 + 1] = c.son + avant * 3.0 + cote * (i * 6.0) + vec3(0.0, 0.0, -3.0) end
+        local sol = c.son.z - 3.0
+        if ef.fumee and #ef.fumee > 0 then sol = moyenne(ef.fumee).z end
+        local nb = L.jetsDevant or 6
+        local w = (L.largeurRampe or 26.0) * 0.9
+        for i = 1, nb do
+            local x = nb > 1 and (-w / 2 + w * (i - 1) / (nb - 1)) or 0.0
+            local p = c.son + avant * 5.0 + cote * x
+            co2[i] = vec3(p.x, p.y, sol)
         end
     end
     local s = {
@@ -574,7 +580,16 @@ local function spectacle(c, e)
     end
 
     ---------------------------------------------------------------- jets de CO2
-    if not calme then
+    if veilleDeDrop then
+        -- montee : jets en alternance sur chaque temps, puis tous ensemble sur le dernier temps de la mesure
+        local cle = 'montee' .. m.n
+        if m.phase < 0.2 and dernierCo2[c.id] ~= cle then
+            dernierCo2[c.id] = cle
+            local tous = (m.n % 4 == 3)
+            local pair = m.n % 2
+            CreateThread(function() jetsCo2(c, not tous and function(i) return i % 2 == pair end or nil) end)
+        end
+    elseif not calme then
         local cle
         if m.drop then
             cle = 'drop' .. m.n

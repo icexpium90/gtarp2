@@ -6,6 +6,7 @@ Config.VolumeDefaut = 60          -- en %
 Config.BpmDefaut = 128            -- tempo utilise en attendant l'analyse (ou si elle echoue)
 -- Analyse automatique du tempo de chaque morceau par le serveur (ffmpeg, + yt-dlp pour YouTube : voir LISEZMOI.md)
 Config.AnalyseTempo = true
+Config.AnalyseAdresse = 'http://127.0.0.1:30125'   -- service tools/dj-analyse (meme machine que le serveur)
 
 -- Jeu de lumieres synchronise sur le tempo (projecteurs, lasers, stroboscope, fumee automatique).
 -- Chaque cabine peut definir : projecteurs = { vec3(...), ... } (sinon : au-dessus des machines a fumee),
@@ -20,10 +21,11 @@ Config.Lumieres = {
     -- rampe (truss) au-dessus de chaque scene, calculee si la cabine ne donne pas ses positions :
     lyres = 16,                       -- nombre de lyres (projecteurs motorises) ; positions : cabine.lyres = { vec3... }
     strobos = 10,                     -- nombre de stroboscopes ; positions : cabine.strobos = { vec3... }
-    largeurRampe = 34.0,              -- largeur de la rampe (m)
-    hauteurRampe = 9.0,               -- hauteur de la rampe au-dessus du centre de la scene (m)
+    largeurRampe = 26.0,              -- largeur de la rampe (m)
+    hauteurRampe = 6.0,               -- hauteur de la rampe au-dessus du centre de la scene (m)
     faisceaux = true,                 -- faisceaux visibles des lyres (cones de lumiere dans l'air)
-    -- jets de CO2 : au pied de la scene (positions des machines a fumee, ou cabine.co2 = { vec3... })
+    -- jets de CO2 : alignes devant chaque scene (ou cabine.co2 = { vec3... }) ; jetsDevant = nombre de jets
+    jetsDevant = 6,
     co2 = {
         effets = {                    -- premier effet disponible dans le jeu
             { dict = 'core', nom = 'exp_sht_extinguisher', echelle = 2.5 },

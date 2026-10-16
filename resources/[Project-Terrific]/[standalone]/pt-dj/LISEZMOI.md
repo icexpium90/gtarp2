@@ -53,13 +53,9 @@ chaque temps. Le spectacle s'en sert :
 - **drop** (l'energie saute d'un coup) : confettis, feux d'artifice et fumee en meme temps ;
 - **passages forts** : flash sur chaque vrai coup, plus de lasers, balayages rapides, couleur qui change a chaque temps.
 
-Installation sur le VPS (une seule fois) :
-```bash
-sudo apt install -y ffmpeg
-sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
-sudo chmod a+rx /usr/local/bin/yt-dlp
-```
-Sans ffmpeg / yt-dlp, l'analyse echoue proprement (message dans la console) et le DJ cale le tempo a la main.
+L'analyse tourne dans un petit service a cote du serveur (FXServer interdit aux ressources de lancer ffmpeg) :
+installation une seule fois avec `sudo bash tools/dj-analyse/installer.sh` (voir `tools/dj-analyse/LISEZMOI.md`).
+Sans ce service, l'analyse echoue proprement (message dans la console) et le DJ cale le tempo a la main.
 YouTube bloque parfois les serveurs (« confirm you're not a bot ») : dans ce cas, utiliser des liens MP3 ou le tap tempo.
 
 Menu de la table de mixage :

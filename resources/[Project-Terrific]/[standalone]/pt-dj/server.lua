@@ -69,7 +69,18 @@ local function analyserMorceau(id, e)
         return
     end
     e.analyse = 'encours'
-    TriggerEvent('pt-dj:analyser', id, e.v, e.url)
+    local v, url = e.v, e.url
+    local encode = url:gsub('[^%w%-_%.~]', function(ch) return ('%%%02X'):format(ch:byte()) end)
+    -- service d'analyse a cote du serveur (tools/dj-analyse) : FXServer interdit de lancer ffmpeg depuis une ressource
+    PerformHttpRequest((Config.AnalyseAdresse or 'http://127.0.0.1:30125') .. '/analyse?url=' .. encode, function(code, corps)
+        local ok, r = pcall(json.decode, corps or '')
+        if code == 200 and ok and type(r) == 'table' and r.bpm then
+            TriggerEvent('pt-dj:analyseFaite', id, v, r.bpm, r.ancre, r.confiance, nil, r.coups, r.energie)
+        else
+            local raison = (ok and type(r) == 'table' and r.erreur) or (code == 0 and 'service d\'analyse injoignable (tools/dj-analyse lance ?)') or ('code ' .. tostring(code))
+            TriggerEvent('pt-dj:analyseFaite', id, v, nil, nil, 0, raison)
+        end
+    end, 'GET', '', {}, { timeout = 180000 })
 end
 
 local function lancer(id, url, garder)
