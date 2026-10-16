@@ -67,5 +67,6 @@ Config.Armurier = {
         { name = 'smg_ammo',               price = 150,    amount = 30 },
         { name = 'shotgun_ammo',           price = 120,    amount = 30 },
         { name = 'rifle_ammo',             price = 250,   amount = 20 },
+        { name = 'keya',                   price = 7500,  amount = 3 },   -- cle du labo de cannabis (qb-weedplanting)
     },
 }

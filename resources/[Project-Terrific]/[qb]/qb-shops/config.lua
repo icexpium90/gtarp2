@@ -336,6 +336,11 @@ Config.Products = {
             type = "item",
             slot = 5,
         },
+        -- plantation (qb-weedplanting)
+        [6] = { name = "weedplant_seedf", price = 150, amount = 50, info = {}, type = "item", slot = 6 },
+        [7] = { name = "weedplant_seedm", price = 250, amount = 20, info = {}, type = "item", slot = 7 },
+        [8] = { name = "plant_tub", price = 40, amount = 50, info = {}, type = "item", slot = 8 },
+        [9] = { name = "empty_watering_can", price = 60, amount = 20, info = {}, type = "item", slot = 9 },
     },
     ["gearshop"] = {
         [1] = {

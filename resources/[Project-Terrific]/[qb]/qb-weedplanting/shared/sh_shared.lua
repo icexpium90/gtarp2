@@ -2,7 +2,7 @@ Shared = Shared or {}
 
 --- Other
 Shared.Debug = false
-Shared.CopJob = "police"
+Shared.CopJob = "leo" -- compare au TYPE de metier : police + gendarmerie
 Shared.Dispatch = "ps-dispatch"
 
 --- Items
