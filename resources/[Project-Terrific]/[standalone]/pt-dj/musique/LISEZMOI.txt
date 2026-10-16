@@ -1,0 +1,6 @@
+Mets ici tes fichiers .mp3 (noms simples, sans accents de preference : monset.mp3).
+Puis en console : refresh  puis  ensure pt-dj  (ou redemarre le serveur).
+En jeu : table de mixage > "Jouer un MP3 du serveur", ou tape juste le nom du fichier.
+L'analyse du tempo marche directement, sans YouTube ni cookies.
+Attention : chaque joueur telecharge ces fichiers en se connectant -> garde le dossier raisonnable (quelques centaines de Mo max).
+Les .mp3 ne sont pas envoyes sur GitHub (.gitignore).

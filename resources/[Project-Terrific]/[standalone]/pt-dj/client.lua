@@ -37,6 +37,12 @@ end
 -- ---------------------------------------------------------------------------------------------------------------
 -- Synchronisation de la musique : chaque joueur proche joue le morceau au meme moment que les autres
 
+-- MP3 local (pt-dj/musique/nom.mp3) -> adresse NUI ; un lien https reste tel quel
+local function adresseSon(url)
+    if url:match('^https?://') then return url end
+    return ('https://cfx-nui-%s/musique/%s'):format(GetCurrentResourceName(), (url:gsub('[^%w%-_%.~]', function(ch) return ('%%%02X'):format(ch:byte()) end)))
+end
+
 local function synchroniser(c, pos)
     local e = etat(c.id)
     local n = nomSon(c.id)
@@ -51,7 +57,7 @@ local function synchroniser(c, pos)
         if xs:soundExists(n) then xs:Destroy(n) end
         local v = e.v
         locaux[c.id] = { v = v, volume = e.volume, pause = false }
-        xs:PlayUrlPos(n, e.url, e.volume / 100, c.son, false, {
+        xs:PlayUrlPos(n, adresseSon(e.url), e.volume / 100, c.son, false, {
             onPlayStart = function()
                 local actuel = etat(c.id)
                 if not actuel or actuel.v ~= v then return end
@@ -106,7 +112,7 @@ local tempsAudio
 
 local function demanderLien(titre)
     local r = lib.inputDialog(titre, {
-        { type = 'input', label = 'Lien YouTube ou MP3', description = 'https://www.youtube.com/watch?v=... ou https://.../morceau.mp3', required = true },
+        { type = 'input', label = 'Lien ou fichier MP3', description = 'https://soundcloud.com/... , https://.../morceau.mp3 , YouTube, ou le nom d\'un MP3 du dossier pt-dj/musique (ex. monset.mp3)', required = true },
     })
     return r and r[1] and r[1]:gsub('^%s+', ''):gsub('%s+$', '') or nil
 end
@@ -130,6 +136,31 @@ ouvrirMenu = function(c)
                 local url = demanderLien('Jouer maintenant')
                 if url then TriggerServerEvent('pt-dj:server:jouer', c.id, url, false) end
                 Wait(300) ouvrirMenu(c)
+            end,
+        },
+        {
+            title = 'Jouer un MP3 du serveur', description = 'Fichiers du dossier pt-dj/musique (analyse sans YouTube)', icon = 'folder-open',
+            onSelect = function()
+                local liste = lib.callback.await('pt-dj:listeMp3', false) or {}
+                local opts = {}
+                for _, nom in ipairs(liste) do
+                    opts[#opts + 1] = {
+                        title = nom, icon = 'music',
+                        description = 'Jouer maintenant',
+                        onSelect = function() TriggerServerEvent('pt-dj:server:jouer', c.id, nom, false) Wait(300) ouvrirMenu(c) end,
+                    }
+                    if e and e.url then
+                        opts[#opts + 1] = {
+                            title = '  + file d\'attente : ' .. nom, icon = 'list',
+                            onSelect = function() TriggerServerEvent('pt-dj:server:jouer', c.id, nom, true) Wait(300) ouvrirMenu(c) end,
+                        }
+                    end
+                end
+                if #opts == 0 then
+                    opts[1] = { title = 'Aucun MP3', description = 'Mets tes fichiers .mp3 dans resources/.../pt-dj/musique puis redemarre pt-dj', icon = 'circle-info', readOnly = true }
+                end
+                lib.registerContext({ id = 'pt_dj_mp3', title = 'MP3 du serveur', menu = 'pt_dj_menu', options = opts })
+                lib.showContext('pt_dj_mp3')
             end,
         },
         {

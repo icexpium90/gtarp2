@@ -15,6 +15,7 @@ client_script 'client.lua'
 files {
     'html/led.html',
     'html/led.js',
+    'musique/*.mp3',
 }
 server_script 'server.lua'
 

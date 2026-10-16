@@ -56,9 +56,38 @@ local function ecoule(e)
     return e.decalage + (maintenant() - e.debut)
 end
 
-local function urlValide(url)
-    return type(url) == 'string' and #url < 400 and url:match('^https?://') ~= nil
+-- MP3 poses dans pt-dj/musique/ : on tape juste le nom du fichier (ex. monset.mp3)
+local DOSSIER_MP3 = GetResourcePath(GetCurrentResourceName()) .. '/musique/'
+local function nomMp3(nom)
+    return type(nom) == 'string' and #nom < 120 and not nom:find('[/\\]') and not nom:find('%.%.')
+        and nom:lower():match('%.mp3$') ~= nil
 end
+local function mp3Existe(nom)
+    local f = io.open(DOSSIER_MP3 .. nom, 'rb')
+    if f then f:close() return true end
+    return false
+end
+
+local function urlValide(url)
+    if type(url) ~= 'string' or #url >= 400 then return false end
+    if url:match('^https?://') then return true end
+    return nomMp3(url) and mp3Existe(url)
+end
+
+-- liste des MP3 du dossier musique (menu de la table de mixage)
+lib.callback.register('pt-dj:listeMp3', function()
+    local liste = {}
+    local ok, p = pcall(io.popen, ('ls -1 "%s" 2>/dev/null || dir /b "%s" 2>nul'):format(DOSSIER_MP3, DOSSIER_MP3:gsub('/', '\\')))
+    if ok and p then
+        for brut in p:lines() do
+            local ligne = brut:gsub('\r$', '')
+            if nomMp3(ligne) then liste[#liste + 1] = ligne end
+        end
+        p:close()
+    end
+    table.sort(liste, function(a, b) return a:lower() < b:lower() end)
+    return liste
+end)
 
 -- analyse du tempo (analyse.js) : resultat garde par lien pour ne pas re-analyser un morceau deja joue
 local analyses = {}
@@ -70,6 +99,7 @@ local function analyserMorceau(id, e)
     end
     e.analyse = 'encours'
     local v, url = e.v, e.url
+    if not url:match('^https?://') then url = DOSSIER_MP3 .. url end   -- MP3 local : chemin du fichier
     local encode = url:gsub('[^%w%-_%.~]', function(ch) return ('%%%02X'):format(ch:byte()) end)
     -- service d'analyse a cote du serveur (tools/dj-analyse) : FXServer interdit de lancer ffmpeg depuis une ressource
     PerformHttpRequest((Config.AnalyseAdresse or 'http://127.0.0.1:30125') .. '/analyse?url=' .. encode, function(code, corps)
@@ -139,7 +169,7 @@ end)
 RegisterNetEvent('pt-dj:server:jouer', function(id, url, ajouter)
     local src = source
     if not verifier(src, id) then return end
-    if not urlValide(url) then return notifier(src, 'Lien invalide (il doit commencer par https://).', 'error') end
+    if not urlValide(url) then return notifier(src, 'Lien invalide : https://... ou nom d\'un MP3 du dossier pt-dj/musique (ex. monset.mp3).', 'error') end
     local e = etats[id]
     if ajouter and e and e.url then
         e.file = e.file or {}
