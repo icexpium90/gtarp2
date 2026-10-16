@@ -34,10 +34,11 @@ Config.Lumieres = {
             { dict = 'core', nom = 'exp_sht_extinguisher', echelle = 4 },
             { dict = 'core', nom = 'ent_sht_steam', echelle = 4 },
         },
-        angleTir = -90.0,             -- droit vers le ciel (retourne de 180 degres) ; /testpyro co2 pour verifier
+        angleTir = 90.0,              -- vers le ciel ; si ce n'est pas le cas : /testpyro co2 (4 jets devant toi)
         couleur = { 1.0, 1.0, 1.0 },  -- blanc
-        avant = 1.5,                  -- distance (m) devant la cabine : au bord de la scene
-        hauteur = 0.2,                -- hauteur (m) au-dessus du plancher de la scene (negatif = plus bas, sous le bord)
+        avant = 4.0,                  -- distance (m) devant le son de la cabine (plus petit = plus pres de la scene)
+        base = 'sol',                 -- 'sol' : au sol devant la scene ; 'scene' : sur le plancher de la scene
+        hauteur = 0.3,                -- hauteur (m) au-dessus de la base
         duree = 2000,                 -- duree d'un jet (ms)
     },
     -- lance-flammes au pied de la scene (entre les jets de CO2) : sub-bass, drops, growls
@@ -48,8 +49,9 @@ Config.Lumieres = {
             { dict = 'core', nom = 'exp_grd_petrol_pump_post', echelle = 1.0 },
         },
         rotation = vec3(0.0, 0.0, 0.0), -- vers le ciel ; si ce n'est pas le cas : /testpyro flammes
-        avant = 1.5,                  -- au bord de la scene
-        hauteur = 0.0,                -- hauteur (m) au-dessus du plancher de la scene
+        avant = 4.0,                  -- distance (m) devant le son de la cabine
+        base = 'sol',                 -- 'sol' ou 'scene'
+        hauteur = 0.0,                -- hauteur (m) au-dessus de la base
         duree = 900,
         toutesLesMesures = 4,         -- flammes automatiques toutes les 4 mesures quand ca envoie (0 = desactive)
     },

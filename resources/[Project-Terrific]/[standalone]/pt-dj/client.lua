@@ -433,8 +433,9 @@ local function scene(c)
         local lw = w * 0.9
         reglage = reglage or {}
         -- hauteur comptee depuis le plancher de la scene (pieds du DJ a la table de mixage), pareil sur toutes les scenes
+        -- base 'scene' : plancher de la scene (pieds du DJ) ; base 'sol' (defaut) : sol devant la scene
         local plancher = (c.coords and c.coords.z or c.son.z) - 1.0
-        local z = plancher + (reglage.hauteur or L.pyroHauteur or 0.0)
+        local z = (reglage.base == 'scene' and plancher or sol) + (reglage.hauteur or L.pyroHauteur or 0.0)
         for i = 1, nb do
             local x = nb > 1 and (-lw / 2 + lw * (i - 1 + (decale or 0)) / (nb - 1 + (decale and 1 or 0))) or 0.0
             local p = c.son + avant * (reglage.avant or L.pyroAvant or 3.0) + cote * x
@@ -1032,16 +1033,18 @@ end)
 -- /testpyro [co2|flammes] : tire 3 jets (visibles par toi seul) avec 3 orientations pour trouver celle qui monte droit
 RegisterCommand('testpyro', function(_, args)
     local genre = (args[1] == 'flammes') and 'flammes' or 'co2'
-    local c = cabineProche(GetEntityCoords(PlayerPedId()))
-    if not c then return lib.notify({ title = 'DJ', description = 'Aucune scene proche (evenement allume).', type = 'error' }) end
-    local s = scene(c)
     local cfg = Config.Lumieres[genre]
-    local pts = s[genre]
-    local essais = { { pts[1], 0.0 }, { pts[math.max(1, #pts // 2)], 90.0 }, { pts[#pts], -90.0 } }
-    for _, e in ipairs(essais) do
-        tir(genre .. 'test', cfg, { e[1] }, vec3(e[2], 0.0, s.cap))
+    -- 4 jets poses au sol a 8 m devant toi, de gauche a droite : 0 / 90 / -90 / 180
+    local ped = PlayerPedId()
+    local p, av = GetEntityCoords(ped), GetEntityForwardVector(ped)
+    local droite = vec3(av.y, -av.x, 0.0)
+    local cap = GetEntityHeading(ped)
+    local angles = { 0.0, 90.0, -90.0, 180.0 }
+    for i, a in ipairs(angles) do
+        local q = p + av * 8.0 + droite * (-6.0 + 4.0 * (i - 1)) - vec3(0.0, 0.0, 0.95)
+        tir(genre .. 'test', cfg, { q }, vec3(a, 0.0, cap))
     end
-    lib.notify({ title = 'Test ' .. genre, type = 'inform', duration = 10000,
-        description = 'Gauche = 0 | milieu = 90 | droite = -90. Celui qui monte droit : mets ce chiffre dans config.lua ('
-            .. (genre == 'co2' and 'co2.angleTir' or 'flammes.rotation = vec3(X, 0.0, 0.0)') .. ').' })
+    lib.notify({ title = 'Test ' .. genre, type = 'inform', duration = 12000,
+        description = 'Devant toi, de gauche a droite : 0 | 90 | -90 | 180. Celui qui monte droit : mets ce chiffre dans config.lua ('
+            .. (genre == 'co2' and 'co2.angleTir = X' or 'flammes.rotation = vec3(X, 0.0, 0.0)') .. ').' })
 end, false)
