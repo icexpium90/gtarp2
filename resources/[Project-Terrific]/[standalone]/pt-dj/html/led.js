@@ -21,10 +21,25 @@ const lire = (ch, i) => (ch && i >= 0 && i < ch.length) ? (ch.charCodeAt(i) - 48
 const hasard = (n, s) => { const x = Math.sin(n * 12.9898 + (s || 0) * 78.233) * 43758.5453; return x - Math.floor(x); };
 const rgb = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a === undefined ? 1 : a})`;
 
+// position sur la grille des temps detectee (sets DJ : tempo et calage changent a chaque morceau)
+let dernier = 0;
+function positionTemps(T, x) {
+    const nb = T.length;
+    if (x < T[0]) return (x - T[0]) / (T[1] - T[0]);
+    if (x >= T[nb - 1]) return (nb - 1) + (x - T[nb - 1]) / (T[nb - 1] - T[nb - 2]);
+    let i = dernier;
+    if (!(T[i] <= x && x < T[i + 1])) {
+        let lo = 0, hi = nb - 1;
+        while (hi - lo > 1) { const mi = (lo + hi) >> 1; if (T[mi] <= x) lo = mi; else hi = mi; }
+        i = lo; dernier = i;
+    }
+    return i + (x - T[i]) / (T[i + 1] - T[i]);
+}
+
 function etat() {
     const t = joue ? tRef + (performance.now() - perfRef) / 1000 : tRef;
     const bpm = (M && M.bpm) || 128;
-    const temps = (t - ((M && M.ancre) || 0)) * bpm / 60;
+    const temps = (M && M.temps && M.temps.length > 1) ? positionTemps(M.temps, t) : (t - ((M && M.ancre) || 0)) * bpm / 60;
     const n = Math.floor(temps), croche = Math.floor(temps * 2);
     const B = (M && M.bandes) || {};
     const b = (k, def) => { const v = lire(B[k], croche); return v === null ? def : v; };

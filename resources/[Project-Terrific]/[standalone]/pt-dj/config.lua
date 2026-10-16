@@ -27,12 +27,14 @@ Config.Lumieres = {
     faisceaux = true,                 -- faisceaux visibles des lyres (cones de lumiere dans l'air)
     -- jets de CO2 : alignes devant chaque scene (ou cabine.co2 = { vec3... }) ; jetsDevant = nombre de jets
     jetsDevant = 6,
+    pyroAvant = 3.0,                  -- CO2 / flammes : distance (m) devant la cabine, sur le bord de la scene
+    pyroHauteur = -1.0,               -- hauteur (m) par rapport au son de la cabine : -1 = plancher de la scene
     co2 = {
         effets = {                    -- premier effet disponible dans le jeu
             { dict = 'core', nom = 'exp_sht_extinguisher', echelle = 3.4 },
             { dict = 'core', nom = 'ent_sht_steam', echelle = 3.8 },
         },
-        angleTir = 55.0,              -- angle au-dessus de l'horizontale, vers le public (90 = droit vers le ciel)
+        angleTir = 90.0,              -- 90 = droit vers le ciel (55 = incline vers le public) ; /testpyro co2 pour verifier
         duree = 1500,                 -- duree d'un jet (ms)
     },
     -- lance-flammes au pied de la scene (entre les jets de CO2) : sub-bass, drops, growls
@@ -42,7 +44,7 @@ Config.Lumieres = {
             { dict = 'core', nom = 'ent_sht_flame', echelle = 2.2 },
             { dict = 'core', nom = 'exp_grd_petrol_pump_post', echelle = 1.0 },
         },
-        rotation = vec3(90.0, 0.0, 0.0), -- vers le ciel
+        rotation = vec3(0.0, 0.0, 0.0), -- vers le ciel ; si ce n'est pas le cas : /testpyro flammes
         duree = 900,
     },
     -- couleurs : changent quand l'harmonie du morceau change (analyse), sinon toutes les 8 mesures

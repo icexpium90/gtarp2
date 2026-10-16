@@ -427,6 +427,18 @@ local function scene(c)
         end
         return liste
     end
+    -- pyrotechnie (CO2, flammes) : posee SUR la scene, au bord avant, et tiree vers le ciel
+    local function ligneScene(nb, decale)
+        local liste = {}
+        local lw = w * 0.9
+        local z = c.son.z + (L.pyroHauteur or -1.0)
+        for i = 1, nb do
+            local x = nb > 1 and (-lw / 2 + lw * (i - 1 + (decale or 0)) / (nb - 1 + (decale and 1 or 0))) or 0.0
+            local p = c.son + avant * (L.pyroAvant or 3.0) + cote * x
+            liste[i] = vec3(p.x, p.y, z)
+        end
+        return liste
+    end
     local cap = math.deg(math.atan(-avant.x, avant.y))
     local s = {
         lyres = c.lyres or c.projecteurs or rampe(L.lyres or 16, 0.0),
@@ -439,8 +451,8 @@ local function scene(c)
             vec3(0, 0, 0) + c.son + avant * 5.0 + cote * (-w / 2) + vec3(0.0, 0.0, sol - c.son.z + 0.5),
             vec3(0, 0, 0) + c.son + avant * 5.0 + cote * (w / 2) + vec3(0.0, 0.0, sol - c.son.z + 0.5),
         },
-        co2 = c.co2 or ligneSol(L.jetsDevant or 6),
-        flammes = c.flammes or ligneSol((L.flammes and L.flammes.nombre) or 4, 0.5),
+        co2 = c.co2 or ligneScene(L.jetsDevant or 6),
+        flammes = c.flammes or ligneScene((L.flammes and L.flammes.nombre) or 4, 0.5),
         sol = sol, cap = cap,
         avant = avant, cote = cote, centreRampe = centreRampe,
         public = c.public or (c.son + avant * 25.0 + vec3(0.0, 0.0, -3.0)),
@@ -478,7 +490,7 @@ local function jetsCo2(c, quels)
     if #(GetEntityCoords(PlayerPedId()) - c.son) > 250.0 then return end
     local s = scene(c)
     local cfg = Config.Lumieres.co2
-    tir('co2', cfg, s.co2, vec3(cfg.angleTir or 55.0, 0.0, s.cap), quels)
+    tir('co2', cfg, s.co2, vec3(cfg.angleTir or 90.0, 0.0, s.cap), quels)
 end
 
 local function lanceFlammes(c, quels)
@@ -527,17 +539,62 @@ tempsAudio = function(c, e)
     return tempsPrecis(e)
 end
 
+-- Analyse detaillee (grille des temps du set, instruments, couleurs) : recue du serveur une fois par morceau
+local donnees, demandes = {}, {}
+RegisterNetEvent('pt-dj:client:donnees', function(id, v, d)
+    if type(d) == 'table' then donnees[id] = { v = v, d = d } end
+end)
+
+local function donneesDe(c, e)
+    if e.analyse ~= 'ok' or e.bpmManuel then return nil end
+    local D = donnees[c.id]
+    if D and D.v == e.v then return D.d end
+    local q = demandes[c.id]
+    if not q or q.v ~= e.v or GetGameTimer() - q.quand > 8000 then
+        demandes[c.id] = { v = e.v, quand = GetGameTimer() }
+        TriggerServerEvent('pt-dj:server:donnees', c.id, e.v)
+    end
+    return nil
+end
+
+-- position en temps (0 = premier temps du morceau, 12.5 = milieu du 13e) sur la grille detectee :
+-- suit les changements de tempo et les transitions d'un set DJ
+local function positionTemps(D, x)
+    local T = D.temps
+    local nb = #T
+    if x < T[1] then return (x - T[1]) / (T[2] - T[1]) end
+    if x >= T[nb] then return (nb - 1) + (x - T[nb]) / (T[nb] - T[nb - 1]) end
+    local i = D.dernier or 1
+    if not (T[i] <= x and T[i + 1] and x < T[i + 1]) then
+        local lo, hi = 1, nb
+        while hi - lo > 1 do
+            local mi = (lo + hi) // 2
+            if T[mi] <= x then lo = mi else hi = mi end
+        end
+        i = lo
+        D.dernier = i
+    end
+    return (i - 1) + (x - T[i]) / (T[i + 1] - T[i])
+end
+
 local function musique(c, e)
+    local D = donneesDe(c, e) or {}
     local bpm = e.bpm or Config.BpmDefaut
-    local t = tempsAudio(c, e) - (e.ancre or 0)
-    local temps = t * bpm / 60.0
+    local ta = tempsAudio(c, e)
+    local t = ta - (e.ancre or 0)
+    local temps
+    if D.temps and #D.temps > 1 then
+        temps = positionTemps(D, ta)
+    else
+        temps = t * bpm / 60.0
+    end
     local n = math.floor(temps)
     local phase = temps - n
     local croche = math.floor(temps * 2)
     local phaseCroche = temps * 2 - croche
-    local energie = lire(e.energie, n)
-    local coup = lire(e.coups, croche)
-    local B = e.bandes or {}
+    local energie = lire(D.energie, n)
+    local coup = lire(D.coups, croche)
+    local B = D.bandes or {}
     local function bande(nom) local v = lire(B[nom], croche) return v and v / 9.0 or nil end
     local m = {
         t = t, temps = temps, n = n, phase = phase, mesure = n // 4,
@@ -552,12 +609,13 @@ local function musique(c, e)
         lead = bande('lead'), growl = bande('growl'), high = bande('high'),
         phaseCroche = phaseCroche, croche = croche,
         -- couleur : numero d'accord (change avec l'harmonie), sinon toutes les 8 mesures
-        palette = lire(e.couleurs, n) or (n // 32),
+        palette = lire(D.couleurs, n) or (n // 32),
+        donnees = D,
     }
     -- drop : debut de mesure ou l'energie saute fortement par rapport a la mesure precedente
     if m.analyse and n % 4 == 0 then
         local avant = 0
-        for k = n - 4, n - 1 do avant = avant + (lire(e.energie, k) or 0) end
+        for k = n - 4, n - 1 do avant = avant + (lire(D.energie, k) or 0) end
         avant = avant / 4
         if energie - avant >= 4 and energie >= 6 then m.drop = true end
     end
@@ -606,7 +664,7 @@ local function spectacle(c, e)
 
     local veilleDeDrop
     if m.analyse then
-        veilleDeDrop = ((lire(e.energie, (m.mesure + 1) * 4) or 0) / 9.0) - E >= 0.4
+        veilleDeDrop = ((lire(m.donnees.energie, (m.mesure + 1) * 4) or 0) / 9.0) - E >= 0.4
     else
         veilleDeDrop = (m.mesure % 8) == 7
     end
@@ -911,12 +969,13 @@ CreateThread(function()
             if not dui then creerDui() Wait(500) end
             local e = etat(c.id)
             -- nouveau morceau ou analyse arrivee : on envoie tout le profil a la page
-            local cle = e and e.url and (tostring(e.v) .. ':' .. tostring(e.analyse) .. ':' .. tostring(e.bpm) .. ':' .. tostring(e.ancre)) or 'rien'
+            local D = e and e.url and donneesDe(c, e) or {}
+            local cle = e and e.url and (tostring(e.v) .. ':' .. tostring(e.analyse) .. ':' .. tostring(e.bpm) .. ':' .. tostring(e.ancre) .. ':' .. tostring(D.temps ~= nil)) or 'rien'
             if cle ~= dernierMorceau then
                 dernierMorceau = cle
                 if e and e.url then
-                    envoyer({ type = 'morceau', bpm = e.bpm or Config.BpmDefaut, ancre = e.ancre or 0, energie = e.energie,
-                        coups = e.coups, bandes = e.bandes, couleurs = e.couleurs, palette = Config.Lumieres.couleurs,
+                    envoyer({ type = 'morceau', bpm = e.bpm or Config.BpmDefaut, ancre = e.ancre or 0, energie = D.energie,
+                        coups = D.coups, bandes = D.bandes, couleurs = D.couleurs, temps = D.temps, palette = Config.Lumieres.couleurs,
                         texte = Config.TexteEcrans or 'LUSO RP' })
                 else
                     envoyer({ type = 'arret' })
@@ -957,3 +1016,20 @@ end)
 AddEventHandler('onResourceStop', function(nom)
     if nom == GetCurrentResourceName() then detruireDui() end
 end)
+
+-- /testpyro [co2|flammes] : tire 3 jets (visibles par toi seul) avec 3 orientations pour trouver celle qui monte droit
+RegisterCommand('testpyro', function(_, args)
+    local genre = (args[1] == 'flammes') and 'flammes' or 'co2'
+    local c = cabineProche(GetEntityCoords(PlayerPedId()))
+    if not c then return lib.notify({ title = 'DJ', description = 'Aucune scene proche (evenement allume).', type = 'error' }) end
+    local s = scene(c)
+    local cfg = Config.Lumieres[genre]
+    local pts = s[genre]
+    local essais = { { pts[1], 0.0 }, { pts[math.max(1, #pts // 2)], 90.0 }, { pts[#pts], -90.0 } }
+    for _, e in ipairs(essais) do
+        tir(genre .. 'test', cfg, { e[1] }, vec3(e[2], 0.0, s.cap))
+    end
+    lib.notify({ title = 'Test ' .. genre, type = 'inform', duration = 10000,
+        description = 'Gauche = 0 | milieu = 90 | droite = -90. Celui qui monte droit : mets ce chiffre dans config.lua ('
+            .. (genre == 'co2' and 'co2.angleTir' or 'flammes.rotation = vec3(X, 0.0, 0.0)') .. ').' })
+end, false)

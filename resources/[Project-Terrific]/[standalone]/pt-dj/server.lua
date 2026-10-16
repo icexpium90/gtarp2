@@ -94,7 +94,7 @@ local analyses = {}
 local function analyserMorceau(id, e)
     local deja = analyses[e.url]
     if deja then
-        e.bpm, e.ancre, e.analyse, e.coups, e.energie, e.bandes, e.couleurs = deja.bpm, deja.ancre, 'ok', deja.coups, deja.energie, deja.bandes, deja.couleurs
+        e.bpm, e.ancre, e.analyse = deja.bpm, deja.ancre, 'ok'
         return
     end
     e.analyse = 'encours'
@@ -105,12 +105,12 @@ local function analyserMorceau(id, e)
     PerformHttpRequest((Config.AnalyseAdresse or 'http://127.0.0.1:30125') .. '/analyse?url=' .. encode, function(code, corps)
         local ok, r = pcall(json.decode, corps or '')
         if code == 200 and ok and type(r) == 'table' and r.bpm then
-            TriggerEvent('pt-dj:analyseFaite', id, v, r.bpm, r.ancre, r.confiance, nil, r.coups, r.energie, r.bandes, r.couleurs)
+            TriggerEvent('pt-dj:analyseFaite', id, v, r)
         else
             local raison = (ok and type(r) == 'table' and r.erreur) or (code == 0 and 'service d\'analyse injoignable (tools/dj-analyse lance ?)') or ('code ' .. tostring(code))
-            TriggerEvent('pt-dj:analyseFaite', id, v, nil, nil, 0, raison)
+            TriggerEvent('pt-dj:analyseFaite', id, v, nil, raison)
         end
-    end, 'GET', '', {}, { timeout = 180000 })
+    end, 'GET', '', {}, { timeout = 900000 })   -- un set d'1 h : ~1 min d'analyse (plus si la machine est chargee)
 end
 
 local function lancer(id, url, garder)
@@ -120,7 +120,7 @@ local function lancer(id, url, garder)
     if not garder then e.file = e.file or {} end
     local r = reglagesDe(id)
     e.bpm, e.ancre, e.lumieres, e.fumeeAuto = r.bpm, 0, r.lumieres, r.fumeeAuto
-    e.bpmManuel, e.coups, e.energie, e.bandes, e.couleurs = nil, nil, nil, nil, nil
+    e.bpmManuel = nil
     if Config.AnalyseTempo ~= false then analyserMorceau(id, e) end
     etats[id] = e
     publier(id)
@@ -214,7 +214,6 @@ RegisterNetEvent('pt-dj:server:commande', function(id, action, valeur)
         e.bpm = r.bpm
         e.ancre = type(valeur) == 'table' and tonumber(valeur[2]) or e.ancre or 0
         e.bpmManuel = true
-        e.coups, e.energie, e.bandes, e.couleurs = nil, nil, nil, nil
     elseif action == 'reanalyser' then
         analyses[e.url] = nil
         e.bpmManuel = nil
@@ -244,24 +243,51 @@ RegisterNetEvent('pt-dj:server:duree', function(id, v, duree)
 end)
 
 -- resultat de l'analyse (analyse.js)
-AddEventHandler('pt-dj:analyseFaite', function(id, v, bpm, ancre, confiance, erreur, coups, energie, bandes, couleurs)
+-- Le detail (grille des temps de tout le set, instruments, couleurs : ~200 Ko pour 1 h) reste ici et part
+-- vers chaque joueur a la demande, en arriere-plan (evenement latent) ; GlobalState ne garde que bpm / ancre.
+AddEventHandler('pt-dj:analyseFaite', function(id, v, r, erreur)
     local e = etats[id]
-    bpm, ancre = tonumber(bpm), tonumber(ancre)
-    if type(coups) ~= 'string' then coups = nil end
-    if type(energie) ~= 'string' then energie = nil end
-    if type(bandes) ~= 'table' then bandes = nil end
-    if type(couleurs) ~= 'string' then couleurs = nil end
-    if bpm and e and e.url and e.v == v then
-        analyses[e.url] = { bpm = bpm, ancre = ancre, coups = coups, energie = energie, bandes = bandes, couleurs = couleurs }
+    local bpm = type(r) == 'table' and tonumber(r.bpm) or nil
+    local d
+    if bpm then
+        d = {
+            bpm = bpm, ancre = tonumber(r.ancre) or 0,
+            temps = type(r.temps) == 'table' and r.temps or nil,
+            coups = type(r.coups) == 'string' and r.coups or nil,
+            energie = type(r.energie) == 'string' and r.energie or nil,
+            bandes = type(r.bandes) == 'table' and r.bandes or nil,
+            couleurs = type(r.couleurs) == 'string' and r.couleurs or nil,
+        }
     end
+    if d and e and e.url and e.v == v then analyses[e.url] = d end
     if not e or e.v ~= v then return end
-    if not bpm then
+    if not d then
         e.analyse = 'echec'
         print(('^3[pt-dj] analyse du tempo impossible (%s) : %s^7'):format(tostring(erreur), tostring(e.url)))
     elseif not e.bpmManuel then
-        e.bpm, e.ancre, e.analyse, e.coups, e.energie, e.bandes, e.couleurs = bpm, ancre or 0, 'ok', coups, energie, bandes, couleurs
+        e.bpm, e.ancre, e.analyse = d.bpm, d.ancre, 'ok'
+        print(('^2[pt-dj] analyse terminee : %s BPM, %d temps (%s)^7'):format(d.bpm, d.temps and #d.temps or 0, tostring(e.url)))
     end
     publier(id)
+end)
+
+local derniereDemande = {}
+RegisterNetEvent('pt-dj:server:donnees', function(id, v)
+    local src = source
+    local e = etats[id]
+    if not e or e.v ~= v or e.analyse ~= 'ok' then return end
+    local d = analyses[e.url]
+    if not d then return end
+    local cle = src .. ':' .. tostring(id)
+    if derniereDemande[cle] and GetGameTimer() - derniereDemande[cle] < 3000 then return end
+    derniereDemande[cle] = GetGameTimer()
+    TriggerLatentClientEvent('pt-dj:client:donnees', src, 400000, id, v, d)
+end)
+AddEventHandler('playerDropped', function()
+    local p = tostring(source) .. ':'
+    for k in pairs(derniereDemande) do
+        if k:sub(1, #p) == p then derniereDemande[k] = nil end
+    end
 end)
 
 -- jets de CO2 a la demande du DJ
