@@ -46,6 +46,13 @@ clignotent, fumee automatique toutes les 8 mesures.
 pour YouTube), calcule le tempo et la position des temps forts, et le spectacle se cale dessus pour tout le monde
 (quelques secondes apres le debut du morceau ; 128 BPM en attendant). Un morceau deja analyse n'est pas re-analyse.
 
+L'analyse donne aussi le **profil du morceau** (8 minutes max) : la force de chaque coup de grosse caisse et l'energie de
+chaque temps. Le spectacle s'en sert :
+- **breaks / intros** (energie basse) : projecteurs doux et lents, pas de lasers ni de strobo, lasers du decor eteints ;
+- **montee** (la mesure suivante est beaucoup plus forte) : stroboscope en croches ;
+- **drop** (l'energie saute d'un coup) : confettis, feux d'artifice et fumee en meme temps ;
+- **passages forts** : flash sur chaque vrai coup, plus de lasers, balayages rapides, couleur qui change a chaque temps.
+
 Installation sur le VPS (une seule fois) :
 ```bash
 sudo apt install -y ffmpeg

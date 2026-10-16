@@ -7,7 +7,8 @@ const { spawn } = require('child_process');
 const SR = 11025;          // frequence d'echantillonnage de l'analyse
 const HOP = 256;           // pas entre deux trames (~23 ms)
 const WIN = 512;
-const DUREE_MAX = 120;     // secondes analysees
+const DUREE_MAX = 480;     // secondes decodees (profil d'energie de tout le morceau, 8 min max)
+const DUREE_TEMPO = 120;   // secondes utilisees pour trouver le tempo
 const DELAI_MAX = 90000;   // ms avant abandon
 const LATENCE = WIN / SR;  // ecart entre la trame detectee et le debut reel de l'attaque (s)
 
@@ -141,19 +142,70 @@ function tempo(env) {
     return { bpm: Math.round(bpm * 100) / 100, ancre, confiance };
 }
 
+// Profil du morceau sur la grille trouvee :
+//   coups  : force de l'attaque a chaque croche (0-9), pour flasher sur les vrais coups de grosse caisse
+//   energie: volume de chaque temps (0-9) lisse sur la mesure, pour les montees, les drops et les breaks
+function profil(pcm, env, bpm, ancre) {
+    const fps = SR / HOP;
+    const nTrames = env.length;
+    const volume = new Float64Array(nTrames);
+    for (let f = 0; f < nTrames; f++) {
+        let e = 0;
+        const d = f * HOP;
+        for (let i = 0; i < WIN; i += 2) { const x = pcm[d + i] / 32768; e += x * x; }
+        volume[f] = Math.sqrt(e / (WIN / 2));
+    }
+    const periode = 60 / bpm;
+    const duree = nTrames / fps;
+    const coups = [], energie = [];
+    const quantile = (arr, q) => { const t = Float64Array.from(arr).sort(); return t[Math.min(t.length - 1, Math.floor(q * t.length))] || 1e-9; };
+    // croches
+    const brutCoups = [];
+    for (let t = ancre - LATENCE; t < duree; t += periode / 2) {
+        const f = Math.round(t * fps);
+        let m = 0;
+        for (let k = f - 2; k <= f + 2; k++) if (k >= 0 && k < nTrames && env[k] > m) m = env[k];
+        brutCoups.push(m);
+    }
+    const refCoups = quantile(brutCoups, 0.95);
+    for (const c of brutCoups) coups.push(Math.max(0, Math.min(9, Math.round(9 * c / refCoups))));
+    // temps
+    const brutEnergie = [];
+    for (let t = ancre - LATENCE; t < duree; t += periode) {
+        const f0 = Math.max(0, Math.floor(t * fps)), f1 = Math.min(nTrames, Math.floor((t + periode) * fps));
+        let s = 0;
+        for (let f = f0; f < f1; f++) s += volume[f];
+        brutEnergie.push(f1 > f0 ? s / (f1 - f0) : 0);
+    }
+    // lissage sur 4 temps puis echelle entre le 10e et le 97e centile du morceau
+    const lisse = brutEnergie.map((_, i) => {
+        let s = 0, n = 0;
+        for (let k = i - 2; k <= i + 1; k++) if (k >= 0 && k < brutEnergie.length) { s += brutEnergie[k]; n++; }
+        return s / n;
+    });
+    const bas = quantile(lisse, 0.10), haut = quantile(lisse, 0.97);
+    for (const v of lisse) energie.push(Math.max(0, Math.min(9, Math.round(9 * (v - bas) / Math.max(1e-9, haut - bas)))));
+    return { coups: coups.join(''), energie: energie.join('') };
+}
+
 async function analyser(url) {
     const pcm = await decoder(url);
-    return tempo(enveloppe(pcm));
+    const env = enveloppe(pcm);
+    const r = tempo(env.subarray(0, Math.min(env.length, Math.floor(DUREE_TEMPO * SR / HOP))));
+    const p = profil(pcm, env, r.bpm, r.ancre);
+    r.coups = p.coups;
+    r.energie = p.energie;
+    return r;
 }
 
 if (typeof on === 'function') {
     on('pt-dj:analyser', (id, v, url) => {
         analyser(url).then((r) => {
-            emit('pt-dj:analyseFaite', id, v, r.bpm, r.ancre, r.confiance, null);
+            emit('pt-dj:analyseFaite', id, v, r.bpm, r.ancre, r.confiance, null, r.coups, r.energie);
         }).catch((e) => {
             emit('pt-dj:analyseFaite', id, v, null, null, 0, String(e && e.message || e));
         });
     });
 } else {
-    module.exports = { analyser, tempo, enveloppe };
+    module.exports = { analyser, tempo, enveloppe, profil };
 }

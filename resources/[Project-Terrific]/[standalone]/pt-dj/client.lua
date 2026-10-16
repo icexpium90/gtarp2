@@ -383,57 +383,114 @@ local function couleur(n)
 end
 
 local dernierTempsFumee = {}
+local dernierDrop = {}
 
-local function spectacle(c, e)
-    local s = scene(c)
+-- valeur (0-9) d'un profil analyse a l'index i (0 = premier element) ; nil sans analyse
+local function lire(chaine, i)
+    if not chaine or i < 0 or i >= #chaine then return nil end
+    return chaine:byte(i + 1) - 48
+end
+
+-- Etat musical a l'instant t : temps, phase, energie du passage (0-1), force du coup en cours (0-1), drop
+local function musique(c, e)
     local bpm = e.bpm or Config.BpmDefaut
     local t = tempsPrecis(e) - (e.ancre or 0)
     local temps = t * bpm / 60.0
-    local n = math.floor(temps)               -- numero du temps
-    local phase = temps - n                   -- 0 au temps, 1 juste avant le suivant
-    local mesure = n // 4
-    local punch = (1.0 - phase) ^ 2           -- eclat sur chaque temps
-    local c1, c2 = couleur(mesure), couleur(mesure + 2)
-    local montee = (mesure % 8) == 7          -- derniere mesure de la phrase : stroboscope
+    local n = math.floor(temps)
+    local phase = temps - n
+    local croche = math.floor(temps * 2)
+    local phaseCroche = temps * 2 - croche
+    local energie = lire(e.energie, n)
+    local coup = lire(e.coups, croche)
+    local m = {
+        t = t, temps = temps, n = n, phase = phase, mesure = n // 4,
+        analyse = energie ~= nil,
+        energie = energie and (energie / 9.0) or 0.6,
+        -- sans analyse : un coup sur chaque temps
+        coup = coup and (coup / 9.0) * (1.0 - phaseCroche) ^ 2 or (1.0 - phase) ^ 2,
+        coupFort = coup and coup >= 7 and phaseCroche < 0.35 or false,
+        drop = false,
+    }
+    -- drop : debut de mesure ou l'energie saute fortement par rapport a la mesure precedente
+    if m.analyse and n % 4 == 0 then
+        local avant = 0
+        for k = n - 4, n - 1 do avant = avant + (lire(e.energie, k) or 0) end
+        avant = avant / 4
+        if energie - avant >= 4 and energie >= 6 then m.drop = true end
+    end
+    return m
+end
 
-    -- projecteurs : balayent le public, changent de couleur a chaque mesure, frappent sur chaque temps
+local function spectacle(c, e)
+    local s = scene(c)
+    local m = musique(c, e)
+    local E = m.energie
+    local calme = E < 0.3                       -- break / intro : lumiere douce, pas de lasers
+    local fort = E >= 0.75                      -- drop / refrain
+    local c1, c2 = couleur(fort and m.n or m.mesure), couleur((fort and m.n or m.mesure) + 2)
+
+    -- projecteurs : intensite = energie du passage + eclat sur chaque vrai coup ; vitesse selon l'energie
+    local vitesse = 0.4 + 1.6 * E
     for i, p in ipairs(s.projecteurs) do
         local col = (i % 2 == 0) and c1 or c2
-        local balayage = math.sin(t * 0.9 + i * 1.3) * 14.0
-        local cible = s.public + s.cote * balayage + s.avant * (math.cos(t * 0.6 + i) * 6.0)
+        local balayage = math.sin(m.t * vitesse + i * 1.3) * (8.0 + 10.0 * E)
+        local cible = s.public + s.cote * balayage + s.avant * (math.cos(m.t * vitesse * 0.7 + i) * 6.0)
         local dir = cible - p
         dir = dir / #dir
-        DrawSpotLight(p.x, p.y, p.z, dir.x, dir.y, dir.z, col[1], col[2], col[3], 70.0, 6.0 + 40.0 * punch, 0.0, 9.0, 1.0)
+        local lumiere = (calme and 3.0 or 4.0 + 10.0 * E) + 45.0 * m.coup * (0.4 + E)
+        DrawSpotLight(p.x, p.y, p.z, dir.x, dir.y, dir.z, col[1], col[2], col[3], 70.0, lumiere, 0.0, 7.0 + 6.0 * E, 1.0)
     end
 
-    -- lasers : eventail de faisceaux qui tourne, change de sens a chaque mesure
-    local sens = (mesure % 2 == 0) and 1.0 or -1.0
-    local allume = (n % 2 == 0) or phase < 0.5
-    if allume then
-        for _, o in ipairs(s.lasers) do
-            for k = -4, 4 do
-                local angle = k * 0.18 + math.sin(t * 1.4 * sens) * 0.6
-                local dirH = s.avant * math.cos(angle) + s.cote * math.sin(angle)
-                local fin = o + dirH * 60.0 + vec3(0.0, 0.0, math.sin(t * 2.0 + k) * 4.0 - 2.0)
-                local col = (k % 2 == 0) and c1 or c2
-                DrawLine(o.x, o.y, o.z, fin.x, fin.y, fin.z, col[1], col[2], col[3], 255)
+    -- lasers : nombre de faisceaux et vitesse selon l'energie, coupes pendant les breaks, clignotent sur les coups
+    if not calme then
+        local nb = math.floor(2 + 6 * E)
+        local sens = (m.mesure % 2 == 0) and 1.0 or -1.0
+        local allume = fort and (m.coup > 0.15 or m.phase < 0.5) or (m.n % 2 == 0) or m.phase < 0.5
+        if allume then
+            for _, o in ipairs(s.lasers) do
+                for k = -nb, nb do
+                    local angle = k * (0.36 / math.max(1, nb / 2)) + math.sin(m.t * (0.8 + 2.0 * E) * sens) * 0.6
+                    local dirH = s.avant * math.cos(angle) + s.cote * math.sin(angle)
+                    local fin = o + dirH * 60.0 + vec3(0.0, 0.0, math.sin(m.t * 2.0 + k) * 4.0 - 2.0)
+                    local col = (k % 2 == 0) and c1 or c2
+                    DrawLine(o.x, o.y, o.z, fin.x, fin.y, fin.z, col[1], col[2], col[3], 255)
+                end
             end
         end
     end
 
-    -- stroboscope sur la derniere mesure de chaque phrase (8 mesures), en croches
-    if montee and ((temps * 2) % 1.0) < 0.25 then
-        DrawLightWithRange(c.son.x, c.son.y, c.son.z + 6.0, 255, 255, 255, 60.0, 25.0)
+    -- stroboscope : sur les gros coups pendant les passages forts, et en croches sur la mesure avant un drop
+    local veilleDeDrop = false
+    if m.analyse then
+        local suivant = lire(e.energie, (m.mesure + 1) * 4) or 0
+        veilleDeDrop = suivant / 9.0 - E >= 0.4
+    else
+        veilleDeDrop = (m.mesure % 8) == 7
+    end
+    if (fort and m.coupFort) or (veilleDeDrop and ((m.temps * 2) % 1.0) < 0.25) then
+        DrawLightWithRange(c.son.x, c.son.y, c.son.z + 6.0, 255, 255, 255, 60.0, 30.0)
     end
 
-    -- fumee automatique au debut de chaque groupe de N mesures (meme calcul chez tous les joueurs)
-    if e.fumeeAuto ~= false and c.effets and c.effets.fumee then
-        local groupe = mesure // (Config.Lumieres.fumeeToutesLesMesures or 8)
-        if mesure % (Config.Lumieres.fumeeToutesLesMesures or 8) == 0 and dernierTempsFumee[c.id] ~= groupe then
+    -- drop : confettis, feux d'artifice et fumee d'un coup (meme calcul chez tous les joueurs)
+    if m.drop and dernierDrop[c.id] ~= m.n then
+        dernierDrop[c.id] = m.n
+        CreateThread(function()
+            if c.effets and c.effets.confettis then JouerEffet(c, 'confettis') end
+            if c.effets and c.effets.feux then JouerEffet(c, 'feux') end
+            if e.fumeeAuto ~= false and c.effets and c.effets.fumee then JouerEffet(c, 'fumee') end
+        end)
+    end
+
+    -- fumee automatique au debut de chaque groupe de N mesures (pas pendant les breaks)
+    if e.fumeeAuto ~= false and c.effets and c.effets.fumee and not calme then
+        local par = Config.Lumieres.fumeeToutesLesMesures or 8
+        local groupe = m.mesure // par
+        if m.mesure % par == 0 and dernierTempsFumee[c.id] ~= groupe then
             dernierTempsFumee[c.id] = groupe
             CreateThread(function() JouerEffet(c, 'fumee') end)
         end
     end
+    return m
 end
 
 -- les lasers du decor (pt-maploader) clignotent sur le tempo
@@ -462,11 +519,9 @@ CreateThread(function()
                 and #(pos - c.son) < (Config.Lumieres.distance or 150.0) then
                 attente = 0
                 actif = true
-                spectacle(c, e)
-                -- lasers du decor : visibles sur la premiere moitie de chaque temps
-                local bpm = e.bpm or Config.BpmDefaut
-                local temps = (tempsPrecis(e) - (e.ancre or 0)) * bpm / 60.0
-                local visible = (temps % 1.0) < 0.5
+                local m = spectacle(c, e)
+                -- lasers du decor : allumes sur les coups, eteints pendant les breaks
+                local visible = m.energie >= 0.3 and (m.coup > 0.2 or (not m.analyse and m.phase < 0.5))
                 for _, o in ipairs(laserDecor) do
                     if #(GetEntityCoords(o) - c.son) < 150.0 then SetEntityVisible(o, visible, false) end
                 end

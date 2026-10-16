@@ -65,7 +65,7 @@ local analyses = {}
 local function analyserMorceau(id, e)
     local deja = analyses[e.url]
     if deja then
-        e.bpm, e.ancre, e.analyse = deja.bpm, deja.ancre, 'ok'
+        e.bpm, e.ancre, e.analyse, e.coups, e.energie = deja.bpm, deja.ancre, 'ok', deja.coups, deja.energie
         return
     end
     e.analyse = 'encours'
@@ -79,7 +79,7 @@ local function lancer(id, url, garder)
     if not garder then e.file = e.file or {} end
     local r = reglagesDe(id)
     e.bpm, e.ancre, e.lumieres, e.fumeeAuto = r.bpm, 0, r.lumieres, r.fumeeAuto
-    e.bpmManuel = nil
+    e.bpmManuel, e.coups, e.energie = nil, nil, nil
     if Config.AnalyseTempo ~= false then analyserMorceau(id, e) end
     etats[id] = e
     publier(id)
@@ -173,6 +173,7 @@ RegisterNetEvent('pt-dj:server:commande', function(id, action, valeur)
         e.bpm = r.bpm
         e.ancre = type(valeur) == 'table' and tonumber(valeur[2]) or e.ancre or 0
         e.bpmManuel = true
+        e.coups, e.energie = nil, nil
     elseif action == 'reanalyser' then
         analyses[e.url] = nil
         e.bpmManuel = nil
@@ -202,16 +203,20 @@ RegisterNetEvent('pt-dj:server:duree', function(id, v, duree)
 end)
 
 -- resultat de l'analyse (analyse.js)
-AddEventHandler('pt-dj:analyseFaite', function(id, v, bpm, ancre, confiance, erreur)
+AddEventHandler('pt-dj:analyseFaite', function(id, v, bpm, ancre, confiance, erreur, coups, energie)
     local e = etats[id]
     bpm, ancre = tonumber(bpm), tonumber(ancre)
-    if bpm and e and e.url then analyses[e.url] = analyses[e.url] or (e.v == v and { bpm = bpm, ancre = ancre } or nil) end
+    if type(coups) ~= 'string' then coups = nil end
+    if type(energie) ~= 'string' then energie = nil end
+    if bpm and e and e.url and e.v == v then
+        analyses[e.url] = { bpm = bpm, ancre = ancre, coups = coups, energie = energie }
+    end
     if not e or e.v ~= v then return end
     if not bpm then
         e.analyse = 'echec'
         print(('^3[pt-dj] analyse du tempo impossible (%s) : %s^7'):format(tostring(erreur), tostring(e.url)))
     elseif not e.bpmManuel then
-        e.bpm, e.ancre, e.analyse = bpm, ancre or 0, 'ok'
+        e.bpm, e.ancre, e.analyse, e.coups, e.energie = bpm, ancre or 0, 'ok', coups, energie
     end
     publier(id)
 end)
