@@ -60,21 +60,49 @@ local blip, blipId, cibleVeh = nil, nil, nil
 local groupe = joaat('PT_GOFAST')
 AddRelationshipGroup('PT_GOFAST')
 
+local centre = nil
 local function majBlip(g)
-    if not g then
+    if not g or not g.zone then
         if blip then RemoveBlip(blip) blip = nil end
+        if centre then RemoveBlip(centre) centre = nil end
         return
     end
     if not blip or blipId ~= g.id then
         if blip then RemoveBlip(blip) end
-        blip = AddBlipForRadius(g.zone.x, g.zone.y, g.zone.z, 300.0)
+        if centre then RemoveBlip(centre) end
+        -- zone rouge (approximative) + icone au centre pour la reperer de loin, et GPS pose dessus
+        blip = AddBlipForRadius(g.zone.x + 0.0, g.zone.y + 0.0, g.zone.z + 0.0, 300.0)
         SetBlipColour(blip, 1)
-        SetBlipAlpha(blip, 110)
+        SetBlipAlpha(blip, 128)
+        SetBlipDisplay(blip, 4)
+        centre = AddBlipForCoord(g.zone.x + 0.0, g.zone.y + 0.0, g.zone.z + 0.0)
+        SetBlipSprite(centre, 229)          -- voiture
+        SetBlipColour(centre, 1)
+        SetBlipScale(centre, 1.0)
+        SetBlipFlashes(centre, true)
+        SetBlipAsShortRange(centre, false)
+        BeginTextCommandSetBlipName('STRING')
+        AddTextComponentSubstringPlayerName('Go-fast (zone approximative)')
+        EndTextCommandSetBlipName(centre)
+        SetNewWaypoint(g.zone.x + 0.0, g.zone.y + 0.0)
         blipId = g.id
+        print(('[pt-drogues] go-fast : zone %.0f, %.0f'):format(g.zone.x, g.zone.y))
     else
-        SetBlipCoords(blip, g.zone.x, g.zone.y, g.zone.z)
+        SetBlipCoords(blip, g.zone.x + 0.0, g.zone.y + 0.0, g.zone.z + 0.0)
+        SetBlipCoords(centre, g.zone.x + 0.0, g.zone.y + 0.0, g.zone.z + 0.0)
     end
 end
+
+-- /gofast : remet le GPS sur la zone du go-fast en cours
+RegisterCommand('gofast', function()
+    local g = GlobalState.pt_gofast
+    if not g or not g.zone then
+        return TriggerEvent('QBCore:Notify', 'Aucun go-fast en cours.', 'error')
+    end
+    majBlip(g)
+    SetNewWaypoint(g.zone.x + 0.0, g.zone.y + 0.0)
+    TriggerEvent('QBCore:Notify', 'GPS pose sur la zone du go-fast.', 'success')
+end, false)
 
 AddStateBagChangeHandler('pt_gofast', 'global', function(_, _, g)
     majBlip(g)
@@ -195,5 +223,6 @@ end)
 AddEventHandler('onResourceStop', function(nom)
     if nom ~= GetCurrentResourceName() then return end
     if blip then RemoveBlip(blip) end
+    if centre then RemoveBlip(centre) end
     for _, z in ipairs(zones) do exports['qb-target']:RemoveZone(z) end
 end)
