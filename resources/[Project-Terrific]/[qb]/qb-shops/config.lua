@@ -1346,7 +1346,7 @@ Config.Locations = {
     -- Weedshop Locations
     ["weedshop"] = {
         ["label"] = "Smoke On The Water",
-        ["coords"] = vector4(-1168.26, -1573.2, 4.66, 105.24),
+        ["coords"] = vector4(357.55, -1022.25, 29.39, 90.0),   -- MLO pt-carte-weedshop (Mission Row), derriere la caisse
         ["ped"] = 'a_m_y_hippy_01',
         ["scenario"] = "WORLD_HUMAN_AA_SMOKE",
         ["radius"] = 1.5,
@@ -1357,7 +1357,7 @@ Config.Locations = {
         ["blipsprite"] = 140,
         ["blipscale"] = 0.6,
         ["blipcolor"] = 0,
-        ["delivery"] = vector4(-1162.13, -1568.57, 4.39, 328.52)
+        ["delivery"] = vector4(352.5, -1030.5, 29.33, 180.0)
     },
 
     -- Sea Word Locations
