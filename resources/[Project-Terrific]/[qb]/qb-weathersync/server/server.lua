@@ -281,7 +281,7 @@ end)
 
 CreateThread(function()
     while true do
-        Wait(60000) -- LUSO RP : heure envoyee aux joueurs toutes les minutes (chaque client fait avancer l'horloge entre deux envois)
+        Wait(3600000) -- LUSO RP : heure renvoyee a tous toutes les heures (chaque joueur la recoit aussi en se connectant et a chaque /time)
         TriggerClientEvent('qb-weathersync:client:SyncTime', -1, baseTime, timeOffset, freezeTime)
     end
 end)
