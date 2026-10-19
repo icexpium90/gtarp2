@@ -48,8 +48,21 @@ local function interessant(msg)
     return false
 end
 
+-- avertissements de "hitch" (gels de la machine) : comptes a part, jamais melanges aux vraies erreurs
+local hitches = { total = 0, max = 0, parFil = {}, parHeure = {} }
+
 RegisterConsoleListener(function(canal, message)
     if not message or message == '' then return end
+    local fil, ms = message:match('(%a+) thread hitch warning: timer interval of (%d+) milliseconds')
+    if fil then
+        ms = tonumber(ms)
+        hitches.total = hitches.total + 1
+        hitches.max = math.max(hitches.max, ms)
+        hitches.parFil[fil] = (hitches.parFil[fil] or 0) + 1
+        local h = os.date('%H:00')
+        hitches.parHeure[h] = (hitches.parHeure[h] or 0) + 1
+        return
+    end
     local msg = nettoyer(message:gsub('\n+$', ''))
     if msg == '' then return end
     -- lignes de pile qui suivent une erreur
@@ -157,6 +170,23 @@ local function genererRapport()
     L()
 
     -- 1. erreurs de la console
+    -- gels de la machine (hors erreurs de scripts)
+    L('--- 0. GELS DU SERVEUR (hitch warnings, ecartes des erreurs ci-dessous) ---')
+    if hitches.total == 0 then
+        L('Aucun.')
+    else
+        local fils = {}
+        for f, n in pairs(hitches.parFil) do fils[#fils + 1] = f .. ' ' .. n end
+        local heures = {}
+        for h, n in pairs(hitches.parHeure) do heures[#heures + 1] = { h = h, n = n } end
+        table.sort(heures, function(a, b) return a.h < b.h end)
+        local th = {}
+        for _, x in ipairs(heures) do th[#th + 1] = x.h .. ' : ' .. x.n end
+        L(('%d avertissements, pire gel %d ms (%s)'):format(hitches.total, hitches.max, table.concat(fils, ', ')))
+        L('Par heure : ' .. table.concat(th, ' | '))
+        L('Rappel : sur ce VPS, ces gels viennent de la machine (test python), pas des scripts.')
+    end
+    L()
     L('--- 1. ERREURS VUES DANS LA CONSOLE (depuis le demarrage de pt-diagnostic) ---')
     local tri = {}
     for r, e in pairs(parRessource) do tri[#tri + 1] = { r = r, e = e } end
