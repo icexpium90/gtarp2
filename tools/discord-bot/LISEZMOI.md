@@ -15,7 +15,13 @@ Monte tout le Discord du serveur GTA RP en une commande (`/setup`) puis le fait 
   Support (tickets, FAQ), Vocaux, Staff (whitelist, sanctions, logs).
 - **Messages prêts** : règlement avec bouton « J'accepte », panneau de candidature, panneau de tickets, FAQ.
 
-`/setup` ne supprime jamais rien : on peut le relancer à volonté (il complète et remet les permissions).
+`/setup` seul ne supprime jamais rien : on peut le relancer à volonté (il complète et remet les permissions).
+
+**`/setup supprimer_existant:True`** : repart de zéro. Après une confirmation par bouton, le bot **supprime tous
+les salons (et leurs messages) et tous les rôles** (sauf `@everyone`, les rôles des autres bots et ceux au-dessus du
+sien), puis recrée tout le Discord. Les membres restent mais perdent leurs rôles. **Irréversible.** Le bilan est envoyé
+en message privé. Les salons imposés par le mode Communauté de Discord (règles, mises à jour) ne peuvent pas être
+supprimés : désactive la Communauté avant si tu veux qu'ils partent aussi.
 
 ## En continu
 

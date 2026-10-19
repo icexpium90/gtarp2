@@ -4,7 +4,7 @@ const {
   Client, GatewayIntentBits, Partials, Events, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle,
   ModalBuilder, TextInputBuilder, TextInputStyle, ChannelType, PermissionFlagsBits: P, SlashCommandBuilder,
 } = require('discord.js');
-const { setup, COULEUR } = require('./setup');
+const { setup, reinitialiser, COULEUR } = require('./setup');
 const { NOM, STAFF } = require('./structure');
 const store = require('./store');
 
@@ -29,7 +29,9 @@ async function log(guild, titre, texte, couleur = 0x95A5A6) {
 
 const COMMANDES = [
   new SlashCommandBuilder().setName('setup').setDescription(`Crée / complète tout le Discord ${NOM} (rôles, salons, messages)`)
-    .setDefaultMemberPermissions(P.Administrator),
+    .setDefaultMemberPermissions(P.Administrator)
+    .addBooleanOption((o) => o.setName('supprimer_existant')
+      .setDescription('SUPPRIME tous les salons et rôles actuels avant de tout recréer (confirmation demandée)')),
   new SlashCommandBuilder().setName('statut').setDescription('Affiche le statut du serveur FiveM'),
   new SlashCommandBuilder().setName('annonce').setDescription('Publie une annonce')
     .setDefaultMemberPermissions(P.ManageMessages)
@@ -154,6 +156,22 @@ client.on(Events.InteractionCreate, async (it) => {
 
     // ---- commandes
     if (it.isChatInputCommand()) {
+      if (it.commandName === 'setup' && it.options.getBoolean('supprimer_existant')) {
+        if (it.user.id !== guild.ownerId && !it.member.permissions.has(P.Administrator)) {
+          return it.reply({ content: 'Réservé au propriétaire / administrateurs.', ephemeral: true });
+        }
+        return it.reply({
+          ephemeral: true,
+          content: [
+            '⚠️ **Tout supprimer et repartir de zéro ?**',
+            `Les **${guild.channels.cache.size} salons** (et leurs messages) et tous les rôles (sauf ceux des autres bots et ceux au-dessus de moi) seront **définitivement supprimés**, puis le Discord ${NOM} sera recréé.`,
+            'Les membres restent sur le serveur mais perdent leurs rôles. **Impossible à annuler.**',
+          ].join('\n'),
+          components: [new ActionRowBuilder().addComponents(
+            new ButtonBuilder().setCustomId('reset_ok').setLabel('Oui, tout supprimer et recréer').setEmoji('🗑️').setStyle(ButtonStyle.Danger),
+            new ButtonBuilder().setCustomId('reset_non').setLabel('Annuler').setStyle(ButtonStyle.Secondary))],
+        });
+      }
       if (it.commandName === 'setup') {
         await it.deferReply({ ephemeral: true });
         const journal = await setup(guild);
@@ -181,6 +199,26 @@ client.on(Events.InteractionCreate, async (it) => {
     // ---- boutons
     if (it.isButton()) {
       const [action, cible] = it.customId.split(':');
+
+      if (action === 'reset_non') return it.update({ content: 'Annulé, rien n\'a été supprimé.', components: [] });
+      if (action === 'reset_ok') {
+        if (it.user.id !== guild.ownerId && !it.member.permissions.has(P.Administrator)) return it.reply({ content: 'Refusé.', ephemeral: true });
+        await it.update({ content: '🗑️ Suppression en cours… Je t\'envoie le bilan en message privé (le salon actuel va disparaître).', components: [] });
+        const auteur = it.user;
+        const bilan = await reinitialiser(guild);
+        const journal = await setup(guild);
+        await majStatut();
+        const texte = [
+          `✅ **${NOM} : Discord recréé.**`,
+          `Supprimés : ${bilan.salons} salon(s), ${bilan.roles} rôle(s).`,
+          bilan.echecs.length ? `Non supprimés (protégés par Discord, ex. salons de la Communauté) : ${bilan.echecs.slice(0, 15).join(', ')}` : '',
+          `Créés : ${journal.filter((l) => l.startsWith('➕')).length} éléments.`,
+          'Pense à te redonner le rôle 👑 Fondateur.',
+        ].filter(Boolean).join('\n');
+        await auteur.send(texte.slice(0, 1900)).catch(() => {});
+        await log(guild, '🗑️ Réinitialisation complète', `Par ${auteur}. ${bilan.salons} salons et ${bilan.roles} rôles supprimés, Discord recréé.`, 0xE74C3C);
+        return;
+      }
 
       if (action === 'verifier') {
         const r = roles().citoyen;

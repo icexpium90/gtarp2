@@ -241,4 +241,26 @@ async function setup(guild) {
   return journal;
 }
 
-module.exports = { setup, COULEUR };
+// Mode "supprimer_existant" (confirme par le proprietaire) : supprime les salons et roles existants
+// (sauf @everyone, roles geres par Discord / d'autres bots, et roles au-dessus du bot), puis /setup recree tout.
+async function reinitialiser(guild) {
+  const bilan = { salons: 0, roles: 0, echecs: [] };
+  await guild.channels.fetch();
+  const salons = [...guild.channels.cache.values()].sort((a, b) => (a.type === ChannelType.GuildCategory) - (b.type === ChannelType.GuildCategory));
+  for (const c of salons) {
+    try { await c.delete(`${NOM} : reinitialisation`); bilan.salons += 1; } catch (e) { bilan.echecs.push(`#${c.name} (${e.message})`); }
+  }
+  await guild.roles.fetch();
+  const moi = await guild.members.fetchMe();
+  const plafond = moi.roles.highest.position;
+  for (const r of guild.roles.cache.values()) {
+    if (r.id === guild.roles.everyone.id || r.managed || r.position >= plafond) continue;
+    try { await r.delete(`${NOM} : reinitialisation`); bilan.roles += 1; } catch (e) { bilan.echecs.push(`@${r.name} (${e.message})`); }
+  }
+  store.set('roles', {});
+  store.set('salons', {});
+  store.set('messages', {});
+  return bilan;
+}
+
+module.exports = { setup, reinitialiser, COULEUR };
