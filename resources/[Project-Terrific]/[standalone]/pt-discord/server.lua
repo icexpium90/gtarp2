@@ -85,7 +85,7 @@ RegisterNetEvent('qb-phone:server:UpdateTweets', function(_, tweet)
     local Player = QBCore.Functions.GetPlayer(src)
     if not Player then return end
     local pseudo = ('@%s_%s'):format(Player.PlayerData.charinfo.firstname or '', Player.PlayerData.charinfo.lastname or '')
-    embed('twitter', 'Twitter', pseudo, nettoyer(tweet.message, 1000), 1942002, image(tweet.url))
+    embed('twitter', Config.NomTwitter or 'Twitter', pseudo, nettoyer(tweet.message, 1000), 1942002, image(tweet.url))
 end)
 
 RegisterNetEvent('qb-phone:server:AddAdvert', function(msg, url)
@@ -95,7 +95,7 @@ RegisterNetEvent('qb-phone:server:AddAdvert', function(msg, url)
     local Player = QBCore.Functions.GetPlayer(src)
     if not Player then return end
     local texte = nettoyer(msg, 1000) .. ('\n\n📞 **%s** — %s'):format(Player.PlayerData.charinfo.phone or '?', nomRP(Player))
-    embed('lbc', 'Leboncoin', '🛒 Nouvelle annonce', texte, 16737792, image(url))
+    embed('lbc', Config.NomLeboncoin or 'Leboncoin', '🛒 Nouvelle annonce', texte, 16737792, image(url))
 end)
 
 -- ---------------------------------------------------------------------------------------------------------------

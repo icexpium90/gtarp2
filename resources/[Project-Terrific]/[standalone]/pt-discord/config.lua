@@ -29,4 +29,6 @@ Config.Annonce = {
 
 -- Twitter et petites annonces du telephone (qb-phone) recopies sur Discord
 Config.Twitter = true
+Config.NomTwitter = 'Kuikui'      -- nom du reseau social RP (affiche sur Discord)
 Config.Leboncoin = true
+Config.NomLeboncoin = 'Leboncoin RP'
