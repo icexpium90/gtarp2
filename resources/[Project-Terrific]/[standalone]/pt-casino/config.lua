@@ -6,7 +6,7 @@ Config = {}
 Config.Jeton = 'casinochips'        -- objet utilise comme jeton (qb-core/shared/items.lua)
 Config.PrixJeton = 1                -- 1 jeton = 1 $ (achat et revente au meme prix a la caisse)
 Config.MiseMin = 10
-Config.MiseMax = 50000
+Config.MiseMax = 0                 -- 0 = pas de mise maximum (all in possible)
 
 -- Entree : porte principale du casino <-> hall interieur (E pour passer)
 -- Les positions se reglent en jeu : /casinopos entree (dehors, devant la porte) et /casinopos sortie (dans le hall)

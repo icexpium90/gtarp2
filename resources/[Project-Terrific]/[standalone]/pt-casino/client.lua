@@ -13,13 +13,24 @@ local function texteAide(t)
     EndTextCommandDisplayHelp(0, false, true, -1)
 end
 
+-- champs de mise : montant libre (pas de maximum si Config.MiseMax = 0) + case "Tout miser"
+local function maxMise() return (Config.MiseMax or 0) > 0 and Config.MiseMax or nil end
+local function champsMise(n, label)
+    return {
+        { type = 'number', label = (label or 'Mise') .. (' (vous avez %d jetons)'):format(n), min = Config.MiseMin, max = maxMise(),
+          default = math.max(Config.MiseMin, math.min(100, n > 0 and n or 100)) },
+        { type = 'checkbox', label = ('Tout miser (all in : %d jetons)'):format(maxMise() and math.min(n, maxMise()) or n) },
+    }
+end
+local function lireMise(n, montant, tout)
+    if tout then return maxMise() and math.min(n, maxMise()) or n end
+    return tonumber(montant)
+end
+
 local function demanderMise(titre, label)
     local n = lib.callback.await('pt-casino:jetons', false) or 0
-    local r = lib.inputDialog(titre, {
-        { type = 'number', label = (label or 'Mise') .. (' (vous avez %d jetons)'):format(n), min = Config.MiseMin, max = Config.MiseMax,
-          default = math.min(math.max(Config.MiseMin, 100), Config.MiseMax), required = true },
-    })
-    return r and tonumber(r[1])
+    local r = lib.inputDialog(titre, champsMise(n, label))
+    return r and lireMise(n, r[1], r[2])
 end
 
 local function chargerAnim(dict)
@@ -196,6 +207,7 @@ local function machine()
 end
 
 local function roulette(cle)
+    local jetonsRoulette = lib.callback.await('pt-casino:jetons', false) or 0
     local r = lib.inputDialog('Roulette', {
         { type = 'select', label = 'Pari', required = true, default = 'rouge', options = {
             { value = 'rouge', label = 'Rouge (x2)' }, { value = 'noir', label = 'Noir (x2)' },
@@ -203,12 +215,13 @@ local function roulette(cle)
             { value = 'manque', label = '1 a 18 (x2)' }, { value = 'passe', label = '19 a 36 (x2)' },
             { value = 'douzaine', label = 'Douzaine 1, 2 ou 3 (x3)' }, { value = 'numero', label = 'Numero plein 0 a 36 (x36)' } } },
         { type = 'number', label = 'Numero (0-36) ou douzaine (1-3), si besoin', min = 0, max = 36 },
-        { type = 'number', label = 'Mise (jetons)', min = Config.MiseMin, max = Config.MiseMax, default = 100, required = true },
+        table.unpack(champsMise(jetonsRoulette)),
     })
     if not r then return end
+    local mise = lireMise(jetonsRoulette, r[3], r[4])
     annoncerAnim(cle, 'lancer')
     lib.progressCircle({ duration = 4500, label = 'La bille tourne... Rien ne va plus !', position = 'bottom', canCancel = false, disable = { move = true, combat = true } })
-    local res = lib.callback.await('pt-casino:roulette', false, r[1], r[2], r[3])
+    local res = lib.callback.await('pt-casino:roulette', false, r[1], r[2], mise)
     if not res then return end
     annoncerAnim(cle, 'ramasser')
     local titre = ('Le %d %s'):format(res.numero, res.couleur)
@@ -319,10 +332,10 @@ local function courses()
     local n = lib.callback.await('pt-casino:jetons', false) or 0
     local r = lib.inputDialog('Inside Track - courses de chevaux', {
         { type = 'select', label = 'Cheval', options = opts, required = true, default = 1 },
-        { type = 'number', label = ('Mise (vous avez %d jetons)'):format(n), min = Config.MiseMin, max = Config.MiseMax, default = 100, required = true },
+        table.unpack(champsMise(n)),
     })
     if not r then return end
-    local res = lib.callback.await('pt-casino:courses', false, r[1], r[2])
+    local res = lib.callback.await('pt-casino:courses', false, r[1], lireMise(n, r[2], r[3]))
     if res then afficherCourse(res) end
 end
 
@@ -483,6 +496,12 @@ local function retirerTout()
     retirerRoue()
 end
 
+-- machines a sous du casino (modeles du jeu)
+local SLOTS = {}
+for i = 1, 8 do SLOTS[#SLOTS + 1] = joaat(('vw_prop_casino_slot_0%da'):format(i)) end
+SLOTS[#SLOTS + 1] = joaat(Config.Modeles.machine)
+local slotProche, derniereRecherche = nil, 0
+
 CreateThread(function()
     local dedans = false
     while true do
@@ -527,15 +546,37 @@ CreateThread(function()
                 texteAide('~INPUT_CONTEXT~ Tourner la roue de la fortune (gratuit, 1 fois par jour)')
                 if IsControlJustReleased(0, 38) then TriggerServerEvent('pt-casino:roue') end
             end
+            local proposee = false
             for _, j in ipairs(e.jeux or {}) do
                 local d = #(pos - vector3(j.coords.x, j.coords.y, j.coords.z))
                 if d < 2.2 and JEUX[j.type] then
                     attente = 0
+                    proposee = true
                     texteAide('~INPUT_CONTEXT~ ' .. JEUX[j.type].texte)
                     if IsControlJustReleased(0, 38) then CreateThread(function() lancerJeu(j) end) end
                     break
                 elseif d < 8.0 then
                     attente = math.min(attente, 200)
+                end
+            end
+            -- toutes les machines a sous du casino sont jouables (pas besoin de les placer une par une)
+            if not proposee then
+                attente = math.min(attente, 200)
+                if GetGameTimer() - derniereRecherche > 250 then
+                    derniereRecherche = GetGameTimer()
+                    slotProche = nil
+                    for _, h in ipairs(SLOTS) do
+                        local o = GetClosestObjectOfType(pos.x, pos.y, pos.z, 1.4, h, false, false, false)
+                        if o ~= 0 then slotProche = o break end
+                    end
+                end
+                if slotProche and DoesEntityExist(slotProche) then
+                    attente = 0
+                    texteAide('~INPUT_CONTEXT~ Jouer a la machine a sous')
+                    if IsControlJustReleased(0, 38) then
+                        local c = GetEntityCoords(slotProche)
+                        CreateThread(function() lancerJeu({ type = 'machine', coords = { x = c.x, y = c.y, z = c.z } }) end)
+                    end
                 end
             end
         end

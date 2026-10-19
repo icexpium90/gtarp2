@@ -102,8 +102,10 @@ end
 
 local function miser(P, src, mise)
     mise = math.floor(tonumber(mise) or 0)
-    if mise < Config.MiseMin or mise > Config.MiseMax then
-        notifier(src, ('Mise entre %d et %d jetons.'):format(Config.MiseMin, Config.MiseMax), 'error')
+    local max = (Config.MiseMax or 0) > 0 and Config.MiseMax or math.huge
+    if mise < Config.MiseMin or mise > max then
+        notifier(src, max == math.huge and ('Mise minimum : %d jetons.'):format(Config.MiseMin)
+            or ('Mise entre %d et %d jetons.'):format(Config.MiseMin, Config.MiseMax), 'error')
         return nil
     end
     if jetons(P) < mise or not P.Functions.RemoveItem(Config.Jeton, mise) then
@@ -127,7 +129,7 @@ RegisterNetEvent('pt-casino:acheter', function(n)
     local src = source
     local P = joueurAuCasino(src)
     n = math.floor(tonumber(n) or 0)
-    if not P or n <= 0 or n > 1000000 then return end
+    if not P or n <= 0 or n > 1000000000000 then return end   -- pas de plafond reel (garde-fou a 1 000 milliards)
     local prix = n * Config.PrixJeton
     if P.Functions.RemoveMoney('cash', prix, 'casino-jetons') or P.Functions.RemoveMoney('bank', prix, 'casino-jetons') then
         payer(P, n)

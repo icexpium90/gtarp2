@@ -16,7 +16,7 @@
      ou la **voiture du podium** (livrée au parking du casino).
 4. **Croupiers** derrière chaque roulette, table de blackjack et de poker : ils distribuent, lancent la bille et
    ramassent ; le joueur s'assoit à la table et la caméra passe au-dessus du tapis pendant la partie.
-- Mise de 10 à 50 000 jetons. Tirages faits par le serveur (impossible à tricher côté joueur).
+- Mise minimum 10 jetons, **pas de maximum** (case « Tout miser » pour un all in). Toutes les machines à sous du casino sont jouables. Tirages faits par le serveur (impossible à tricher côté joueur).
 - L'avantage de la maison est comparable à un vrai casino (machines environ 92 % redistribués, roulette 97,3 %).
 
 ## Pour les admins (placer en jeu)
