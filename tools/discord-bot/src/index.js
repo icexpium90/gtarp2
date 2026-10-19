@@ -33,6 +33,8 @@ const COMMANDES = [
     .addBooleanOption((o) => o.setName('supprimer_existant')
       .setDescription('SUPPRIME tous les salons et rôles actuels avant de tout recréer (confirmation demandée)')),
   new SlashCommandBuilder().setName('statut').setDescription('Affiche le statut du serveur FiveM'),
+  new SlashCommandBuilder().setName('webhooks').setDescription('Lignes à mettre dans server.cfg pour relier le jeu à Discord (admin)')
+    .setDefaultMemberPermissions(P.Administrator),
   new SlashCommandBuilder().setName('annonce').setDescription('Publie une annonce')
     .setDefaultMemberPermissions(P.ManageMessages)
     .addStringOption((o) => o.setName('titre').setDescription('Titre').setRequired(true))
@@ -179,6 +181,12 @@ client.on(Events.InteractionCreate, async (it) => {
         return it.editReply(journal.length
           ? `✅ Setup terminé :\n${journal.slice(0, 40).join('\n')}${journal.length > 40 ? `\n… (+${journal.length - 40})` : ''}`
           : '✅ Tout était déjà en place : permissions et messages mis à jour.');
+      }
+      if (it.commandName === 'webhooks') {
+        const liens = store.get('webhooks', {});
+        if (!Object.keys(liens).length) return it.reply({ content: 'Aucun webhook : lance /setup.', ephemeral: true });
+        const lignes = Object.entries(liens).map(([k, u]) => `set pt_webhook_${k} "${u}"`).join('\n');
+        return it.reply({ ephemeral: true, content: `À mettre dans **webhooks.cfg** (ou server.cfg), **ne les partage pas** :\n\`\`\`\n${lignes}\n\`\`\`` });
       }
       if (it.commandName === 'statut') {
         const s = await lireFiveM();

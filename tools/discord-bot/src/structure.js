@@ -52,9 +52,11 @@ const CATEGORIES = [
     cle: 'roleplay', nom: '🎭 ROLEPLAY', acces: 'citoyens',
     salons: [
       { cle: 'candidature', nom: '📋・candidature-whitelist', ecriture: 'staff' },
-      { cle: 'annoncesrp', nom: '📰・annonces-rp', ecriture: 'staff', acces: 'whitelist' },
-      { cle: 'twitter', nom: '🐦・twitter-rp', acces: 'whitelist' },
-      { cle: 'entreprises', nom: '🏢・entreprises', acces: 'whitelist' },
+      // alimentes par le serveur de jeu (webhooks pt-discord) : lecture seule sur Discord
+      { cle: 'annoncesrp', nom: '📰・annonces-rp', ecriture: 'staff', acces: 'whitelist', webhook: 'annonces' },
+      { cle: 'twitter', nom: '🐦・twitter-rp', ecriture: 'staff', acces: 'whitelist', webhook: 'twitter' },
+      { cle: 'leboncoin', nom: '🛒・leboncoin', ecriture: 'staff', acces: 'whitelist', webhook: 'lbc' },
+      { cle: 'entreprises', nom: '🏢・ouvertures-entreprises', ecriture: 'staff', acces: 'whitelist', webhook: 'entreprises' },
       { cle: 'illegal', nom: '🕶️・hrp-illégal', acces: 'whitelist' },
     ],
   },

@@ -5,6 +5,7 @@ const {
 const { NOM, ROLES, STAFF, CATEGORIES, REGLEMENT, FAQ } = require('./structure');
 const store = require('./store');
 const projet = require('./projet');
+const fs = require('fs');
 
 const COULEUR = 0xC9A227;
 
@@ -228,6 +229,43 @@ async function creerProjet(guild, roles, journal) {
   journal.push(`ℹ️ ${p.gangs.length} gang(s) et ${p.entreprises.length} entreprise(s) lus depuis : ${p.source}`);
 }
 
+// Webhooks des salons alimentes par le serveur de jeu (Twitter, Leboncoin, annonces RP, entreprises).
+// Les liens sont ecrits dans webhooks.cfg (WEBHOOKS_CFG) que server.cfg charge avec : exec webhooks.cfg
+async function creerWebhooks(guild, salons, journal) {
+  const liens = {};
+  for (const cat of CATEGORIES) {
+    for (const s of cat.salons) {
+      if (!s.webhook) continue;
+      const c = guild.channels.cache.get(salons[s.cle]);
+      if (!c || !c.fetchWebhooks) continue;
+      const nom = `${NOM} - ${s.webhook}`;
+      const existants = await c.fetchWebhooks().catch(() => null);
+      let w = existants && existants.find((x) => x.name === nom && x.token);
+      if (!w) {
+        w = await c.createWebhook({ name: nom, reason: `${NOM} : liaison avec le serveur de jeu` });
+        journal.push(`➕ webhook ${s.nom}`);
+      }
+      liens[s.webhook] = w.url;
+    }
+  }
+  store.set('webhooks', liens);
+  const lignes = [
+    `# ${NOM} : webhooks Discord pour pt-discord (genere par le bot, ne pas partager)`,
+    ...Object.entries(liens).map(([k, u]) => `set pt_webhook_${k} "${u}"`),
+  ].join('\n') + '\n';
+  if (process.env.WEBHOOKS_CFG) {
+    try {
+      fs.writeFileSync(process.env.WEBHOOKS_CFG, lignes, { mode: 0o600 });
+      journal.push(`ℹ️ webhooks écrits dans ${process.env.WEBHOOKS_CFG} (server.cfg : exec webhooks.cfg, puis redémarrer)`);
+    } catch (e) {
+      journal.push(`⚠️ impossible d'écrire ${process.env.WEBHOOKS_CFG} : ${e.message}`);
+    }
+  } else {
+    journal.push('ℹ️ WEBHOOKS_CFG non défini : utilise /webhooks pour récupérer les lignes à mettre dans server.cfg');
+  }
+  return lignes;
+}
+
 async function setup(guild) {
   const journal = [];
   const roles = await creerRoles(guild, journal);
@@ -236,6 +274,7 @@ async function setup(guild) {
   if (!moi.roles.cache.has(roles.bots)) await moi.roles.add(roles.bots).catch(() => {});
   const salons = await creerSalons(guild, roles, journal);
   await creerProjet(guild, roles, journal);
+  await creerWebhooks(guild, salons, journal);
   await posterPanneaux(guild, salons);
   store.set('guildId', guild.id);
   return journal;
