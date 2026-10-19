@@ -1,0 +1,13 @@
+{
+  "name": "lusorp-discord-bot",
+  "version": "1.0.0",
+  "description": "Bot Discord LUSO RP : setup automatique du serveur, gangs et entreprises du projet, bienvenue, verification, whitelist, tickets, statut FiveM, logs",
+  "main": "src/index.js",
+  "scripts": { "start": "node src/index.js" },
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5",
+    "mysql2": "^3.11.0"
+  }
+}
