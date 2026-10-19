@@ -42,6 +42,12 @@ local function estAdmin(src)
     return QBCore.Functions.HasPermission(src, 'admin') or QBCore.Functions.HasPermission(src, 'god') or IsPlayerAceAllowed(src, 'command')
 end
 
+-- chance des admins : renvoie true si cette partie doit etre gagnee
+local function chanceAdmin(src)
+    local c = Config.ChanceAdmin
+    return c and c.actif and estAdmin(src) and math.random() < (c.taux or 0.6) or false
+end
+
 local function notifier(src, t, g) TriggerClientEvent('QBCore:Notify', src, t, g or 'primary', 6000) end
 
 local function posJoueur(src)
@@ -168,14 +174,21 @@ lib.callback.register('pt-casino:machine', function(src, mise)
     if not P then return nil end
     mise = miser(P, src, mise)
     if not mise then return nil end
-    local r = { tirerSymbole(), tirerSymbole(), tirerSymbole() }
-    local gain = 0
-    if r[1] == r[2] and r[2] == r[3] then
-        gain = mise * Config.Symboles[r[1]].gain
-    else
-        local cerises = 0
-        for _, i in ipairs(r) do if i == 1 then cerises = cerises + 1 end end
-        if cerises == 2 then gain = mise end
+    local r, gain
+    local function tirage()
+        r = { tirerSymbole(), tirerSymbole(), tirerSymbole() }
+        gain = 0
+        if r[1] == r[2] and r[2] == r[3] then
+            gain = mise * Config.Symboles[r[1]].gain
+        else
+            local cerises = 0
+            for _, i in ipairs(r) do if i == 1 then cerises = cerises + 1 end end
+            if cerises == 2 then gain = mise end
+        end
+    end
+    tirage()
+    if gain <= mise and chanceAdmin(src) then
+        for _ = 1, 500 do tirage() if gain > mise then break end end
     end
     payer(P, gain)
     return { symboles = { Config.Symboles[r[1]].nom, Config.Symboles[r[2]].nom, Config.Symboles[r[3]].nom }, gain = gain, mise = mise }
@@ -212,6 +225,14 @@ lib.callback.register('pt-casino:roulette', function(src, pari, valeur, mise)
     if not mise then return nil end
     local n = math.random(0, 36)
     local ok, mult = gagneRoulette(pari, valeur, n)
+    if not ok and chanceAdmin(src) then
+        local gagnants = {}
+        for k = 0, 36 do if gagneRoulette(pari, valeur, k) then gagnants[#gagnants + 1] = k end end
+        if #gagnants > 0 then
+            n = gagnants[math.random(#gagnants)]
+            ok, mult = gagneRoulette(pari, valeur, n)
+        end
+    end
     local gain = ok and mise * mult or 0
     payer(P, gain)
     return { numero = n, couleur = n == 0 and 'vert' or (ROUGES[n] and 'rouge' or 'noir'), gain = gain, mise = mise }
@@ -253,8 +274,18 @@ end
 
 local function terminer(src, P, p)
     local j = valeur(p.joueur)
+    local base = { p.croupier[1], p.croupier[2] }
     while valeur(p.croupier) < 17 do p.croupier[#p.croupier + 1] = carte() end
     local c = valeur(p.croupier)
+    -- admin : le croupier saute ou finit en dessous (sa carte visible reste la meme)
+    if j <= 21 and c <= 21 and c >= j and chanceAdmin(src) then
+        for _ = 1, 200 do
+            p.croupier = { base[1], carte() }
+            while valeur(p.croupier) < 17 do p.croupier[#p.croupier + 1] = carte() end
+            c = valeur(p.croupier)
+            if (c > 21 or c < j) and not (#p.croupier == 2 and c == 21) then break end
+        end
+    end
     local gain, res = 0, 'perdu'
     local bjJoueur = #p.joueur == 2 and j == 21
     local bjCroupier = #p.croupier == 2 and c == 21
@@ -286,6 +317,12 @@ lib.callback.register('pt-casino:bj_action', function(src, action)
     if not P or not p then return nil end
     if action == 'tirer' then
         p.joueur[#p.joueur + 1] = carte()
+        if valeur(p.joueur) > 21 and chanceAdmin(src) then
+            for _ = 1, 50 do
+                p.joueur[#p.joueur] = carte()
+                if valeur(p.joueur) <= 21 then break end
+            end
+        end
         if valeur(p.joueur) >= 21 then return terminer(src, P, p) end
         return vue(p, false)
     elseif action == 'doubler' and #p.joueur == 2 then
@@ -382,6 +419,28 @@ lib.callback.register('pt-casino:poker_action', function(src, jouer)
     if not P or not p then return nil end
     poker[src] = nil
     local fj, fc = forcePoker(p.joueur), forcePoker(p.croupier)
+    -- admin : le croupier recoit une main qui perd ou ne se qualifie pas
+    if jouer and comparer(fc, { 1, 12, 0, 0 }) >= 0 and comparer(fj, fc) <= 0 and chanceAdmin(src) then
+        local pris = {}
+        for _, k in ipairs(p.joueur) do pris[k.r .. ':' .. k.c] = true end
+        for _ = 1, 300 do
+            local m = {}
+            while #m < 3 do
+                local k = { r = math.random(2, 14), c = math.random(4) }
+                local id = k.r .. ':' .. k.c
+                if not pris[id] then
+                    local deja = false
+                    for _, x in ipairs(m) do if x.r == k.r and x.c == k.c then deja = true end end
+                    if not deja then m[#m + 1] = k end
+                end
+            end
+            local f = forcePoker(m)
+            if comparer(f, { 1, 12, 0, 0 }) < 0 or comparer(fj, f) > 0 then
+                p.croupier, fc = m, f
+                break
+            end
+        end
+    end
     local res = { joueur = textePoker(p.joueur), croupier = textePoker(p.croupier), mainJ = CAT[fj[1]], mainC = CAT[fc[1]], ante = p.ante }
     if not jouer then
         res.resultat, res.gain = 'couche', 0
@@ -433,6 +492,7 @@ lib.callback.register('pt-casino:courses', function(src, cheval, mise)
         r = r - 1 / c.cote
         if r <= 0 then gagnant = i break end
     end
+    if gagnant ~= cheval and chanceAdmin(src) then gagnant = cheval end
     local ordre = { gagnant }
     local reste = {}
     for i = 1, #Config.Chevaux do if i ~= gagnant then reste[#reste + 1] = i end end
@@ -481,6 +541,14 @@ RegisterNetEvent('pt-casino:roue', function()
     for i, c in ipairs(roue.cases) do
         r = r - c.chance
         if r <= 0 then case = i break end
+    end
+    -- admin : un gros lot (10 000 et plus, ou la voiture)
+    if chanceAdmin(src) then
+        local gros = {}
+        for i, c in ipairs(roue.cases) do
+            if c.type == 'voiture' or (c.montant or 0) >= 10000 then gros[#gros + 1] = i end
+        end
+        if #gros > 0 then case = gros[math.random(#gros)] end
     end
     -- tout le casino voit la roue tourner
     for _, id in ipairs(GetPlayers()) do

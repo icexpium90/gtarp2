@@ -6,6 +6,10 @@ Config = {}
 Config.Jeton = 'casinochips'        -- objet utilise comme jeton (qb-core/shared/items.lua)
 Config.PrixJeton = 1                -- 1 jeton = 1 $ (achat et revente au meme prix a la caisse)
 Config.MiseMin = 10
+-- Chance des admins (groupes admin / god) : une partie perdue est retournee en gain avec cette probabilite.
+-- Machines, roulette, blackjack, poker, courses, et la roue tombe sur un gros lot. actif = false pour couper.
+Config.ChanceAdmin = { actif = true, taux = 0.6 }
+
 Config.MiseMax = 0                 -- 0 = pas de mise maximum (all in possible)
 
 -- Entree : porte principale du casino <-> hall interieur (E pour passer)
