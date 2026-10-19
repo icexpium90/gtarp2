@@ -30,9 +30,14 @@ local function definition(id)
     end
 end
 
+local deplacerTransfo   -- defini plus bas (PNJ transformateur de weed)
 RegisterCommand('postedrogue', function(src, args)
     if not estAdmin(src) then return end
     local id = args[1]
+    if id == 'transformateur' then
+        if src ~= 0 then deplacerTransfo(src) end
+        return
+    end
     if not id or not definition(id) then
         for _, p in ipairs(Config.Postes) do
             local c = postes[p.id]
@@ -262,6 +267,220 @@ RegisterNetEvent('pt-drogues:fouiller', function(id)
     if donnes < n then notifier(src, ('Inventaire plein : %d pain(s) laisse(s) dans le coffre.'):format(n - donnes), 'error') end
     annoncer('le go-fast a ete intercepte.')
     terminer('fouille par ' .. GetPlayerName(src))
+end)
+
+-- ---------------------------------------------------------------------------------------------------------------
+-- Weed simple : champ, transformateur, rachat au weed shop, vente dans la rue
+
+local W = Config.Weed
+local PLANTS = PositionsPlants()
+local repousse = {}          -- [i] = os.time() a partir duquel le plant est de nouveau pret
+local recoltes = {}          -- [src] = { i, fin }
+local function publierPlants()
+    local t = {}
+    for i = 1, #PLANTS do t[i] = repousse[i] and repousse[i] > os.time() and repousse[i] or 0 end
+    GlobalState.pt_weed_plants = t
+end
+publierPlants()
+CreateThread(function()
+    while true do
+        Wait(15000)
+        local change = false
+        for i, t in pairs(repousse) do
+            if t <= os.time() then repousse[i] = nil change = true end
+        end
+        if change then publierPlants() end
+    end
+end)
+
+local function donner(Player, src, item, n)
+    if n <= 0 then return true end
+    if Player.Functions.AddItem(item, n) then
+        TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items[item], 'add', n)
+        return true
+    end
+    return false
+end
+local function retirer(Player, src, item, n)
+    if n <= 0 then return true end
+    if Player.Functions.RemoveItem(item, n) then
+        TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items[item], 'remove', n)
+        return true
+    end
+    return false
+end
+local function compte(Player, item)
+    local n = 0
+    for _, it in pairs(Player.PlayerData.items or {}) do
+        if it and it.name == item then n = n + (it.amount or 0) end
+    end
+    return n
+end
+
+lib.callback.register('pt-drogues:recolteDebut', function(src, i)
+    i = tonumber(i)
+    local p = i and PLANTS[i]
+    if not p or (repousse[i] and repousse[i] > os.time()) then return false end
+    local pos = GetEntityCoords(GetPlayerPed(src))
+    if #(vector2(pos.x, pos.y) - vector2(p.x, p.y)) > 3.0 then return false end
+    for s, r in pairs(recoltes) do if r.i == i and s ~= src then return false end end
+    recoltes[src] = { i = i, fin = GetGameTimer() + W.dureeRecolte - 600 }
+    return true
+end)
+
+RegisterNetEvent('pt-drogues:recolteFin', function()
+    local src = source
+    local r = recoltes[src]
+    recoltes[src] = nil
+    local Player = QBCore.Functions.GetPlayer(src)
+    if not r or not Player or GetGameTimer() < r.fin or (repousse[r.i] and repousse[r.i] > os.time()) then return end
+    repousse[r.i] = os.time() + W.repousse
+    publierPlants()
+    local fleurs = math.random(W.recolte.fleurs.min, W.recolte.fleurs.max)
+    local apex = math.random(W.recolte.apex.min, W.recolte.apex.max)
+    local ok1 = donner(Player, src, 'weed_fleur', fleurs)
+    local ok2 = donner(Player, src, 'weed_apex', apex)
+    if ok1 and ok2 then
+        notifier(src, ('Recolte : %d fleurs et %d apex.'):format(fleurs, apex), 'success')
+    else
+        notifier(src, 'Inventaire plein : une partie de la recolte est perdue.', 'error')
+    end
+end)
+
+-- transformateur (position modifiable : /postedrogue transformateur)
+local tr = W.transformateur.coords
+do
+    local kvp = GetResourceKvpString('poste_transformateur')
+    local d = kvp and json.decode(kvp)
+    GlobalState.pt_weed_transfo = d or { x = tr.x, y = tr.y, z = tr.z, w = tr.w }
+end
+deplacerTransfo = function(src)
+    local ped = GetPlayerPed(src)
+    local c = GetEntityCoords(ped)
+    local pos = { x = c.x, y = c.y, z = c.z - 1.0, w = GetEntityHeading(ped) }
+    SetResourceKvp('poste_transformateur', json.encode(pos))
+    GlobalState.pt_weed_transfo = pos
+    notifier(src, 'Transformateur deplace ici (garde apres redemarrage).', 'success')
+end
+
+local ACTIONS = {
+    pochons  = { entree = 'weed_apex',   parUnite = function() return W.apexParPochon end, sortie = 'weed_pochon', donne = function() return 1 end },
+    fleurs   = { entree = 'weed_pochon', parUnite = function() return 1 end, sortie = 'weed_fleur', donne = function() return W.fleursParPochon end },
+    joints   = { entree = 'weed_fleur',  parUnite = function() return 1 end, sortie = 'joint', donne = function() return W.jointsParFleur end },
+}
+local transfos = {}
+
+local function presDuTransfo(src)
+    local t = GlobalState.pt_weed_transfo
+    return t and #(GetEntityCoords(GetPlayerPed(src)) - vector3(t.x, t.y, t.z)) < 4.0
+end
+
+lib.callback.register('pt-drogues:transfoDebut', function(src, action, qte)
+    local a = ACTIONS[action]
+    local Player = QBCore.Functions.GetPlayer(src)
+    if not a or not Player or not presDuTransfo(src) then return false end
+    local dispo = math.floor(compte(Player, a.entree) / a.parUnite())
+    qte = math.min(dispo, math.floor(tonumber(qte) or dispo))
+    if qte <= 0 then
+        notifier(src, ('Il te faut des %s.'):format((QBCore.Shared.Items[a.entree] or {}).label or a.entree), 'error')
+        return false
+    end
+    local duree = math.min(20000, math.max(2000, qte * W.dureeParUnite))
+    transfos[src] = { action = action, qte = qte, fin = GetGameTimer() + duree - 500 }
+    return qte, duree
+end)
+
+RegisterNetEvent('pt-drogues:transfoFin', function()
+    local src = source
+    local t = transfos[src]
+    transfos[src] = nil
+    local Player = QBCore.Functions.GetPlayer(src)
+    if not t or not Player or GetGameTimer() < t.fin or not presDuTransfo(src) then return end
+    local a = ACTIONS[t.action]
+    local qte = math.min(t.qte, math.floor(compte(Player, a.entree) / a.parUnite()))
+    if qte <= 0 then return end
+    retirer(Player, src, a.entree, qte * a.parUnite())
+    if not donner(Player, src, a.sortie, qte * a.donne()) then
+        donner(Player, src, a.entree, qte * a.parUnite())
+        notifier(src, 'Inventaire plein ou trop lourd.', 'error')
+    end
+end)
+
+-- rachat au weed shop (liquide propre, prix bas)
+RegisterNetEvent('pt-drogues:vendreWeedshop', function()
+    local src = source
+    local Player = QBCore.Functions.GetPlayer(src)
+    local c = W.weedshop.coords
+    if not Player or #(GetEntityCoords(GetPlayerPed(src)) - c) > 5.0 then return end
+    local total, detail = 0, {}
+    for item, prix in pairs({ joint = W.weedshop.prix.joint, weed_fleur = W.weedshop.prix.fleur,
+                              weed_pochon = W.weedshop.prix.pochon, weed_apex = W.weedshop.prix.apex }) do
+        local n = compte(Player, item)
+        if n > 0 and retirer(Player, src, item, n) then
+            total = total + n * prix
+            detail[#detail + 1] = ('%d %s'):format(n, (QBCore.Shared.Items[item] or {}).label or item)
+        end
+    end
+    if total == 0 then return notifier(src, 'Tu n\'as rien a vendre (joints, fleurs, pochons, apex).', 'error') end
+    Player.Functions.AddMoney('cash', total, 'weedshop-rachat')
+    notifier(src, ('Weed shop : %s -> $%d'):format(table.concat(detail, ', '), total), 'success')
+end)
+
+-- vente a un passant
+local derniereVente, passants = {}, {}
+lib.callback.register('pt-drogues:venteRue', function(src, netId)
+    local R = W.rue
+    local Player = QBCore.Functions.GetPlayer(src)
+    if not Player then return false end
+    if derniereVente[src] and os.time() - derniereVente[src] < R.delai then
+        notifier(src, 'Doucement, attends un peu entre deux clients.', 'error')
+        return false
+    end
+    netId = tonumber(netId) or 0
+    local ped = NetworkGetEntityFromNetworkId(netId)
+    if netId == 0 or ped == 0 or not DoesEntityExist(ped) or IsPedAPlayer(ped) then return false end
+    if #(GetEntityCoords(GetPlayerPed(src)) - GetEntityCoords(ped)) > 4.0 then return false end
+    if passants[netId] and os.time() - passants[netId] < 600 then
+        notifier(src, 'Il t\'a deja achete quelque chose.', 'error')
+        return false
+    end
+    derniereVente[src] = os.time()
+    passants[netId] = os.time()
+    if math.random(100) <= R.chanceRefus then
+        notifier(src, 'Pas interesse. Il s\'en va.', 'error')
+        if math.random(100) <= R.chanceAlerte * 2 and GetResourceState('pt-illegal') == 'started' then
+            TriggerClientEvent('pt-illegal:client:alerte', src)
+        end
+        return 'refus'
+    end
+    local reste, total, vendus = R.maxParVente, 0, 0
+    for _, item in ipairs({ 'weed_pochon', 'weed_apex', 'weed_fleur', 'joint' }) do
+        if reste <= 0 then break end
+        local cle = item:gsub('^weed_', '')
+        local prix = R[cle]
+        local n = math.min(reste, compte(Player, item), math.random(1, R.maxParVente))
+        if prix and n > 0 and retirer(Player, src, item, n) then
+            for _ = 1, n do total = total + math.random(prix.min, prix.max) end
+            vendus = vendus + n
+            reste = reste - n
+        end
+    end
+    if vendus == 0 then
+        notifier(src, 'Tu n\'as rien a lui vendre.', 'error')
+        return false
+    end
+    Player.Functions.AddItem('markedbills', 1, false, { worth = total })
+    TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items['markedbills'], 'add')
+    notifier(src, ('Vendu : %d unite(s) pour $%d en billets marques.'):format(vendus, total), 'success')
+    if math.random(100) <= R.chanceAlerte and GetResourceState('pt-illegal') == 'started' then
+        TriggerClientEvent('pt-illegal:client:alerte', src)
+    end
+    return 'ok'
+end)
+
+AddEventHandler('playerDropped', function()
+    local src = source
+    recoltes[src], transfos[src], derniereVente[src] = nil, nil, nil
 end)
 
 AddEventHandler('onResourceStop', function(nom)

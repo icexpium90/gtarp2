@@ -220,8 +220,179 @@ CreateThread(function()
     end
 end)
 
+-- ---------------------------------------------------------------------------------------------------------------
+-- Weed simple : champ de Grapeseed, PNJ transformateur, rachat au weed shop, vente aux passants
+
+local W = Config.Weed
+local PLANTS = PositionsPlants()
+local plantsPoses = {}       -- [i] = objet
+local transfoPed = nil
+
+local function solSous(p)
+    local ok, z = GetGroundZFor_3dCoord(p.x, p.y, p.z + 15.0, false)
+    return ok and z or p.z
+end
+
+local function recolter(i)
+    if occupe then return end
+    if not lib.callback.await('pt-drogues:recolteDebut', false, i) then
+        return TriggerEvent('QBCore:Notify', 'Ce plant n\'est pas pret (ou quelqu\'un le recolte deja).', 'error')
+    end
+    occupe = true
+    local ok = lib.progressBar({ duration = W.dureeRecolte, label = 'Recolte du plant...', canCancel = true,
+        disable = { move = true, car = true, combat = true },
+        anim = { dict = 'amb@world_human_gardener_plant@male@base', clip = 'base', flag = 1 } })
+    occupe = false
+    if ok then TriggerServerEvent('pt-drogues:recolteFin') end
+end
+
+local function majPlants()
+    local etat = GlobalState.pt_weed_plants or {}
+    local pres = #(GetEntityCoords(PlayerPedId()) - W.champ.centre) < 120.0
+    local h = joaat(W.modelePlant)
+    for i, p in ipairs(PLANTS) do
+        local pret = (etat[i] or 0) == 0
+        if pres and pret and not plantsPoses[i] then
+            if lib.requestModel(h, 5000) then
+                local o = CreateObject(h, p.x, p.y, solSous(p), false, false, false)
+                FreezeEntityPosition(o, true)
+                plantsPoses[i] = o
+                exports['qb-target']:AddTargetEntity(o, {
+                    options = { { icon = 'fas fa-cannabis', label = 'Recolter le plant', action = function() recolter(i) end } },
+                    distance = 2.5,
+                })
+            end
+        elseif (not pres or not pret) and plantsPoses[i] then
+            exports['qb-target']:RemoveTargetEntity(plantsPoses[i])
+            if DoesEntityExist(plantsPoses[i]) then DeleteEntity(plantsPoses[i]) end
+            plantsPoses[i] = nil
+        end
+    end
+end
+
+local function transformer(action, titre)
+    if occupe then return end
+    local qte, duree = lib.callback.await('pt-drogues:transfoDebut', false, action)
+    if not qte then return end
+    occupe = true
+    local ok = lib.progressBar({ duration = duree, label = ('%s (x%d)'):format(titre, qte), canCancel = true,
+        disable = { move = true, car = true, combat = true },
+        anim = { dict = 'mp_common', clip = 'givetake1_a', flag = 49 } })
+    occupe = false
+    if ok then TriggerServerEvent('pt-drogues:transfoFin') end
+end
+
+local function majTransfo()
+    local t = GlobalState.pt_weed_transfo
+    if not t then return end
+    local pres = #(GetEntityCoords(PlayerPedId()) - vector3(t.x, t.y, t.z)) < 60.0
+    if pres and not transfoPed then
+        local h = joaat(W.transformateur.ped)
+        if not lib.requestModel(h, 5000) then return end
+        local ped = CreatePed(4, h, t.x, t.y, t.z, t.w or 0.0, false, false)
+        SetEntityInvincible(ped, true)
+        SetBlockingOfNonTemporaryEvents(ped, true)
+        FreezeEntityPosition(ped, true)
+        TaskStartScenarioInPlace(ped, 'WORLD_HUMAN_SMOKING_POT', 0, true)
+        transfoPed = ped
+        exports['qb-target']:AddTargetEntity(ped, {
+            options = {
+                { icon = 'fas fa-box', label = ('Transformer les apex en pochons (%d apex = 1 pochon)'):format(W.apexParPochon),
+                  action = function() transformer('pochons', 'Mise en pochons') end },
+                { icon = 'fas fa-cannabis', label = ('Reconvertir les pochons en fleurs (1 pochon = %d fleurs)'):format(W.fleursParPochon),
+                  action = function() transformer('fleurs', 'Reconversion en fleurs') end },
+                { icon = 'fas fa-joint', label = ('Rouler des joints (1 fleur = %d joints)'):format(W.jointsParFleur),
+                  action = function() transformer('joints', 'Il roule les joints') end },
+            },
+            distance = 2.5,
+        })
+    elseif not pres and transfoPed then
+        exports['qb-target']:RemoveTargetEntity(transfoPed)
+        if DoesEntityExist(transfoPed) then DeleteEntity(transfoPed) end
+        transfoPed = nil
+    end
+end
+
+AddStateBagChangeHandler('pt_weed_transfo', 'global', function()
+    SetTimeout(0, function()
+        if transfoPed then
+            exports['qb-target']:RemoveTargetEntity(transfoPed)
+            if DoesEntityExist(transfoPed) then DeleteEntity(transfoPed) end
+            transfoPed = nil
+        end
+    end)
+end)
+
+CreateThread(function()
+    while true do
+        majPlants()
+        majTransfo()
+        Wait(2000)
+    end
+end)
+
+-- rachat au weed shop (comptoir)
+CreateThread(function()
+    Wait(1500)
+    local c = W.weedshop.coords
+    exports['qb-target']:AddBoxZone('pt_weedshop_rachat', vector3(c.x - 0.9, c.y, c.z), 1.2, 2.0, {
+        name = 'pt_weedshop_rachat', heading = 0.0, debugPoly = false, minZ = c.z - 1.2, maxZ = c.z + 1.0,
+    }, {
+        options = { { icon = 'fas fa-hand-holding-dollar', label = ('Revendre ta weed au shop (joint $%d, fleur $%d, pochon $%d)'):format(
+            W.weedshop.prix.joint, W.weedshop.prix.fleur, W.weedshop.prix.pochon),
+            action = function() TriggerServerEvent('pt-drogues:vendreWeedshop') end } },
+        distance = 2.5,
+    })
+end)
+
+-- vente aux passants (Alt sur n'importe quel PNJ a pied)
+local function aDeLaWeed()
+    for _, it in ipairs({ 'weed_pochon', 'weed_apex', 'weed_fleur', 'joint' }) do
+        if QBCore.Functions.HasItem(it) then return true end
+    end
+    return false
+end
+
+CreateThread(function()
+    Wait(1500)
+    exports['qb-target']:AddGlobalPed({
+        options = { {
+            icon = 'fas fa-cannabis', label = 'Proposer de la weed',
+            canInteract = function(ent)
+                return not IsPedAPlayer(ent) and not IsPedDeadOrDying(ent, true) and not IsPedInAnyVehicle(ent, false)
+                    and NetworkGetEntityIsNetworked(ent) and GetPedType(ent) ~= 28 and not occupe and aDeLaWeed()
+            end,
+            action = function(ent)
+                if occupe then return end
+                occupe = true
+                local moi = PlayerPedId()
+                ClearPedTasks(ent)
+                TaskTurnPedToFaceEntity(ent, moi, 1500)
+                TaskTurnPedToFaceEntity(moi, ent, 1500)
+                Wait(1200)
+                TaskStandStill(ent, 5000)
+                local r = lib.callback.await('pt-drogues:venteRue', false, NetworkGetNetworkIdFromEntity(ent))
+                if r == 'ok' then
+                    if lib.requestAnimDict('mp_common', 2000) then
+                        TaskPlayAnim(moi, 'mp_common', 'givetake1_a', 8.0, -8.0, 2000, 49, 0, false, false, false)
+                        TaskPlayAnim(ent, 'mp_common', 'givetake1_b', 8.0, -8.0, 2000, 49, 0, false, false, false)
+                    end
+                    Wait(2000)
+                end
+                if DoesEntityExist(ent) then TaskWanderStandard(ent, 10.0, 10) end
+                occupe = false
+            end,
+        } },
+        distance = 2.0,
+    })
+end)
+
 AddEventHandler('onResourceStop', function(nom)
     if nom ~= GetCurrentResourceName() then return end
+    for _, o in pairs(plantsPoses) do if DoesEntityExist(o) then DeleteEntity(o) end end
+    if transfoPed and DoesEntityExist(transfoPed) then DeleteEntity(transfoPed) end
+    exports['qb-target']:RemoveZone('pt_weedshop_rachat')
+    exports['qb-target']:RemoveGlobalPed({ 'Proposer de la weed' })
     if blip then RemoveBlip(blip) end
     if centre then RemoveBlip(centre) end
     for _, z in ipairs(zones) do exports['qb-target']:RemoveZone(z) end

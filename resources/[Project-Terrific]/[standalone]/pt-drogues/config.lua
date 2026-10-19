@@ -4,22 +4,6 @@ Config = {}
 -- Transformation rapide (weed et coke). Un admin peut deplacer un poste : se placer a l'endroit voulu et taper
 -- /postedrogue [id] (ex. /postedrogue coke). La position est gardee apres redemarrage. Sans argument : liste.
 Config.Postes = {
-    -- arriere-salle du weed shop (MLO pt-carte-weedshop, Mission Row)
-    {
-        id = 'weed_effeuiller', label = 'Effeuiller les branches', icone = 'fas fa-cannabis',
-        coords = vector3(348.3, -1012.45, 29.2),
-        entree = { { item = 'weedplant_branch', qte = 1 } },
-        sortie = { item = 'weedplant_weed', qte = 10 },
-        duree = 6000, anim = { dict = 'anim@amb@business@weed@weed_inspecting_high_dry@', nom = 'weed_inspecting_high_base_inspector' },
-    },
-    {
-        id = 'weed_ensacher', label = 'Ensacher le cannabis (2 g par sachet)', icone = 'fas fa-box',
-        coords = vector3(355.56, -1012.45, 29.2),
-        entree = { { item = 'weedplant_weed', qte = 2 }, { item = 'empty_weed_bag', qte = 1 } },
-        sortie = { item = 'weed_og-kush', qte = 1 },
-        duree = 2500, parLot = 10,   -- jusqu'a 10 sachets d'un coup (2,5 s chacun)
-        anim = { dict = 'anim@amb@business@weed@weed_sorting_seated@', nom = 'sorter_right_sort_v3_sorter02' },
-    },
     -- coke : couper un pain recupere sur un go-fast (Stab City, a cote de l'armurier ; /postedrogue coke pour deplacer)
     {
         id = 'coke', label = 'Couper un pain de coke (20 sachets)', icone = 'fas fa-flask',
@@ -27,6 +11,41 @@ Config.Postes = {
         entree = { { item = 'coke_brick', qte = 1 } },
         sortie = { item = 'cokebaggy', qte = 20 },
         duree = 12000, anim = { dict = 'anim@amb@business@coc@coc_unpack_cut_left@', nom = 'coke_cut_v1_coccutter' },
+    },
+}
+
+-- ---------------------------------------------------------------------------------------------------------------
+-- Weed (version simple) : champ au nord -> fleurs + apex -> transformateur -> pochons / joints -> vente
+Config.Weed = {
+    -- champ de Grapeseed : les plants repoussent 5 min apres la recolte
+    champ = { centre = vector3(2224.0, 5577.0, 53.8), colonnes = 4, rangees = 3, ecart = 3.2 },
+    modelePlant = 'prop_weed_01',
+    repousse = 5 * 60,               -- secondes
+    dureeRecolte = 8000,             -- ms
+    recolte = { fleurs = { min = 45, max = 55 }, apex = { min = 5, max = 6 } },
+
+    -- PNJ transformateur (arriere-salle du weed shop ; /postedrogue transformateur pour le deplacer)
+    transformateur = { coords = vector4(351.0, -1009.6, 28.4, 180.0), ped = 'a_m_y_hippy_01' },
+    apexParPochon = 1,               -- 1 apex = 1 pochon
+    fleursParPochon = 10,            -- un pochon se reconvertit en 10 fleurs
+    jointsParFleur = 5,              -- le transformateur roule 5 joints avec 1 fleur
+    dureeParUnite = 400,             -- ms par unite transformee (plafonne a 20 s)
+
+    -- vente dans la rue (n'importe quel passant, Alt sur lui) : paye en billets marques
+    rue = {
+        fleur = { min = 110, max = 130 },
+        pochon = { min = 1000, max = 1600 },
+        apex = { min = 1000, max = 1600 },
+        joint = { min = 45, max = 60 },
+        maxParVente = 5,             -- unites achetees au maximum par passant
+        chanceRefus = 25,            -- % de passants qui refusent
+        chanceAlerte = 15,           -- % d'alerte police a chaque vente
+        delai = 8,                   -- secondes entre deux ventes pour un meme joueur
+    },
+    -- rachat au weed shop (prix bas, en liquide propre)
+    weedshop = {
+        coords = vector3(357.55, -1022.25, 29.39),
+        prix = { joint = 50, fleur = 60, pochon = 600, apex = 500 },
     },
 }
 
@@ -55,3 +74,16 @@ Config.GoFast = {
         { zone = 'Harmony -> La Mesa', depart = vector4(550.0, 2680.0, 42.2, 100.0), arrivee = vector3(800.0, -1000.0, 26.0) },
     },
 }
+
+-- positions des plants du champ (meme calcul cote serveur et joueurs)
+function PositionsPlants()
+    local c = Config.Weed.champ
+    local liste = {}
+    for i = 0, c.colonnes - 1 do
+        for j = 0, c.rangees - 1 do
+            liste[#liste + 1] = vector3(c.centre.x + (i - (c.colonnes - 1) / 2) * c.ecart,
+                                        c.centre.y + (j - (c.rangees - 1) / 2) * c.ecart, c.centre.z)
+        end
+    end
+    return liste
+end
